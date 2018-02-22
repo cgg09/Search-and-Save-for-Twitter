@@ -6,8 +6,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.layout.AnchorPane?>
 
-
-<AnchorPane prefHeight="250.0" prefWidth="400.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8">
+<AnchorPane prefHeight="250.0" prefWidth="400.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tfg.view.LoginViewController">
    <children>
       <GridPane layoutX="72.0" layoutY="95.0" prefHeight="60.0" prefWidth="259.0">
         <columnConstraints>
@@ -19,18 +18,18 @@
           <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
         </rowConstraints>
          <children>
-            <TextField GridPane.columnIndex="1" />
-            <TextField GridPane.columnIndex="1" GridPane.rowIndex="1" />
-            <Label text="Correo electrónico:" />
+            <TextField fx:id="username" GridPane.columnIndex="1" />
+            <Label text="Usuario:" />
             <Label text="Contraseña:" GridPane.rowIndex="1" />
+            <PasswordField fx:id="password" GridPane.columnIndex="1" GridPane.rowIndex="1" />
          </children>
       </GridPane>
-      <Button layoutX="161.0" layoutY="175.0" mnemonicParsing="false" text="Inicia sesión" />
+      <Button layoutX="161.0" layoutY="175.0" mnemonicParsing="false" onAction="#handleLogin" text="Inicia sesión" />
       <Label layoutX="110.0" layoutY="43.0" text="Inicia sesión en Twitter">
          <font>
             <Font size="18.0" />
          </font>
       </Label>
-      <Hyperlink layoutX="116.0" layoutY="212.0" text="¿No tienes cuenta? Regístrate." />
+      <Hyperlink fx:id="link" layoutX="116.0" layoutY="212.0" onAction="#handleLink" text="¿No tienes cuenta? Regístrate." />
    </children>
 </AnchorPane>
