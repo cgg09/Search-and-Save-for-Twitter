@@ -16,19 +16,17 @@ public class OAuthConnection {
 		RequestToken requestToken = twitter.getOAuthRequestToken();
 		System.out.println(requestToken.getToken());
 		AccessToken accessToken = null;
-		//BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 		while (null == accessToken) {
-			System.out.println("Open the following URL and grant access to your account:");
 			System.out.println(requestToken.getAuthorizationURL());
 			main.showWebView(requestToken.getAuthorizationURL());
-			System.out.print("Enter the PIN(if available) or just hit enter.[PIN]:");
 			//String pin = br.readLine();
 			//try{
 				//if(pin.length() > 0){
 			//String pin = "4444"; 
 					//accessToken = twitter.getOAuthAccessToken(requestToken, pin);
 				//}else{
-					accessToken = twitter.getOAuthAccessToken();
+					accessToken = twitter.getOAuthAccessToken(requestToken);
+					//accessToken = twitter.getOAuthAccessToken(requestToken, oauthVerifier); este es el que interesa!!!!
 				//}
 			//} catch (TwitterException te) {
 				//if(401 == te.getStatusCode()){

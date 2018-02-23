@@ -9,20 +9,12 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import tfg.Main;
 import tfg.OAuthConnection;
-import tfg.model.User;
 
 public class LoginViewController {
 
-	@FXML
-	private TextField username;
-	
-	@FXML
-	private PasswordField password;
-	
-	@FXML
-	private Hyperlink link;
-	
-	protected HostServices host = null;
+
+//	@FXML
+//	private Hyperlink link;
 	
 	// Reference to the main application
 	private Main main;
@@ -41,7 +33,7 @@ public class LoginViewController {
 	@FXML
 	public void initialize() {
 		
-		link.setOnAction(this::handleLink);
+//		link.setOnAction(this::handleLink);
 		
 	}
 
@@ -58,25 +50,23 @@ public class LoginViewController {
 	@FXML
 	private void handleLogin() throws Exception {
 		
-		User user = new User(username.getText(), password.getText());
 		OAuthConnection oauth = new OAuthConnection();
-		main.startOAuth(user, oauth);
-		
-		//if(user.isAuthorized())
+		main.startOAuth(oauth);
 	}
 	
-	@FXML
-	private void handleLink(ActionEvent event) {	
+//	@FXML
+/*	private void handleLink(ActionEvent event) {	
 		System.out.println("You clicked"); // que pasa si clico 2 veces seguidas?
 		link.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent event) {
+				HostServices host = new HostServices(main);
 				host.showDocument("https://twitter.com/signup");
 				System.out.println("Heeey well done! :)");
 			
             }
 		});
-	}
+	}*/
 	
 	
 }

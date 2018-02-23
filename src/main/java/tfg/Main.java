@@ -6,7 +6,6 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.stage.Stage;
 import tfg.model.Browser;
-import tfg.model.User;
 import tfg.view.LoginViewController;
 import javafx.scene.Scene;
 import javafx.scene.layout.AnchorPane;
@@ -25,33 +24,11 @@ public class Main extends Application {
 		this.primaryStage = primaryStage;
 		this.primaryStage.setTitle("Twitter Searcher");
 		
-		initRootLayout();
-		
 		showLogin();
-//		showSearch();
 	}
 	
 	/**
-	 * Initializes the root layout
-	 */
-	public void initRootLayout() {
-		try {
-			// Load root layout from fxml file
-			FXMLLoader loader = new FXMLLoader();
-			loader.setLocation(Main.class.getResource("view/RootLayout.fxml"));
-			rootLayout = (BorderPane) loader.load();
-			
-			// Show the scene containing the root layout
-			Scene scene = new Scene(rootLayout);
-			primaryStage.setScene(scene);
-			primaryStage.show();
-		} catch(IOException e) {
-			e.printStackTrace();
-		}
-	}
-	
-	/**
-	 * Initializes the login inside the root layout
+	 * Initializes the login view
 	 */
 	public void showLogin() {
 		try {
@@ -61,11 +38,12 @@ public class Main extends Application {
 			AnchorPane loginView = (AnchorPane) loader.load();
 			
 			// Show the scene containing the login view
-			rootLayout.setCenter(loginView);
+			Scene scene = new Scene(loginView);
+			primaryStage.setScene(scene);
+			primaryStage.show();
 			
 			// Give the controller access to the main app
 			LoginViewController controller = loader.getController();
-//			controller.setPrimaryStage(primaryStage);
 			controller.setMainApp(this);
 			
 		} catch(IOException e) {
@@ -73,7 +51,7 @@ public class Main extends Application {
 		}
 	}
 	
-	public void startOAuth(User user, OAuthConnection oauth) throws Exception {
+	public void startOAuth(OAuthConnection oauth) throws Exception {
 		oauth.setMainApp(this);
 		boolean success = oauth.getConnection();
 		if(success) {
