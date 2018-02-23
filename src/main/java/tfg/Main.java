@@ -4,25 +4,21 @@ import java.io.IOException;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
+import tfg.model.Browser;
 import tfg.model.User;
 import tfg.view.LoginViewController;
-import tfg.view.WebViewController;
 import javafx.scene.Scene;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.web.WebEngine;
-import javafx.scene.web.WebView;
+import javafx.scene.paint.Color;
 
 public class Main extends Application {
 	
 	private Stage primaryStage;
 	private BorderPane rootLayout;
 	
-	// scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm()); #css!!
+	// scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm()); //#css!!
 
 	//@Override
 	public void start(Stage primaryStage) {
@@ -79,7 +75,7 @@ public class Main extends Application {
 	
 	public void startOAuth(User user, OAuthConnection oauth) throws Exception {
 		oauth.setMainApp(this);
-		boolean success = oauth.getConnection(user);
+		boolean success = oauth.getConnection();
 		if(success) {
 			showSearch();
 		}
@@ -89,63 +85,15 @@ public class Main extends Application {
 	 * Initializes the webView inside the root layout
 	 */
 	public void showWebView(String URL) {
-		try {
-			//FXMLLoader loader = new FXMLLoader();
-			//loader.setLocation(Main.class.getResource("view/WebView.fxml"));
-			//AnchorPane webView = (AnchorPane) FXMLLoader.load(Main.class.getResource("view/WebView.fxml"));
-			
-			FXMLLoader loader = new FXMLLoader();
-			loader.setLocation(Main.class.getResource("view/WebView.fxml"));
-			loader.setControllerFactory(clazz -> {
-			    if (clazz == WebViewController.class) {
-			        return new WebViewController(URL);
-			    } else {
-			        // default behavior:
-			        try {
-			            return clazz.newInstance();
-			        } catch (Exception exc) {
-			            throw new RuntimeException(exc);
-			        }
-			    }
-			});
-			
-			AnchorPane webView = (AnchorPane) loader.load();
-			
-			
-			
-			// Create the dialog Stage.
-	        Stage dialogStage = new Stage();
-	        dialogStage.setTitle("Twitter OAuth");
-	        dialogStage.initModality(Modality.WINDOW_MODAL);
-	        dialogStage.initOwner(primaryStage);
-	        Scene scene = new Scene(webView);
-	        dialogStage.setScene(scene);
-
-	        // Set the person into the controller.
-//	        WebViewController controller = loader.getController();
-//			controller.setMainApp(this);
-//	        controller.setDialogStage(dialogStage);
-	       
-
-	        // Show the dialog and wait until the user closes it
-//	        dialogStage.showAndWait();
-			
-			
-			
-			
-			
-			/*
-			WebView browser = new WebView();
-	    	WebEngine webEngine = browser.getEngine();
-	    	webEngine.load(URL);
-			*/
-			
-			
-			//Show the scene containing the web view
-//			rootLayout.setCenter(new WebViewController(URL));
-		} catch(IOException e) {
-			e.printStackTrace();
-		}
+		
+		// create the scene
+		Stage stage = new Stage();
+		stage.setTitle("Web View");
+		Scene scene = new Scene(new Browser(URL), 750, 500, Color.web("#666970"));
+		stage.setScene(scene);
+		// scene.getStylesheets().add("webviewsample/BrowserToolbar.css");
+		stage.show();	
+		
 	}
 	
 	/**
