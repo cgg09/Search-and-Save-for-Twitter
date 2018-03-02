@@ -7,18 +7,24 @@ import javafx.fxml.FXMLLoader;
 import javafx.stage.Stage;
 import tfg.model.Browser;
 import tfg.view.LoginViewController;
+import tfg.view.SearchViewController;
 import javafx.scene.Scene;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
+import javafx.scene.web.WebEngine;
 
 public class Main extends Application {
 	
+	Login login = new Login();
 	private Stage primaryStage;
-	private BorderPane rootLayout;
 	
 	// scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm()); //#css!!
 
+	
+	public Login getLogin() {
+		return login;
+	}
+	
 	//@Override
 	public void start(Stage primaryStage) {
 		this.primaryStage = primaryStage;
@@ -51,27 +57,37 @@ public class Main extends Application {
 		}
 	}
 	
-	public void startOAuth(OAuthConnection oauth) throws Exception {
+	public void manageLogin() {
+		login.setMainApp(this);
+		login.createRequest();
+	}
+	
+/*
+	public void startOAuth(Login oauth) throws Exception { // considerar quitar
 		oauth.setMainApp(this);
 		boolean success = oauth.getConnection();
+		System.out.println(success);
 		if(success) {
 			showSearch();
 		}
 	}
-	
+*/	
 	/**
 	 * Initializes the webView inside the root layout
 	 */
 	public void showWebView(String URL) {
 		
 		// create the scene
+		Browser browser = new Browser(URL);
 		Stage stage = new Stage();
 		stage.setTitle("Web View");
-		Scene scene = new Scene(new Browser(URL), 750, 500, Color.web("#666970"));
+		Scene scene = new Scene(browser, 750, 500, Color.web("#666970"));
 		stage.setScene(scene);
-		// scene.getStylesheets().add("webviewsample/BrowserToolbar.css");
-		stage.show();	
-		
+		stage.show();
+//		System.out.println("New location: "+browser.getWebEngine().getLocation());
+//		browser.getBaseCallbackURL();
+		//Login login = new Login();
+		login.retrieveTokens(browser);
 	}
 	
 	/**
@@ -85,7 +101,15 @@ public class Main extends Application {
 			AnchorPane searchView = (AnchorPane) loader.load();
 			
 			// Show the scene containing the search view
-			rootLayout.setCenter(searchView);
+			Scene scene = new Scene(searchView);
+			primaryStage.setScene(scene);
+			primaryStage.show();
+			
+			// Give the controller access to the main app
+//			SearchViewController controller = loader.getController();
+//			controller.setMainApp(this);
+			
+			
 		} catch(IOException e) {
 			e.printStackTrace();
 		}

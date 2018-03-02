@@ -1,14 +1,9 @@
 package tfg.view;
 
-import javafx.application.HostServices;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.scene.control.Hyperlink;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.TextField;
+
+import tfg.Login;
 import tfg.Main;
-import tfg.OAuthConnection;
 
 public class LoginViewController {
 
@@ -46,27 +41,15 @@ public class LoginViewController {
 		this.main = main;
 	}
 	
-	
+	/**
+	 * When the user clicks the login button
+	 * @throws Exception
+	 */
 	@FXML
 	private void handleLogin() throws Exception {
-		
-		OAuthConnection oauth = new OAuthConnection();
-		main.startOAuth(oauth);
-	}
-	
-//	@FXML
-/*	private void handleLink(ActionEvent event) {	
-		System.out.println("You clicked"); // que pasa si clico 2 veces seguidas?
-		link.setOnAction(new EventHandler<ActionEvent>() {
-			@Override
-			public void handle(ActionEvent event) {
-				HostServices host = new HostServices(main);
-				host.showDocument("https://twitter.com/signup");
-				System.out.println("Heeey well done! :)");
-			
-            }
-		});
-	}*/
-	
+		main.manageLogin();
+		//Login login = main.getLogin();
+		//login.createRequest();
+	}	
 	
 }

@@ -1,5 +1,8 @@
 package tfg.model;
 
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.concurrent.Worker;
 import javafx.scene.layout.Region;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
@@ -10,19 +13,28 @@ public class Browser extends Region {
 	final WebEngine webEngine = browser.getEngine();
 
 	public Browser() {
-		
+
 	}
-	
+
 	public Browser(String URL) {
 
 		// load the web page
 		webEngine.load(URL);
-		
+
 		// add the web view to the scene
 		getChildren().add(browser);
-		
+			
 	}
 
+
+	public Browser getBrowser() {
+		return this;
+	}
+
+
+	public WebEngine getWebEngine() {
+		return webEngine;
+	}
+	
+
 }
-
-
