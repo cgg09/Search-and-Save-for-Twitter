@@ -6,23 +6,21 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.stage.Stage;
 import tfg.model.Browser;
+import tfg.model.TwitterUser;
 import tfg.view.LoginViewController;
 import tfg.view.SearchViewController;
 import javafx.scene.Scene;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
-import javafx.scene.web.WebEngine;
 
 public class Main extends Application {
 	
 	Login login = new Login();
+	TwitterUser u = new TwitterUser();
 	private Stage primaryStage;
 	
-	// scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm()); //#css!!
-
-	
-	public Login getLogin() {
-		return login;
+	public TwitterUser getUser() {
+		return u;
 	}
 	
 	//@Override
@@ -31,6 +29,7 @@ public class Main extends Application {
 		this.primaryStage.setTitle("Twitter Searcher");
 		
 		showLogin();
+//		Database.connect(); --> de momento no va, seguir con ello
 	}
 	
 	/**
@@ -62,16 +61,6 @@ public class Main extends Application {
 		login.createRequest();
 	}
 	
-/*
-	public void startOAuth(Login oauth) throws Exception { // considerar quitar
-		oauth.setMainApp(this);
-		boolean success = oauth.getConnection();
-		System.out.println(success);
-		if(success) {
-			showSearch();
-		}
-	}
-*/	
 	/**
 	 * Initializes the webView inside the root layout
 	 */
@@ -84,9 +73,6 @@ public class Main extends Application {
 		Scene scene = new Scene(browser, 750, 500, Color.web("#666970"));
 		stage.setScene(scene);
 		stage.show();
-//		System.out.println("New location: "+browser.getWebEngine().getLocation());
-//		browser.getBaseCallbackURL();
-		//Login login = new Login();
 		login.retrieveTokens(browser);
 	}
 	
@@ -106,8 +92,9 @@ public class Main extends Application {
 			primaryStage.show();
 			
 			// Give the controller access to the main app
-//			SearchViewController controller = loader.getController();
-//			controller.setMainApp(this);
+			SearchViewController controller = loader.getController();
+			controller.setMainApp(this);
+			controller.setUsername(getUser().getUsername());
 			
 			
 		} catch(IOException e) {
@@ -123,4 +110,6 @@ public class Main extends Application {
 	public static void main(String[] args) {
 		launch(args);
 	}
+	
+	// scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm()); //#css!!
 }

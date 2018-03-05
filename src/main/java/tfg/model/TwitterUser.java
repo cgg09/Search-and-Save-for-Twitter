@@ -4,15 +4,18 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import twitter4j.auth.AccessToken;
 
-public class User {
+public class TwitterUser {
 	
-	private StringProperty username;
-	private StringProperty password;
-	private AccessToken accessToken = null;
+	private final StringProperty username;
+//	private AccessToken accessToken = null;
 	
-	public User(String username, String password) {
+	public TwitterUser() {
+		this(null);
+		
+	}
+	
+	public TwitterUser(String username) {
 		this.username = new SimpleStringProperty(username);
-		this.password = new SimpleStringProperty(password);
 	}
 
 	
@@ -23,19 +26,7 @@ public class User {
 	public void setUsername(String username) {
 		this.username.set(username);
 	}
-	
-	public String getPassword() {
-		return password.get();
-	}
-	
-	public void setPassword(String password) {
-		this.password.set(password);
-	}
-	
-	public void deletePassword() {
-		this.password = null;
-	}
-	
+/*	
 	public AccessToken getAccessToken() {
 		return accessToken;
 	}
@@ -49,4 +40,5 @@ public class User {
 			return true;
 		return false;
 	}
+*/
 }

@@ -17,14 +17,20 @@ public class SearchViewController {
 	
 	@FXML
 	public void initialize() {
+//		System.out.println(main.getUser().getUsername().toString());
 		
 	}
 	
-	@FXML
-	private void setUsername() {
-		
+	public void setUsername(String u) {
+		username.setText(u);
+//		String user = main.getUser().getUsername();
 	}
 	
+	/**
+	 * Is called by the main application to give a reference back to itself
+	 * 
+	 * @param main
+	 */
 	public void setMainApp(Main main) {
 		this.main = main;
 	}

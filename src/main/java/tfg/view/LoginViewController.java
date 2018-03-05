@@ -2,7 +2,6 @@ package tfg.view;
 
 import javafx.fxml.FXML;
 
-import tfg.Login;
 import tfg.Main;
 
 public class LoginViewController {
@@ -48,8 +47,6 @@ public class LoginViewController {
 	@FXML
 	private void handleLogin() throws Exception {
 		main.manageLogin();
-		//Login login = main.getLogin();
-		//login.createRequest();
 	}	
 	
 }
