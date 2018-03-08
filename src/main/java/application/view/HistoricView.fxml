@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<AnchorPane prefHeight="200.0" prefWidth="400.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.view.HistoricViewController">
+   <children>
+      <SplitPane dividerPositions="0.1513" layoutX="-20.0" layoutY="10.0" prefHeight="290.0" prefWidth="729.0" AnchorPane.bottomAnchor="56.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <items>
+          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="288.0" prefWidth="130.0">
+               <children>
+                  <ListView fx:id="historySearch" layoutX="-65.0" layoutY="24.0" prefHeight="288.0" prefWidth="107.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+               </children>
+            </AnchorPane>
+          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+               <children>
+                  <ListView fx:id="currentSearch" layoutX="216.0" layoutY="74.0" prefHeight="288.0" prefWidth="614.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+               </children>
+            </AnchorPane>
+        </items>
+      </SplitPane>
+      <Button layoutX="48.0" layoutY="307.0" mnemonicParsing="false" onAction="#handleNew" text="Nueva búsqueda" AnchorPane.bottomAnchor="15.0" AnchorPane.leftAnchor="15.0" />
+   </children>
+</AnchorPane>
