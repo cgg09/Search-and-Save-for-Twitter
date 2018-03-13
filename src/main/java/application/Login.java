@@ -36,7 +36,8 @@ public class Login {
 	}
 
 	/**
-	 * 1st login step: Request an authorization to Twitter
+	 * New login process
+	 * 1st step: Request an authorization to Twitter
 	 */
 	public void createRequest(Twitter twitter) {
 
@@ -68,7 +69,8 @@ public class Login {
 	}
 
 	/**
-	 * 2n login step: Retrieve tokens from callback url
+	 * New login process
+	 * 2n step: Retrieve tokens from callback url
 	 */
 	public void retrieveTokens(Browser browser) {
 
@@ -99,7 +101,8 @@ public class Login {
 	}
 
 	/**
-	 * 3rd login step: Verify identity and sign in
+	 * New login process
+	 * 3rd step: Verify identity and sign in
 	 */
 	public void verifyTokens(String callbackURL) {
 
@@ -126,22 +129,47 @@ public class Login {
 				te.printStackTrace();
 			}
 		}
-		try {
-			appProps.loadFile("user.properties");
-		} catch (IOException e) {
-			// error al cargar el archivo
-			e.printStackTrace();
-		}
+		
 		try {
 			main.getUser().setUsername(twitter.verifyCredentials().getScreenName());
+			Database.saveLogin(main.getUser().getUsername(), accessToken.getToken().toString(), accessToken.getTokenSecret().toString());
+			main.showSearch();
 		} catch (TwitterException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-//		System.out.println(main.getUser().getUsername());
-		appProps.storeData("access_token", accessToken.getToken().toString());
-		appProps.storeData("access_token_secret", accessToken.getTokenSecret().toString());
-		main.showSearch();
+		
+
+	}
+	
+	public void retrieveSession(Twitter twitter, String user) {
+		
+//		this.twitter = twitter;
+
+		try {
+			appProps.loadFile("client.properties");
+		} catch (IOException e) {
+			// saltar error al cargar datos
+			System.out.println("archivo cargado incorrectamente");
+			e.printStackTrace();
+		}
+
+	    twitter.setOAuthConsumer(appProps.getValue("consumer_key"), appProps.getValue("consumer_secret"));
+	    String token = Database.getUserData("access_token",user);
+	    String secret = Database.getUserData("access_secret",user);
+	    twitter.setOAuthAccessToken(new AccessToken(token,secret));
+	    
+	    // primero verificar conexión así --> twitter.verifyCredentials(); !!! Aquí se controlarán tokens expirados, etc
+	    
+	    
+	    try {
+			main.getUser().setUsername(twitter.verifyCredentials().getScreenName()); // error ! 401 !!! :(
+			main.showSearch();
+		} catch (TwitterException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	    
 	}
 
 

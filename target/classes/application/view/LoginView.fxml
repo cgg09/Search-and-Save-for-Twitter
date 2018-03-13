@@ -6,14 +6,15 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.layout.AnchorPane?>
 
-<AnchorPane prefHeight="200.0" prefWidth="300.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.view.LoginViewController">
+<AnchorPane prefHeight="250.0" prefWidth="350.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.view.LoginViewController">
    <children>
-      <Button layoutX="110.0" layoutY="88.0" mnemonicParsing="false" onAction="#handleLogin" text="Inicia sesión" />
-      <Label layoutX="60.0" layoutY="38.0" text="Inicia sesión en Twitter">
+      <Label layoutX="91.0" layoutY="37.0" text="Entra en la aplicación" AnchorPane.leftAnchor="91.0" AnchorPane.rightAnchor="90.0" AnchorPane.topAnchor="37.0">
          <font>
             <Font size="18.0" />
          </font>
       </Label>
+      <Button layoutX="129.0" layoutY="100.0" mnemonicParsing="false" onAction="#handleSignUp" text="Nuevo usuario" AnchorPane.leftAnchor="129.0" AnchorPane.rightAnchor="128.0" AnchorPane.topAnchor="100.0" />
+      <Button layoutX="135.0" layoutY="142.0" mnemonicParsing="false" onAction="#handleSingIn" text="Inicia sesión" AnchorPane.bottomAnchor="53.0" AnchorPane.leftAnchor="129.0" AnchorPane.rightAnchor="128.0" />
 <!--   <Hyperlink fx:id="link" layoutX="67.0" layoutY="135.0" onAction="#handleLink" text="¿No tienes cuenta? Regístrate." />  -->
    </children>
 </AnchorPane>

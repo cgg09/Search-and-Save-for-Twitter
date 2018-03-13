@@ -2,42 +2,162 @@ package application;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
+
+import org.sqlite.SQLiteConfig;
 
 
 public class Database {
 
+	private static Connection c = null;
+	private static String className = "org.sqlite.JDBC";
+	private static String databasePath;
 
 	/**
 	 * Connect to a sample database
 	 */
-	public static void connect() {
-		Connection conn = null;
+	public static void connect(String path) {
+
+		databasePath = path;
 		try {
-			// db parameters
-			String url = "jdbc:sqlite:<sqlite_dabase_file_path>"; // archivo de la base de datos: guardar en resources 
-			// create a connection to the database
-			conn = DriverManager.getConnection(url);
+			Class.forName(className);
+			c = DriverManager.getConnection("jdbc:sqlite:"+databasePath);
+		} catch ( Exception e ) {
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+		}
+		System.out.println("Opened database successfully");
 
-			System.out.println("Connection to SQLite has been established.");
+	}
 
-		} catch (SQLException e) {
-			System.out.println(e.getMessage());
-		} finally {
-			try {
-				if (conn != null) {
-					conn.close();
-				}
-			} catch (SQLException ex) {
-				System.out.println(ex.getMessage());
+	/**
+	 * Create our twitter searcher database
+	 */
+	public static void createDatabase(String path) {
+
+		databasePath = path;
+		Statement stmt = null;
+		try {
+			Class.forName("org.sqlite.JDBC");
+			SQLiteConfig config = new SQLiteConfig();
+			config.enforceForeignKeys(true);
+			c = DriverManager.getConnection("jdbc:sqlite:"+databasePath);
+			System.out.println("Opened database successfully. Let's add tables");
+
+			stmt = c.createStatement();
+			String user = "CREATE TABLE USER " +
+					"(USERNAME		TEXT	PRIMARY KEY		NOT NULL, " +
+					" ACCESS_TOKEN	TEXT					NOT NULL, " + 
+					" ACCESS_SECRET	TEXT					NOT NULL)"; 
+
+			String collection = "CREATE TABLE COLLECTION " +
+					"(COLLECTION_ID		CHAR(50)	PRIMARY KEY		NOT NULL, " +
+					" USERNAME			TEXT						NOT NULL, " +  // REVISAR COMO INDICAR FKS
+					" TIME_START		TIMESTAMP					NOT NULL, " + 
+					" TIME_END			TIMESTAMP					NOT NULL, " +
+					" TYPE				CHAR(50)					NOT NULL, " +
+					" QUERY				CHAR(50)					NOT NULL, " +
+					" FOREIGN KEY 		(USERNAME)	REFERENCES		USER(USERNAME))";
+
+			String tweet = "CREATE TABLE TWEET " +
+					"(TWEET_ID			CHAR(50)		PRIMARY KEY     NOT NULL, " +
+					" COLLECTION_ID		CHAR(50)						NOT NULL, " + 
+					" RAW_TWEET			CHAR(200)						NOT NULL, " + 
+					" AUTHOR			CHAR(50)						NOT NULL, " +
+					" CREATED_AT		TIMESTAMP						NOT NULL, " +
+					" TEXT_PRINTABLE	CHAR(200)						NOT NULL, " +
+					" FOREIGN KEY 		(COLLECTION_ID)	REFERENCES		COLLECTION(COLLECTION_ID))";
+
+			stmt.executeUpdate(user);
+			stmt.executeUpdate(collection);
+			stmt.executeUpdate(tweet);
+			stmt.close();
+		} catch ( Exception e ) {
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+		}
+		System.out.println("Tables created successfully");
+	}
+	
+	/**
+	 * Saves the login info of the user in the database
+	 * @param username
+	 * @param token
+	 * @param tokenSecret
+	 */
+	public static void saveLogin(String username, String token, String tokenSecret) {	
+
+		try {
+			if(c.isClosed()) {
+				c = DriverManager.getConnection("jdbc:sqlite:"+databasePath);
 			}
+			Class.forName(className);
+			
+			String loginn = "INSERT INTO USER (USERNAME, ACCESS_TOKEN, ACCESS_SECRET) " +
+					"VALUES (?,?,?);";
+			
+			PreparedStatement psmt = c.prepareStatement(loginn);
+			
+			psmt.setString(1, username);
+			psmt.setString(2, token);
+			psmt.setString(3, tokenSecret);
+			psmt.executeUpdate();
+		
+		} catch ( Exception e ) {
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
 		}
 	}
-	/**
-	 * @param args the command line arguments
-	 */
-	public static void main(String[] args) {
-		connect();
+	
+	public static boolean checkUser(String user) {
+		
+		Statement stmt = null;
+
+		try {
+			if(c.isClosed()) {
+				c = DriverManager.getConnection("jdbc:sqlite:"+databasePath);
+			}
+			Class.forName(className);
+			stmt = c.createStatement();
+			
+			String s = "SELECT username FROM user WHERE username=\""+user+"\" ";
+			ResultSet rs = stmt.executeQuery(s);
+			
+			if(rs!=null) {
+				return true;
+			} else {
+				return true;
+			}
+			
+		} catch ( Exception e ) {
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+			return false;
+		}
 	}
+	
+	public static String getUserData(String query, String user) {
+		
+		Statement stmt = null;
+
+		try {
+			if(c.isClosed()) {
+				c = DriverManager.getConnection("jdbc:sqlite:"+databasePath);
+			}
+			Class.forName(className);
+			stmt = c.createStatement();
+
+			String select = "SELECT "+query+" FROM user WHERE username=\""+user+"\" ";
+			
+			ResultSet rs = stmt.executeQuery(select);
+			
+			return rs.toString();
+
+		} catch ( Exception e ) {
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+			return null;
+		}
+		
+	}
+
 
 }

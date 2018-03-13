@@ -13,6 +13,6 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="C:/Users/María Cristina/Documents/Eclipse/TFG docs/sqlite-jdbc-3.7.2.jar.zip"/>
+	<classpathentry kind="lib" path="C:/Users/María Cristina/Documents/Eclipse/TFG docs/sqlite-jdbc-3.21.0.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

@@ -2,13 +2,10 @@ package application.view;
 
 import application.Main;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.stage.Stage;
 
 public class LoginViewController {
-
-
-//	@FXML
-//	private Hyperlink link;
 	
 	private Stage currentStage;
 	
@@ -29,8 +26,6 @@ public class LoginViewController {
 	@FXML
 	public void initialize() {
 		
-//		link.setOnAction(this::handleLink);
-		
 	}
 
 	public void setStage(Stage stage) {
@@ -46,13 +41,19 @@ public class LoginViewController {
 		this.main = main;
 	}
 	
+	@FXML
+	private void handleSingIn() {
+		main.showFastLogin();
+	}
+	
+	
 	/**
 	 * When the user clicks the login button
 	 * @throws Exception
 	 */
 	@FXML
-	private void handleLogin() throws Exception {
-		main.manageLogin();
+	private void handleSignUp() throws Exception {
+		main.manageNewLogin();
 		currentStage.close();
 	}	
 	

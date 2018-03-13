@@ -1,5 +1,6 @@
 package application;
 	
+import java.io.File;
 import java.io.IOException;
 
 import application.model.Browser;
@@ -7,6 +8,7 @@ import application.model.HistoricSearch;
 import application.model.LiveSearch;
 import application.model.TwitterSearch;
 import application.model.TwitterUser;
+import application.view.FastLoginViewController;
 import application.view.LoginViewController;
 import application.view.NewHistoricDialogController;
 import application.view.SearchViewController;
@@ -46,7 +48,6 @@ public class Main extends Application {
 		this.primaryStage.setTitle("Twitter Searcher");
 		
 		showLogin();
-//		Database.connect(); --> de momento no va, seguir con ello
 	}
 	
 	/**
@@ -74,10 +75,45 @@ public class Main extends Application {
 		}
 	}
 	
-	public void manageLogin() {
+	public void manageNewLogin() {
 		login.setMainApp(this);
-		login.createRequest(twitter);
+		login.createRequest(twitter);		
 	}
+	
+	public void showFastLogin() {
+		try {
+			// Load login from fxml file
+			FXMLLoader loader = new FXMLLoader();
+			loader.setLocation(Main.class.getResource("view/FastLoginView.fxml"));
+			AnchorPane fastLoginView = (AnchorPane) loader.load();
+			
+			// Show the scene containing the login view
+			Scene scene = new Scene(fastLoginView);
+			primaryStage.setScene(scene);
+			primaryStage.show();
+			
+			// Give the controller access to the main app
+			FastLoginViewController controller = loader.getController();
+			controller.setMainApp(this);
+			controller.setStage(primaryStage);
+			
+		} catch(IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void manageFastLogin(String user) {
+		login.setMainApp(this);
+		if(Database.checkUser(user)) {
+			login.retrieveSession(twitter,user);
+		}
+		else {
+			System.out.println("Lo siento, pero este usuario no está registrado en esta aplicación. Intenta de nuevo.");
+		}
+	}
+	
+	
+	
 	
 	/**
 	 * Initializes the webView inside the root layout
@@ -151,6 +187,18 @@ public class Main extends Application {
 	
 	
 	public static void main(String[] args) {
+		
+		String path = "src/main/resources/twitter.db";	
+		File file = new File(path);
+		if(file.exists()) {
+			System.out.println("Database exists");
+			Database.connect(path);
+		} else {
+			System.out.println("Database does not exist. Create a new one");
+			Database.createDatabase(path);
+		}
+		
+		//		Database.connect();		
 		launch(args);
 	}
 	
