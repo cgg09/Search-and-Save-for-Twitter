@@ -142,9 +142,12 @@ public class Login {
 
 	}
 	
+	/**
+	 * Retrieve session when the user has signed up before
+	 * @param twitter
+	 * @param user
+	 */
 	public void retrieveSession(Twitter twitter, String user) {
-		
-//		this.twitter = twitter;
 
 		try {
 			appProps.loadFile("client.properties");
@@ -153,21 +156,28 @@ public class Login {
 			System.out.println("archivo cargado incorrectamente");
 			e.printStackTrace();
 		}
-
+		
 	    twitter.setOAuthConsumer(appProps.getValue("consumer_key"), appProps.getValue("consumer_secret"));
 	    String token = Database.getUserData("access_token",user);
 	    String secret = Database.getUserData("access_secret",user);
-	    twitter.setOAuthAccessToken(new AccessToken(token,secret));
+	    AccessToken at = new AccessToken(token,secret);
+	    twitter.setOAuthAccessToken(at);
 	    
-	    // primero verificar conexión así --> twitter.verifyCredentials(); !!! Aquí se controlarán tokens expirados, etc
-	    
+	    // primero verificar conexión así --> !!! Aquí se controlarán tokens expirados, etc
 	    
 	    try {
-			main.getUser().setUsername(twitter.verifyCredentials().getScreenName()); // error ! 401 !!! :(
-			main.showSearch();
-		} catch (TwitterException e) {
+			twitter.verifyCredentials().getId();
+		} catch (TwitterException e1) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			e1.printStackTrace();
+		}
+
+	    try {
+	    	main.getUser().setUsername(twitter.verifyCredentials().getScreenName());
+			main.showSearch();
+		} catch (TwitterException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
 		}
 	    
 	}

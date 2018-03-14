@@ -150,7 +150,13 @@ public class Database {
 			
 			ResultSet rs = stmt.executeQuery(select);
 			
-			return rs.toString();
+			while (rs.next()) {
+ //               System.out.println(rs.getString(query));
+                return rs.getString(query);
+            }
+			
+			//return rs.getString(query);
+			return null;
 
 		} catch ( Exception e ) {
 			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
