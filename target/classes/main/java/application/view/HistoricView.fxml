@@ -9,9 +9,9 @@
    <children>
       <SplitPane dividerPositions="0.1513" layoutX="-20.0" layoutY="10.0" prefHeight="290.0" prefWidth="729.0" AnchorPane.bottomAnchor="56.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <items>
-          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="288.0" prefWidth="130.0">
+          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="142.0" prefWidth="90.0">
                <children>
-                  <ListView fx:id="historySearch" layoutX="-65.0" layoutY="24.0" prefHeight="288.0" prefWidth="107.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                  <ListView fx:id="historySearch" layoutX="-80.0" layoutY="-6.0" prefHeight="142.0" prefWidth="57.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                </children>
             </AnchorPane>
           <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
@@ -22,5 +22,7 @@
         </items>
       </SplitPane>
       <Button layoutX="48.0" layoutY="307.0" mnemonicParsing="false" onAction="#handleNew" text="Nueva búsqueda" AnchorPane.bottomAnchor="15.0" AnchorPane.leftAnchor="15.0" />
+      <Button layoutX="260.0" layoutY="150.0" mnemonicParsing="false" onAction="#nextTweets" text="Siguiente" AnchorPane.bottomAnchor="25.0" AnchorPane.rightAnchor="220.0" />
+      <Button layoutX="194.0" layoutY="150.0" mnemonicParsing="false" onAction="#previousTweets" text="Anterior" AnchorPane.bottomAnchor="25.0" AnchorPane.rightAnchor="300.0" />
    </children>
 </AnchorPane>

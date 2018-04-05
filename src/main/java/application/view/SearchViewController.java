@@ -28,14 +28,18 @@ public class SearchViewController extends AnchorPane {
 		username.setText(u);
 	}
 	
-	public void newSearch(TwitterSearch search) {
+	public boolean newSearch(TwitterSearch search) {
+		
+		boolean okClicked = false;
 		
 		if(search instanceof HistoricSearch){
-			main.showNewHistoricSearch(search);
+			okClicked = main.showNewHistoricSearch(search);
+			
 		}
 		else if(search instanceof LiveSearch) {
-			//main.showNewLiveSearch(search);
+			//okClicked = main.showNewLiveSearch(search);
 		}
+		return okClicked;
 		
 	}
 	

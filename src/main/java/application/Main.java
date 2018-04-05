@@ -80,6 +80,9 @@ public class Main extends Application {
 		login.createRequest(twitter);		
 	}
 	
+	/**
+	 * Login view for a fast login
+	 */
 	public void showFastLogin() {
 		try {
 			// Load login from fxml file
@@ -104,19 +107,17 @@ public class Main extends Application {
 	
 	public void manageFastLogin(String user) {
 		login.setMainApp(this);
-		if(Database.checkUser(user)) {
+		boolean check = Database.checkUser(user);
+		if(check) {
 			login.retrieveSession(twitter,user);
 		}
 		else {
 			System.out.println("Lo siento, pero este usuario no está registrado en esta aplicación. Intenta de nuevo.");
 		}
 	}
-	
-	
-	
-	
+		
 	/**
-	 * Initializes the webView inside the root layout
+	 * Initializes the webView for the first login
 	 */
 	public void showWebView(String URL) {
 		
@@ -157,7 +158,7 @@ public class Main extends Application {
 		}
 	}
 	
-	public void showNewHistoricSearch(TwitterSearch search) {
+	public boolean showNewHistoricSearch(TwitterSearch search) {
 		try {
 			FXMLLoader loader = new FXMLLoader();
 			loader.setLocation(Main.class.getResource("view/NewHistoricDialog.fxml"));
@@ -175,9 +176,12 @@ public class Main extends Application {
 			controller.setSearch(search);
 			
 			dialogStage.showAndWait();
+			
+			return controller.isOkClicked();
 		
 		} catch(IOException e) {
 			e.printStackTrace();
+			return false;
 		}
 	}
 	
@@ -198,7 +202,6 @@ public class Main extends Application {
 			Database.createDatabase(path);
 		}
 		
-		//		Database.connect();		
 		launch(args);
 	}
 	

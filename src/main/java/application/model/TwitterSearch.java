@@ -1,19 +1,23 @@
 package application.model;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Vector;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import twitter4j.JSONObject;
+import twitter4j.QueryResult;
 import twitter4j.Status;
 
 public class TwitterSearch {
 	
-	private final StringProperty keyword;
-	private List<Status> tweets = null;
+	
+	protected final StringProperty keyword;
+	private List<Status> tweets = new Vector<Status>();
 	
 	public TwitterSearch() {
 		this(null);
@@ -21,7 +25,7 @@ public class TwitterSearch {
 	
 	public TwitterSearch(String keyword) {
 		this.keyword = new SimpleStringProperty(keyword);
-//		this.tweets; = 
+		
 	}
 	
 	public String getKeyword() {
@@ -44,8 +48,16 @@ public class TwitterSearch {
 		return tweets;
 	}
 	
-	public void addTweets(List<Status> tweets) {
-		this.tweets = tweets;
-	}
+
+	
+	public void addTweets(QueryResult tweetList) {
+
+		this.tweets.addAll(tweetList.getTweets());
+//		for(Status t : tweetList.getTweets()) {
+//			this.tweets.add(t);
+//		}
+		
+		
+	}	
 	
 }
