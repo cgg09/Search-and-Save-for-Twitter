@@ -2,7 +2,7 @@ package application.view;
 
 import java.sql.Timestamp;
 
-import application.Database;
+import application.DB;
 import application.model.HistoricSearch;
 import application.model.TwitterSearch;
 import javafx.fxml.FXML;
@@ -78,10 +78,10 @@ public class NewHistoricDialogController {
 
 		Timestamp ts_end = new Timestamp(System.currentTimeMillis());
 		//;
-		Database.addNewCollection(search, ts_start, ts_end);
+		DB.addNewCollection(search, ts_start, ts_end);
 		
 		for(Status tweet : search.getTweetList()) {
-			Database.addTweet(tweet, search);//(search, ts_start, ts_end);
+			DB.addTweet(tweet, search);//(search, ts_start, ts_end);
 		}
 		
 		okClicked = true;

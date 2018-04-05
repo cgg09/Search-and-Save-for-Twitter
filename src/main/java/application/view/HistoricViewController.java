@@ -2,7 +2,7 @@ package application.view;
 
 import java.util.List;
 
-import application.Database;
+import application.DB;
 import application.Main;
 import application.model.HistoricSearch;
 import application.model.TwitterSearch;

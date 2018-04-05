@@ -107,7 +107,7 @@ public class Main extends Application {
 	
 	public void manageFastLogin(String user) {
 		login.setMainApp(this);
-		boolean check = Database.checkUser(user);
+		boolean check = DB.checkUser(user);
 		if(check) {
 			login.retrieveSession(twitter,user);
 		}
@@ -196,10 +196,10 @@ public class Main extends Application {
 		File file = new File(path);
 		if(file.exists()) {
 			System.out.println("Database exists");
-			Database.connect(path);
+			DB.connect(path);
 		} else {
 			System.out.println("Database does not exist. Create a new one");
-			Database.createDatabase(path);
+			DB.createDatabase(path);
 		}
 		
 		launch(args);

@@ -132,7 +132,7 @@ public class Login {
 		
 		try {
 			main.getUser().setUsername(twitter.verifyCredentials().getScreenName());
-			Database.saveLogin(main.getUser().getUsername(), accessToken.getToken().toString(), accessToken.getTokenSecret().toString());
+			DB.saveLogin(main.getUser().getUsername(), accessToken.getToken().toString(), accessToken.getTokenSecret().toString());
 			main.showSearch();
 		} catch (TwitterException e) {
 			// TODO Auto-generated catch block
@@ -158,8 +158,8 @@ public class Login {
 		}
 		
 	    twitter.setOAuthConsumer(appProps.getValue("consumer_key"), appProps.getValue("consumer_secret"));
-	    String token = Database.getUserData("access_token",user);
-	    String secret = Database.getUserData("access_secret",user);
+	    String token = DB.getUserData("access_token",user);
+	    String secret = DB.getUserData("access_secret",user);
 	    AccessToken at = new AccessToken(token,secret);
 	    twitter.setOAuthAccessToken(at);
 	    
