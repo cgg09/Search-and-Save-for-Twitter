@@ -36,8 +36,6 @@ public class HistoricViewController extends AnchorPane {
 
 	private HistoricSearch search = new HistoricSearch();
 
-//	private List<HistoricSearch> searchList = new ArrayList<HistoricSearch();
-
 	private static SearchViewController searchController;
 	
 	private int from = 0;
@@ -55,7 +53,12 @@ public class HistoricViewController extends AnchorPane {
 
 	private void addSearch() {
 		
-		currentSearch.getItems().remove(data); // pendiente de probar
+		System.out.println(data.isEmpty());
+		
+		if(!data.isEmpty()) {
+			data.clear();
+			System.out.print("Anything here?"+data.get(0).toString());
+		}
 		
 		int count = 1; // esto se va cuando esté hecha la tableview
 
