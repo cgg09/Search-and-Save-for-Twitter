@@ -2,7 +2,7 @@ package application.view;
 
 import java.sql.Timestamp;
 
-import application.DB;
+import application.database.DB;
 import application.model.HistoricSearch;
 import application.model.TwitterSearch;
 import javafx.fxml.FXML;

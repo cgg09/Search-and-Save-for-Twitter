@@ -2,8 +2,8 @@ package application.view;
 
 import java.util.List;
 
-import application.DB;
 import application.Main;
+import application.database.DB;
 import application.model.HistoricSearch;
 import application.model.TwitterSearch;
 import application.utils.TweetUtil;

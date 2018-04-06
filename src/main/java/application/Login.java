@@ -9,6 +9,8 @@ import org.apache.http.NameValuePair;
 
 import com.box.restclientv2.httpclientsupport.HttpClientURIBuilder;
 
+import application.database.DB;
+import application.database.DBUser;
 import application.model.AppProperties;
 import application.model.Browser;
 import javafx.beans.value.ChangeListener;
@@ -23,12 +25,13 @@ import twitter4j.auth.RequestToken;
 
 public class Login {
 
-	AppProperties appProps = new AppProperties();
-	Twitter twitter;
-	AccessToken accessToken = null;
-	RequestToken requestToken = null;
-	WebEngine webEngine;
+	private AppProperties appProps = new AppProperties();
+	private Twitter twitter;
+	private AccessToken accessToken = null;
+	private RequestToken requestToken = null;
+	private WebEngine webEngine;
 	private Main main;
+	private DBUser dbu;
 
 
 	public Login() {
@@ -39,8 +42,9 @@ public class Login {
 	 * New login process
 	 * 1st step: Request an authorization to Twitter
 	 */
-	public void createRequest(Twitter twitter) {
+	public void createRequest(Twitter twitter, DBUser dbu) {
 
+		this.dbu = dbu;
 		this.twitter = twitter;
 		// read client properties file
 
@@ -132,7 +136,7 @@ public class Login {
 		
 		try {
 			main.getUser().setUsername(twitter.verifyCredentials().getScreenName());
-			DB.saveLogin(main.getUser().getUsername(), accessToken.getToken().toString(), accessToken.getTokenSecret().toString());
+			dbu.saveLogin(main.getUser().getUsername(), accessToken.getToken().toString(), accessToken.getTokenSecret().toString());
 			main.showSearch();
 		} catch (TwitterException e) {
 			// TODO Auto-generated catch block
@@ -147,7 +151,9 @@ public class Login {
 	 * @param twitter
 	 * @param user
 	 */
-	public void retrieveSession(Twitter twitter, String user) {
+	public void retrieveSession(Twitter twitter, String user, DBUser dbu) {
+		
+		this.dbu = dbu;
 
 		try {
 			appProps.loadFile("client.properties");
@@ -158,8 +164,9 @@ public class Login {
 		}
 		
 	    twitter.setOAuthConsumer(appProps.getValue("consumer_key"), appProps.getValue("consumer_secret"));
-	    String token = DB.getUserData("access_token",user);
-	    String secret = DB.getUserData("access_secret",user);
+	    
+	    String token = dbu.getUserData("access_token",user);
+	    String secret = dbu.getUserData("access_secret",user);
 	    AccessToken at = new AccessToken(token,secret);
 	    twitter.setOAuthAccessToken(at);
 	    

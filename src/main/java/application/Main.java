@@ -3,6 +3,9 @@ package application;
 import java.io.File;
 import java.io.IOException;
 
+import application.database.DB;
+import application.database.DBUser;
+import application.database.Database;
 import application.model.Browser;
 import application.model.HistoricSearch;
 import application.model.LiveSearch;
@@ -28,6 +31,7 @@ public class Main extends Application {
 	Login login = new Login();
 	TwitterUser u = new TwitterUser();
 	Twitter twitter = TwitterFactory.getSingleton();
+	DBUser dbu = new DBUser();
 	
 	private ObservableList<HistoricSearch> historicSearch = FXCollections.observableArrayList();
 	private ObservableList<LiveSearch> liveSearch = FXCollections.observableArrayList();
@@ -77,7 +81,7 @@ public class Main extends Application {
 	
 	public void manageNewLogin() {
 		login.setMainApp(this);
-		login.createRequest(twitter);		
+		login.createRequest(twitter,dbu);		
 	}
 	
 	/**
@@ -107,9 +111,9 @@ public class Main extends Application {
 	
 	public void manageFastLogin(String user) {
 		login.setMainApp(this);
-		boolean check = DB.checkUser(user);
+		boolean check = dbu.checkUser(user);
 		if(check) {
-			login.retrieveSession(twitter,user);
+			login.retrieveSession(twitter,user,dbu);
 		}
 		else {
 			System.out.println("Lo siento, pero este usuario no está registrado en esta aplicación. Intenta de nuevo.");
@@ -194,12 +198,14 @@ public class Main extends Application {
 		
 		String path = "src/main/resources/twitter.db";	
 		File file = new File(path);
+		Database db = new Database(path);
+		
 		if(file.exists()) {
 			System.out.println("Database exists");
-			DB.connect(path);
+			db.connect(path);
 		} else {
 			System.out.println("Database does not exist. Create a new one");
-			DB.createDatabase(path);
+			db.createDatabase(path);
 		}
 		
 		launch(args);

@@ -1,15 +1,10 @@
 package application.model;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Vector;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import twitter4j.JSONObject;
 import twitter4j.QueryResult;
 import twitter4j.Status;
 
