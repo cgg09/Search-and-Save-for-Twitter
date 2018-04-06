@@ -42,7 +42,7 @@ public class HistoricViewController extends AnchorPane {
 	
 	private int from = 0;
 	
-	private int to = from + 100;
+	private int to;
 	
 	public HistoricViewController() {
 
@@ -55,23 +55,23 @@ public class HistoricViewController extends AnchorPane {
 
 	private void addSearch() {
 		
-		currentSearch.getItems().removeAll();
+		currentSearch.getItems().remove(data); // pendiente de probar
 		
-		int count = 1;
+		int count = 1; // esto se va cuando esté hecha la tableview
 
 		from = Math.min(from, search.getTweetList().size());
-		to = Math.min(to, search.getTweetList().size());
+		to = Math.min(from+50, search.getTweetList().size());
+		
+		System.out.println(from+" "+to);
 		
 		for (Status tweet : search.getTweetList().subList(from, to)) {
 			data.add(count+": @" + tweet.getUser().getScreenName() + " - " + tweet.getText());
-			count++;
+			count++;	// esto se va cuando esté hecha la tableview
 		}
 		
 		System.out.println("Original list count: "+search.getTweetList().size());
 		
-		//data.subList(0, 99);
 		currentSearch.setItems(data);
-		System.out.println("Showing 100 first tweets");
 		history.add(search.getKeyword());
 		historySearch.setItems(history);
 	}
@@ -86,50 +86,57 @@ public class HistoricViewController extends AnchorPane {
 	}
 	
 	@FXML
-	private void nextTweets() { // si se llega al final, mostrar pop up !!!!! URGENTIIIIISIMOOOO
-		from = Math.min(from+100, search.getTweetList().size());
-		to = Math.min(to, search.getTweetList().size());
+	private void nextTweets() {
 		
-		if(to == search.getTweetList().size()) {
+		if(to == search.getTweetList().size()) { // FIN DE LISTA: ensombrecer el botón para impedir el click !!
 			System.out.println("Has llegado al final de la lista");
 			return;
 		}
-
-		int count = from+1;
+		from = Math.min(from+50, search.getTweetList().size());
+		to = Math.min(from+50, search.getTweetList().size());
+		
+		int count = from+1;	// esto se va cuando esté hecha la tableview
 		data.clear();
 		for (Status tweet : search.getTweetList().subList(from, to)) {
 			data.add(count+": @" + tweet.getUser().getScreenName() + " - " + tweet.getText().toString());
-			count++;
+			count++;	// esto se va cuando esté hecha la tableview
 		}
-		//currentSearch.getItems().removeAll();
+		
 		currentSearch.setItems(data);
 	}
 	
 	@FXML
-	private void previousTweets() { // si se llega al inicio, mostrar pop up
+	private void previousTweets() {
 		
-		from = Math.max(from-100, 0);
-		to = Math.min(to, search.getTweetList().size());
-		
-		if(from<0) {
+		if(from == 0) { // INICIO DE LISTA: ensombrecer el botón para impedir el click !!
 			System.out.println("Has llegado al inicio de la lista");
 			return;
 		}
 		
-		int count = from+1;
+		to = Math.min(from, search.getTweetList().size());
+		from = Math.max(to-50, 0);
+		
+		int count = from+1;	// esto se va cuando esté hecha la tableview
 		data.clear();
 		for (Status tweet : search.getTweetList().subList(from, to)) {
 			data.add(count+": @" + tweet.getUser().getScreenName() + " - " + tweet.getText());
-			count++;
+			count++;	// esto se va cuando esté hecha la tableview
 		}
-		//currentSearch.getItems().removeAll();
+
 		currentSearch.setItems(data);
 	}
 	
 	/*
-	 * añadir método para selección de la búsqueda correspondiente
+	 * añadir método para seleccionar una búsqueda y mostrarla en la vista de tweets
 	 */
 
+	
+	
+	@FXML
+	private void handleExport() {
+		Database.exportCSV(search.getKeyword());
+	}
+	
 	public static void init(SearchViewController controller) {
 		searchController = controller;
 

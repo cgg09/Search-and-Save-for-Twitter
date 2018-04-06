@@ -294,7 +294,7 @@ public class Database {
 			Class.forName(className);
 			stmt = c.createStatement();
 
-			String select = "SELECT collection_id FROM collection WHERE query=\""+search.getKeyword()+"\" ";
+			String select = "SELECT collection_id FROM collection WHERE query=\""+search.getKeyword()+"\" "; /*&& Math.max(time_end)*/
 			
 			ResultSet rs = stmt.executeQuery(select);
 			
@@ -316,5 +316,26 @@ public class Database {
 	public static void getTweet() {
 		// NO AÑADIR stmt.close() !!!!!!!!!!!!!
 	}
-
+	
+	
+	/**
+	 * Export data in a CSV
+	 */
+	public static void exportCSV(String query) {
+		Statement stmt;
+		String exp;
+        String filename = "jdbc:sqlite:src/main/resources/20180405_"+query;
+        try {
+            stmt = c.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE,
+                    ResultSet.CONCUR_UPDATABLE);
+             
+            //For comma separated file
+            exp = "SELECT author,text OUTFILE  '"+filename+
+                    "' FIELDS TERMINATED BY ',' FROM tweet t";
+            stmt.executeQuery(exp);
+        } catch(Exception e) {
+            e.printStackTrace();
+            stmt = null;
+        }
+	}
 }

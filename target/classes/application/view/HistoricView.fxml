@@ -24,5 +24,6 @@
       <Button layoutX="48.0" layoutY="307.0" mnemonicParsing="false" onAction="#handleNew" text="Nueva búsqueda" AnchorPane.bottomAnchor="15.0" AnchorPane.leftAnchor="15.0" />
       <Button layoutX="260.0" layoutY="150.0" mnemonicParsing="false" onAction="#nextTweets" text="Siguiente" AnchorPane.bottomAnchor="25.0" AnchorPane.rightAnchor="220.0" />
       <Button layoutX="194.0" layoutY="150.0" mnemonicParsing="false" onAction="#previousTweets" text="Anterior" AnchorPane.bottomAnchor="25.0" AnchorPane.rightAnchor="300.0" />
+      <Button layoutX="334.0" layoutY="150.0" mnemonicParsing="false" onAction="#handleExport" text="Exportar en CSV" AnchorPane.bottomAnchor="15.0" AnchorPane.rightAnchor="15.0" />
    </children>
 </AnchorPane>
