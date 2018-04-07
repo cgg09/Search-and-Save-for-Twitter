@@ -51,13 +51,12 @@ public class TwitterSearch {
 
 	
 	public void addTweets(QueryResult tweetList) {
+		
+		if(!tweets.isEmpty()) {
+			tweets.clear();
+		}
 
 		this.tweets.addAll(tweetList.getTweets());
-//		for(Status t : tweetList.getTweets()) {
-//			this.tweets.add(t);
-//		}
-		
-		
 	}	
 	
 }
