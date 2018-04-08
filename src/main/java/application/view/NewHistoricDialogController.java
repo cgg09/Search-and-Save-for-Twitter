@@ -2,7 +2,8 @@ package application.view;
 
 import java.sql.Timestamp;
 
-import application.Database;
+import application.database.DB;
+import application.database.DBCollection;
 import application.model.HistoricSearch;
 import application.model.TwitterSearch;
 import javafx.fxml.FXML;
@@ -19,10 +20,11 @@ public class NewHistoricDialogController {
 	Twitter twitter;
 
 	@FXML
-	private TextField keyword;
+	private TextField userQuery;
 	private TwitterSearch search;
 	private Stage dialogStage;
 	private boolean okClicked;
+	private String user;
 
 	public NewHistoricDialogController() {
 
@@ -62,9 +64,9 @@ public class NewHistoricDialogController {
 		System.out.println("Searching...");
 		int total = 0;
 		try {
-			search.setKeyword(keyword.getText());
+			search.setQuery(userQuery.getText());
 			Query query = new Query();
-			query.setQuery(keyword.getText());
+			query.setQuery(search.getQuery());
 			QueryResult queryResult;
 			do {	
 				queryResult = twitter.search(query);
@@ -77,11 +79,18 @@ public class NewHistoricDialogController {
 		}
 
 		Timestamp ts_end = new Timestamp(System.currentTimeMillis());
-		//;
-		Database.addNewCollection(search, ts_start, ts_end);
+
+		System.out.println("Collection exists? "+search.getCollection().toString());
+		
+		try {
+			search.getCollection().addNewCollection(search, ts_start, ts_end,user);
+		} catch(Exception e) {
+			System.err.println("No se ha guardado bien");
+		}
+		
 		
 		for(Status tweet : search.getTweetList()) {
-			Database.addTweet(tweet, search);//(search, ts_start, ts_end);
+			search.getCollection().addTweet(tweet, search); //error aquí
 		}
 		
 		okClicked = true;
@@ -94,5 +103,9 @@ public class NewHistoricDialogController {
 	@FXML
 	private void handleCancel() {
 		dialogStage.close();
+	}
+	
+	public void setUser(String user) {
+		this.user = user;
 	}
 }

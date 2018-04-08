@@ -24,6 +24,10 @@ public class SearchViewController extends AnchorPane {
 		//LiveViewController.init(this);
 	}
 	
+	public String getUsername() {
+		return username.getText();
+	}
+	
 	public void setUsername(String u) {
 		username.setText(u);
 	}

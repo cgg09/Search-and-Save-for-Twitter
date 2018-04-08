@@ -3,11 +3,11 @@ package application.view;
 import java.sql.Date;
 import java.util.List;
 
-import application.Database;
 import application.Main;
+import application.database.DB;
+import application.database.DBCollection;
 import application.model.HistoricSearch;
 import application.model.TwitterSearch;
-import application.utils.TweetUtil;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -39,9 +39,8 @@ public class HistoricViewController extends AnchorPane {
 	private ObservableList<String> history = FXCollections.observableArrayList();
 
 	private ObservableList<String> data = FXCollections.observableArrayList();
-	
 
-	private HistoricSearch search = new HistoricSearch();
+	private HistoricSearch search;// = new HistoricSearch();
 
 	private static SearchViewController searchController;
 	
@@ -56,26 +55,26 @@ public class HistoricViewController extends AnchorPane {
 	@FXML
 	public void initialize() {
 		
+/*
 		dateColumn.setCellFactory(
 				cellData -> cellData.getValue().dateColumnProperty());
 		
 		keywordColumn.setCellValueFactory(
 				cellData -> cellData.getValue().keywordColumnProperty());
-		
-		//addSearch(null);
+
 		
 		historySearch.getSelectionModel().selectedItemProperty().addListener(
 				(observable, oldValue, newValue) -> {System.out.println("oldValue: "+oldValue+", newValue: "+newValue); 
 													System.out.println("Keyword: "+search.getKeyword());
 													addSearch(newValue);});
-	}
+	*/}
 	
 	private void addCollection() {
-		history.add(search.getKeyword());
-		historySearch.setItems(history);
+		history.add(search.getQuery());
+		//historySearch.setItems(history);
 	}
 
-	private void addSearch(String keyword) {
+	private void addSearch(TwitterSearch search, String keyword) {
 		
 		System.out.println("Data empty?: "+data.isEmpty());
 		
@@ -86,7 +85,7 @@ public class HistoricViewController extends AnchorPane {
 		
 		int count = 1; // esto se va cuando esté hecha la tableview
 
-		if(keyword == search.getKeyword()) { // recuperar la collection_id correcta en base a la keyword y a la fecha
+		if(keyword == search.getQuery()) { // recuperar la collection_id correcta en base a la keyword y a la fecha
 			
 			from = Math.min(from, search.getTweetList().size());
 			to = Math.min(from+50, search.getTweetList().size());
@@ -105,17 +104,17 @@ public class HistoricViewController extends AnchorPane {
 		else {
 			System.out.println("Esto sigue sin funcionar :(");
 		}
-		
 	}
 
 	@FXML
 	private void handleNew() {
-
+		
+		DBCollection col = new DBCollection();
+		TwitterSearch search = new HistoricSearch(col);
 		boolean okClicked = searchController.newSearch(search);
 		if (okClicked && search.getTweetList() != null) {
-			System.out.println("THIS: "+this.getClass().getName());
 			addCollection();
-			addSearch(search.getKeyword());
+			addSearch(search,search.getQuery());
 		}
 	}
 	
@@ -165,12 +164,12 @@ public class HistoricViewController extends AnchorPane {
 	 */
 
 	
-	
+/*	
 	@FXML
 	private void handleExport() {
 		Database.exportCSV(search.getKeyword());
 	}
-	
+	*/
 	public static void init(SearchViewController controller) {
 		searchController = controller;
 
