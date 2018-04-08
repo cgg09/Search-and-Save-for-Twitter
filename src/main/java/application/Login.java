@@ -10,7 +10,7 @@ import org.apache.http.NameValuePair;
 import com.box.restclientv2.httpclientsupport.HttpClientURIBuilder;
 
 import application.database.DB;
-import application.database.DBUser;
+import application.database.DBUserDAO;
 import application.model.AppProperties;
 import application.model.Browser;
 import javafx.beans.value.ChangeListener;
@@ -31,7 +31,7 @@ public class Login {
 	private RequestToken requestToken = null;
 	private WebEngine webEngine;
 	private Main main;
-	private DBUser dbu;
+	private DBUserDAO dbu;
 
 
 	public Login() {
@@ -42,7 +42,7 @@ public class Login {
 	 * New login process
 	 * 1st step: Request an authorization to Twitter
 	 */
-	public void createRequest(Twitter twitter, DBUser dbu) {
+	public void createRequest(Twitter twitter, DBUserDAO dbu) {
 
 		this.dbu = dbu;
 		this.twitter = twitter;
@@ -151,7 +151,7 @@ public class Login {
 	 * @param twitter
 	 * @param user
 	 */
-	public void retrieveSession(Twitter twitter, String user, DBUser dbu) {
+	public void retrieveSession(Twitter twitter, String user, DBUserDAO dbu) {
 		
 		this.dbu = dbu;
 

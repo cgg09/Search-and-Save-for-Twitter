@@ -7,7 +7,6 @@ import application.database.DB;
 import application.database.DBCollection;
 import application.model.HistoricSearch;
 import application.model.TwitterSearch;
-import application.utils.TweetUtil;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;

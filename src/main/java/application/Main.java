@@ -4,8 +4,8 @@ import java.io.File;
 import java.io.IOException;
 
 import application.database.DB;
-import application.database.DBUser;
-import application.database.Database;
+import application.database.DBUserDAO;
+import application.database.DatabaseDAO;
 import application.model.Browser;
 import application.model.HistoricSearch;
 import application.model.LiveSearch;
@@ -28,11 +28,13 @@ import javafx.scene.paint.Color;
 
 public class Main extends Application {
 	
+	private static DatabaseDAO databaseDAO;
+	private static DBUserDAO dbUserDAO;
+	
+	
 	Login login = new Login();
 	TwitterUser u = new TwitterUser();
 	Twitter twitter = TwitterFactory.getSingleton();
-	private static String path = "";
-	DBUser dbu = new DBUser(path);
 	
 	private ObservableList<HistoricSearch> historicSearch = FXCollections.observableArrayList();
 	private ObservableList<LiveSearch> liveSearch = FXCollections.observableArrayList();
@@ -82,7 +84,8 @@ public class Main extends Application {
 	
 	public void manageNewLogin() {
 		login.setMainApp(this);
-		login.createRequest(twitter,dbu);		
+		setDBUserDAO(DBUserDAO.getInstance());
+		login.createRequest(twitter,dbUserDAO);		
 	}
 	
 	/**
@@ -112,9 +115,10 @@ public class Main extends Application {
 	
 	public void manageFastLogin(String user) {
 		login.setMainApp(this);
-		boolean check = dbu.checkUser(user);
+		setDBUserDAO(DBUserDAO.getInstance());
+		boolean check = dbUserDAO.checkUser(user);
 		if(check) {
-			login.retrieveSession(twitter,user,dbu);
+			login.retrieveSession(twitter,user,dbUserDAO);
 		}
 		else {
 			System.out.println("Lo siento, pero este usuario no está registrado en esta aplicación. Intenta de nuevo.");
@@ -195,25 +199,34 @@ public class Main extends Application {
 		return primaryStage;
 	}
 	
-	public String getPath() {
-		return path;
+	public static DatabaseDAO getDatabaseDAO() {
+		return databaseDAO;
 	}
 	
-	public static void setPath(String db) {
-		path = db;
+	public static void setDatabaseDAO(DatabaseDAO databaseDAO) {
+		Main.databaseDAO = databaseDAO;
+	}
+	
+	public static DBUserDAO getDBUserDAO() {
+		return dbUserDAO;
+	}
+	
+	public static void setDBUserDAO(DBUserDAO dbUserDAO) {
+		Main.dbUserDAO = dbUserDAO;
 	}
 	
 	
 	public static void main(String[] args) {
 		
-		setPath("src/main/resources/twitter.db");	
+		String path = "src/main/resources/twitter.db";	
 		File file = new File(path);
-		
+		setDatabaseDAO(DatabaseDAO.getInstance(path));
 		
 		if(!file.exists()) {
-			Database db = new Database(path);
 			System.out.println("Database does not exist. Create a new one");
-			db.createDatabase();
+			databaseDAO.createDatabase();
+		} else {
+			databaseDAO.connect();
 		}
 		
 		launch(args);
