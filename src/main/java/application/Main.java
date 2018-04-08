@@ -31,7 +31,8 @@ public class Main extends Application {
 	Login login = new Login();
 	TwitterUser u = new TwitterUser();
 	Twitter twitter = TwitterFactory.getSingleton();
-	DBUser dbu = new DBUser();
+	private static String path = "";
+	DBUser dbu = new DBUser(path);
 	
 	private ObservableList<HistoricSearch> historicSearch = FXCollections.observableArrayList();
 	private ObservableList<LiveSearch> liveSearch = FXCollections.observableArrayList();
@@ -111,7 +112,8 @@ public class Main extends Application {
 	
 	public void manageFastLogin(String user) {
 		login.setMainApp(this);
-		boolean check = dbu.checkUser(user);
+		boolean check = dbu.checkUser(user); // no revisa bien !!!
+		System.out.println("user exists?"+check);
 		if(check) {
 			login.retrieveSession(twitter,user,dbu);
 		}
@@ -193,19 +195,25 @@ public class Main extends Application {
 		return primaryStage;
 	}
 	
+	public String getPath() {
+		return path;
+	}
+	
+	public static void setPath(String db) {
+		path = db;
+	}
+	
 	
 	public static void main(String[] args) {
 		
-		String path = "src/main/resources/twitter.db";	
+		setPath("src/main/resources/twitter.db");	
 		File file = new File(path);
-		Database db = new Database(path);
 		
-		if(file.exists()) {
-			System.out.println("Database exists");
-			db.connect(path);
-		} else {
+		
+		if(!file.exists()) {
+			Database db = new Database(path);
 			System.out.println("Database does not exist. Create a new one");
-			db.createDatabase(path);
+			db.createDatabase();
 		}
 		
 		launch(args);
