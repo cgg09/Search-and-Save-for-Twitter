@@ -51,13 +51,4 @@ public class FastLoginViewController {
 //		currentStage.close();
 	}
 
-<<<<<<< HEAD
-
-
-
-
-
-
-=======
->>>>>>> database
 }
