@@ -50,12 +50,14 @@ public class HistoricViewController extends AnchorPane {
 		
 	}
 
-	private void addSearch() {
+	private void addSearch(TwitterSearch search) {
 		
 		currentSearch.getItems().removeAll();
 		
 		int count = 1;
 
+		System.out.println("Min: "+Math.min(from, search.getTweetList().size()));
+		
 		from = Math.min(from, search.getTweetList().size());
 		to = Math.min(to, search.getTweetList().size());
 		
@@ -76,11 +78,13 @@ public class HistoricViewController extends AnchorPane {
 	@FXML
 	private void handleNew() {
 		
-		DBCollection col = new DBCollection("src/main/resources/twitter.db");
+		DBCollection col = new DBCollection();
 		TwitterSearch search = new HistoricSearch(col);
 		boolean okClicked = searchController.newSearch(search);
 		if (okClicked && search.getTweetList() != null) {
-			addSearch();
+			System.out.println("List empty? "+search.getTweetList().isEmpty());
+			System.out.println("List size: "+search.getTweetList().size());
+			addSearch(search);
 		}
 	}
 	

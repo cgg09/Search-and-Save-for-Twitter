@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 
+import application.Main;
 import application.model.HistoricSearch;
 import application.model.LiveSearch;
 import application.model.TwitterSearch;
@@ -17,20 +18,10 @@ public class DBCollection {
 	
 	private String user;
 	
-	private Connection conn_col;
-	private Connection conn_tweet;
-	private String databasePath;
+	private Connection c;
 	
-	public DBCollection(String databasePath) {
-		this.databasePath = databasePath;
-	}
-	
-	public void connect() {
-		try {
-			conn_tweet = DriverManager.getConnection("jdbc:sqlite:"+databasePath);
-		} catch ( Exception e ) {
-			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
-		}
+	public DBCollection() {
+		c = Main.getDatabaseDAO().getConnection();
 	}
 	
 	/**
@@ -43,15 +34,11 @@ public class DBCollection {
 		String type = "";
 		
 		try {
-			try {
-				conn_col = DriverManager.getConnection("jdbc:sqlite:"+databasePath);
-			} catch ( Exception e ) {
-				System.err.println( e.getClass().getName() + ": " + e.getMessage() );
-			}
+			
 			String add = "INSERT INTO COLLECTION (USERNAME, TIME_START, TIME_END, TYPE, QUERY) " +
 					"VALUES (?,?,?,?,?);";
 			
-			PreparedStatement psmt = conn_col.prepareStatement(add);
+			PreparedStatement psmt = c.prepareStatement(add);
 			
 			System.out.println("Type of search: "+search.getClass().getName()); // a ver si así coge bien el tipo
 			
@@ -86,12 +73,10 @@ public class DBCollection {
 		
 		try {
 			
-			connect();
-			
 			String add = "INSERT INTO TWEET (TWEET_ID, COLLECTION_ID, AUTHOR, CREATED_AT, TEXT_PRINTABLE) " +
 					"VALUES (?,?,?,?,?);"; // faltará añadir el raw tweet!!! // Pensar que hacer con city y country
 			
-			PreparedStatement psmt = conn_tweet.prepareStatement(add);
+			PreparedStatement psmt = c.prepareStatement(add);
 			
 			Integer collection_id = getCollection(search);
 			
@@ -123,13 +108,6 @@ public class DBCollection {
 			
 		} catch ( Exception e ) {
 			System.err.println( "Maybe is it here? "+e.getClass().getName() + ": " + e.getMessage() );
-		} finally{
-			try {
-				System.out.println("tweet connection...?"+conn_tweet.isClosed());
-				conn_tweet.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
 		}
 	}
 	
@@ -137,13 +115,14 @@ public class DBCollection {
 	 * Get a specific search from the history list
 	 */
 	public Integer getCollection(TwitterSearch search) {
+
 		Statement stmt = null;
 
 		try {
 
-			stmt = conn_col.createStatement();
+			stmt = c.createStatement();
 
-			String select = "SELECT collection_id FROM collection WHERE query=\""+search.getQuery()+"\" ";
+			String select = "SELECT collection_id FROM collection WHERE query=\""+search.getQuery()+"\" "; // cambiar método: buscar por query y por fecha/hora de búsqueda
 			
 			ResultSet rs = stmt.executeQuery(select);
 			

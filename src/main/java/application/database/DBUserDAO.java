@@ -16,7 +16,7 @@ public class DBUserDAO {
 	private Connection c;
 
 	private DBUserDAO() {
-		
+		c = Main.getDatabaseDAO().getConnection();
 	}
 	
 	public static DBUserDAO getInstance() {
@@ -31,9 +31,7 @@ public class DBUserDAO {
 		user = username;
 
 		try {
-			
-			c = Main.getDatabaseDAO().getConnection();
-			
+
 			String login = "INSERT INTO USER (USERNAME, ACCESS_TOKEN, ACCESS_SECRET) " +
 					"VALUES (?,?,?);";
 
@@ -60,8 +58,6 @@ public class DBUserDAO {
 		ResultSet rs = null;
 		
 		try {
-			
-			c = Main.getDatabaseDAO().getConnection(); 
 			
 			String s = "SELECT username FROM user WHERE username=\""+username+"\" ";
 			rs = c.createStatement().executeQuery(s);
@@ -93,8 +89,6 @@ public class DBUserDAO {
 	public String getUserData(String query, String username) {
 
 		user = username;
-
-		c = Main.getDatabaseDAO().getConnection();
 		
 		ResultSet rsu = null;
 
