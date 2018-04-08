@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<AnchorPane prefHeight="250.0" prefWidth="350.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.view.FastLoginViewController">
+   <children>
+      <Label text="Entra en la aplicación" AnchorPane.leftAnchor="91.0" AnchorPane.rightAnchor="90.0" AnchorPane.topAnchor="37.0">
+         <font>
+            <Font size="18.0" />
+         </font>
+      </Label>
+      <Button mnemonicParsing="false" onAction="#handleLogin" text="Inicia sesión" AnchorPane.bottomAnchor="53.0" AnchorPane.leftAnchor="129.0" AnchorPane.rightAnchor="128.0" />
+      <TextField fx:id="username" prefHeight="25.0" prefWidth="169.0" AnchorPane.leftAnchor="93.0" AnchorPane.rightAnchor="88.0" AnchorPane.topAnchor="100.0" />
+   </children>
+</AnchorPane>
