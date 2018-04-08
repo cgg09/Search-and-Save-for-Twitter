@@ -171,20 +171,16 @@ public class Login {
 	    AccessToken at = new AccessToken(token,secret);
 	    twitter.setOAuthAccessToken(at);
 	    
-	    // primero verificar conexión así --> !!! Aquí se controlarán tokens expirados, etc
-	    
 	    try {
 			twitter.verifyCredentials().getId();
 		} catch (TwitterException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			e1.printStackTrace();				//Access Exceptions --> tokens expirados, acceso revocado..., etc
 		}
 
 	    try {
 	    	main.getUser().setUsername(twitter.verifyCredentials().getScreenName());
 			main.showSearch();
 		} catch (TwitterException e2) {
-			// TODO Auto-generated catch block
 			e2.printStackTrace();
 		}
 	    

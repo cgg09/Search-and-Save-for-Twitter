@@ -18,7 +18,6 @@ public class DBUser {
 		this.databasePath = databasePath;
 	}
 
-	
 	public void connect() {
 		try {
 			c = DriverManager.getConnection("jdbc:sqlite:"+databasePath);
@@ -27,7 +26,6 @@ public class DBUser {
 		}
 	}
 	
-
 	public void saveLogin(String username, String token, String tokenSecret) {	
 
 		user = username;
@@ -66,12 +64,7 @@ public class DBUser {
 			connect(); 
 			
 			String s = "SELECT username FROM user WHERE username=\""+username+"\" ";
-			
-			
-			
 			rs = c.createStatement().executeQuery(s);
-			
-			//System.out.println("Result: "+rs.getString(user));
 			
 			if(rs!=null) {
 				return true;
@@ -86,7 +79,6 @@ public class DBUser {
 			try {
 				rs.close();
 			} catch (SQLException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -110,11 +102,7 @@ public class DBUser {
 			
 			rsu = c.prepareStatement(select).executeQuery();
 			
-			while (rsu.next()) {			
-				return rsu.getString(query);
-			}
-
-			return null;
+			return rsu.getString(query);
 
 		} catch ( Exception e ) {
 			System.err.println( e.getClass().getName() + ": " + e.getMessage() );

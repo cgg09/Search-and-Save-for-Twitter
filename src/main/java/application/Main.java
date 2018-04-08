@@ -112,8 +112,7 @@ public class Main extends Application {
 	
 	public void manageFastLogin(String user) {
 		login.setMainApp(this);
-		boolean check = dbu.checkUser(user); // no revisa bien !!!
-		System.out.println("user exists?"+check);
+		boolean check = dbu.checkUser(user);
 		if(check) {
 			login.retrieveSession(twitter,user,dbu);
 		}
@@ -179,6 +178,7 @@ public class Main extends Application {
 			NewHistoricDialogController controller = loader.getController();
 			controller.setDialogStage(dialogStage);
 			controller.setTwitter(twitter);
+			controller.setUser(u.getUsername());
 			controller.setSearch(search);
 			
 			dialogStage.showAndWait();

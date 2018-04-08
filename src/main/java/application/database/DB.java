@@ -224,7 +224,7 @@ public class DB { // antigua clase de la db
 			psmt.setTimestamp(2,  start);
 			psmt.setTimestamp(3, end);
 			psmt.setString(4, type);
-			psmt.setString(5, search.getKeyword());
+			psmt.setString(5, search.getQuery());
 			
 			psmt.executeUpdate();
 			psmt.close();
@@ -294,7 +294,7 @@ public class DB { // antigua clase de la db
 			Class.forName(className);
 			stmt = c.createStatement();
 
-			String select = "SELECT collection_id FROM collection WHERE query=\""+search.getKeyword()+"\" ";
+			String select = "SELECT collection_id FROM collection WHERE query=\""+search.getQuery()+"\" ";
 			
 			ResultSet rs = stmt.executeQuery(select);
 			

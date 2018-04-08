@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 
@@ -14,8 +15,10 @@ import twitter4j.Status;
 
 public class DBCollection {
 	
-	private static String user;
-	private Connection c;
+	private String user;
+	
+	private Connection conn_col;
+	private Connection conn_tweet;
 	private String databasePath;
 	
 	public DBCollection(String databasePath) {
@@ -24,27 +27,33 @@ public class DBCollection {
 	
 	public void connect() {
 		try {
-			c = DriverManager.getConnection("jdbc:sqlite:"+databasePath);
+			conn_tweet = DriverManager.getConnection("jdbc:sqlite:"+databasePath);
 		} catch ( Exception e ) {
 			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
 		}
 	}
-	
 	
 	/**
 	 * Add a new search to the database
 	 * @param search
 	 * @param user
 	 */
-	public void addNewCollection(TwitterSearch search, Timestamp start, Timestamp end) {
+	public void addNewCollection(TwitterSearch search, Timestamp start, Timestamp end, String user) {
 		
 		String type = "";
+		
 		try {
-			connect();
+			try {
+				conn_col = DriverManager.getConnection("jdbc:sqlite:"+databasePath);
+			} catch ( Exception e ) {
+				System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+			}
 			String add = "INSERT INTO COLLECTION (USERNAME, TIME_START, TIME_END, TYPE, QUERY) " +
 					"VALUES (?,?,?,?,?);";
 			
-			PreparedStatement psmt = c.prepareStatement(add);
+			PreparedStatement psmt = conn_col.prepareStatement(add);
+			
+			System.out.println("Type of search: "+search.getClass().getName()); // a ver si así coge bien el tipo
 			
 			// search.getType() 
 			if(search instanceof HistoricSearch){
@@ -54,17 +63,19 @@ public class DBCollection {
 				type = "Live";
 			}
 			
+			System.out.println("Username="+user);
+			
 			psmt.setString(1, user);
 			psmt.setTimestamp(2,  start);
 			psmt.setTimestamp(3, end);
 			psmt.setString(4, type);
-			psmt.setString(5, search.getKeyword());
+			psmt.setString(5, search.getQuery());
 			
 			psmt.executeUpdate();
 			psmt.close();
 		
 		} catch ( Exception e ) {
-			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+			System.err.println( "Hi, is it here? "+e.getClass().getName() + ": " + e.getMessage() );
 		}
 	}
 	
@@ -75,12 +86,16 @@ public class DBCollection {
 		
 		try {
 			
+			connect();
+			
 			String add = "INSERT INTO TWEET (TWEET_ID, COLLECTION_ID, AUTHOR, CREATED_AT, TEXT_PRINTABLE) " +
 					"VALUES (?,?,?,?,?);"; // faltará añadir el raw tweet!!! // Pensar que hacer con city y country
 			
-			PreparedStatement psmt = c.prepareStatement(add);
+			PreparedStatement psmt = conn_tweet.prepareStatement(add);
 			
 			Integer collection_id = getCollection(search);
+			
+//			System.out.println(add);
 			
 			java.util.Date utilStartDate = tweet.getCreatedAt();
 			java.sql.Date sqlStartDate = new java.sql.Date(utilStartDate.getTime());
@@ -107,7 +122,14 @@ public class DBCollection {
 			psmt.close();
 			
 		} catch ( Exception e ) {
-			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+			System.err.println( "Maybe is it here? "+e.getClass().getName() + ": " + e.getMessage() );
+		} finally{
+			try {
+				System.out.println("tweet connection...?"+conn_tweet.isClosed());
+				conn_tweet.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 	
@@ -119,9 +141,9 @@ public class DBCollection {
 
 		try {
 
-			stmt = c.createStatement();
+			stmt = conn_col.createStatement();
 
-			String select = "SELECT collection_id FROM collection WHERE query=\""+search.getKeyword()+"\" ";
+			String select = "SELECT collection_id FROM collection WHERE query=\""+search.getQuery()+"\" ";
 			
 			ResultSet rs = stmt.executeQuery(select);
 			

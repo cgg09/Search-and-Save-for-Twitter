@@ -4,6 +4,7 @@ import java.util.List;
 
 import application.Main;
 import application.database.DB;
+import application.database.DBCollection;
 import application.model.HistoricSearch;
 import application.model.TwitterSearch;
 import application.utils.TweetUtil;
@@ -32,11 +33,8 @@ public class HistoricViewController extends AnchorPane {
 	private ObservableList<String> history = FXCollections.observableArrayList();
 
 	private ObservableList<String> data = FXCollections.observableArrayList();
-	
 
-	private HistoricSearch search = new HistoricSearch();
-
-//	private List<HistoricSearch> searchList = new ArrayList<HistoricSearch();
+	private HistoricSearch search;// = new HistoricSearch();
 
 	private static SearchViewController searchController;
 	
@@ -71,14 +69,16 @@ public class HistoricViewController extends AnchorPane {
 		
 		//data.subList(0, 99);
 		currentSearch.setItems(data);
-		System.out.println("Showing 100 first tweets");
-		history.add(search.getKeyword());
+		
+		history.add(search.getQuery());
 		historySearch.setItems(history);
 	}
 
 	@FXML
 	private void handleNew() {
-
+		
+		DBCollection col = new DBCollection("src/main/resources/twitter.db");
+		TwitterSearch search = new HistoricSearch(col);
 		boolean okClicked = searchController.newSearch(search);
 		if (okClicked && search.getTweetList() != null) {
 			addSearch();
@@ -122,7 +122,6 @@ public class HistoricViewController extends AnchorPane {
 			data.add(count+": @" + tweet.getUser().getScreenName() + " - " + tweet.getText());
 			count++;
 		}
-		//currentSearch.getItems().removeAll();
 		currentSearch.setItems(data);
 	}
 	
