@@ -12,9 +12,19 @@ import application.Main;
 import application.model.HistoricSearch;
 import application.model.LiveSearch;
 import application.model.TwitterSearch;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import twitter4j.Status;
 
 public class DBCollection {
+	
+	private int id;
+	
+	private StringProperty query = new SimpleStringProperty("");;
+	
+	private Timestamp start_t;
+	
+	private Timestamp end_t;
 	
 	private String user;
 	
@@ -40,8 +50,6 @@ public class DBCollection {
 			
 			PreparedStatement psmt = c.prepareStatement(add);
 			
-			System.out.println("Type of search: "+search.getClass().getName()); // a ver si así coge bien el tipo
-			
 			// search.getType() 
 			if(search instanceof HistoricSearch){
 				type = "Historic";
@@ -49,8 +57,6 @@ public class DBCollection {
 			else if(search instanceof LiveSearch) {
 				type = "Live";
 			}
-			
-			System.out.println("Username="+user);
 			
 			psmt.setString(1, user);
 			psmt.setTimestamp(2,  start);
@@ -60,51 +66,54 @@ public class DBCollection {
 			
 			psmt.executeUpdate();
 			psmt.close();
+			
+			start_t = start;
+			end_t = end;
+			
+			query = search.queryProperty();
 		
+			System.out.println("Start: "+start_t+". End: "+end_t+". Query: "+query+".");
+			
 		} catch ( Exception e ) {
-			System.err.println( "Hi, is it here? "+e.getClass().getName() + ": " + e.getMessage() );
+			System.err.println( "Hi, is it here? "+e.getClass().getName() + ": " + e.getMessage());
+			e.printStackTrace();
 		}
 	}
 	
 	/**
 	 * Add a tweet from a search in the database
 	 */
-	public void addTweet(Status tweet, TwitterSearch search) { //REVIEW PARAMS, seguramente será simplemente "tweet" y "collection_id"
+	public void addTweet(Status tweet, TwitterSearch search) {
 		
 		try {
 			
+			if(tweetExists(tweet)){
+				//System.out.println("Tweet repeated :o");
+				return;
+			}
+			
+			id = this.getCollection();
+			
 			String add = "INSERT INTO TWEET (TWEET_ID, COLLECTION_ID, AUTHOR, CREATED_AT, TEXT_PRINTABLE) " +
-					"VALUES (?,?,?,?,?);"; // faltará añadir el raw tweet!!! // Pensar que hacer con city y country
+					"VALUES (?,?,?,?,?);"; // faltará añadir el raw tweet!!! // quitar city y country
 			
 			PreparedStatement psmt = c.prepareStatement(add);
 			
-			Integer collection_id = getCollection(search);
-			
-//			System.out.println(add);
+			int collection_id = id;
 			
 			java.util.Date utilStartDate = tweet.getCreatedAt();
 			java.sql.Date sqlStartDate = new java.sql.Date(utilStartDate.getTime());
 			
-//			System.out.println("NEXT TWEET.\n");
-			
-			
-			psmt.setLong(1, tweet.getId());		// id of the tweet in Twitter (better to be a String)
+			psmt.setLong(1, tweet.getId());
 			psmt.setInt(2, collection_id);
-//			psmt.setString(3, raw_tweet);		// JSON ?¿
+//			psmt.setString(3, raw_tweet);		// JSON !!
 			psmt.setString(3, tweet.getUser().getScreenName());
-			psmt.setDate(4, sqlStartDate );		// time when tweet was created (tweet.getCreatedAt() is a String!! BE CAREFULL 
-			psmt.setString(5, tweet.getText());	// text of the tweet (tweet.getText() ?¿)
-/*			
-			if(tweet.getPlace().getName()!=null) {
-				psmt.setString(6,  tweet.getPlace().getName()); // a veces salen null
-			}
-			if(tweet.getPlace().getCountry()!=null) {
-				psmt.setString(7,  tweet.getPlace().getCountry()); // a veces salen null
-			}
-*/
-			int nrows = psmt.executeUpdate();
-//			System.out.printf("Stmt '%s' affected '%d' rows, collection '%d'\n", psmt.toString(), nrows, collection_id);
-			psmt.close();
+			psmt.setDate(4, sqlStartDate );		// transform it in a Date !!!
+			psmt.setString(5, tweet.getText());	// PARSE TEXT !!
+
+			psmt.executeUpdate();
+
+			//psmt.close();
 			
 		} catch ( Exception e ) {
 			System.err.println( "Maybe is it here? "+e.getClass().getName() + ": " + e.getMessage() );
@@ -114,18 +123,16 @@ public class DBCollection {
 	/**
 	 * Get a specific search from the history list
 	 */
-	public Integer getCollection(TwitterSearch search) {
+	public Integer getCollection() {
 
 		Statement stmt = null;
 
 		try {
 
 			stmt = c.createStatement();
-
-			String select = "SELECT collection_id FROM collection WHERE query=\""+search.getQuery()+"\" "; // cambiar método: buscar por query y por fecha/hora de búsqueda
-			
+			String select = "SELECT collection_id FROM COLLECTION WHERE time_start=\""+start_t+"\" AND time_end=\""+end_t+"\" AND query=\""+query+"\" ";
 			ResultSet rs = stmt.executeQuery(select);
-			
+			System.out.println(rs.getInt("collection_id"));
 			while (rs.next()) {
                 return rs.getInt("collection_id");
             }
@@ -133,9 +140,46 @@ public class DBCollection {
 			return null;
 
 		} catch ( Exception e ) {
-			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+			System.err.println( "Where's Wally? "+e.getClass().getName() + ": " + e.getMessage() );
 			return null;
 		}
+	}
+	
+	public Timestamp getStart() {
+		return start_t;
+	}
+	
+	public Timestamp getEnd() {
+		return end_t;
+	}
+	
+	public String getQuery() {
+		return query.get();
+	}
+	
+	public StringProperty queryProperty() {
+		return query;
+	}
+	
+	public boolean tweetExists(Status tweet) {
+		
+		try {
+			String select = "SELECT * FROM tweet WHERE tweet_id=\""+tweet.getId()+"\" ";
+			ResultSet rs = c.createStatement().executeQuery(select);
+			if(rs!=null) {
+				return true;
+			} else {
+				return false;
+			}
+			
+		} catch ( Exception e ) {
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+			return false;
+		}
+	}
+	
+	public void updateCollection() {
+		
 	}
 	
 	

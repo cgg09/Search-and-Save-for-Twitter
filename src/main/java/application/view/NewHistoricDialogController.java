@@ -55,35 +55,38 @@ public class NewHistoricDialogController {
     public boolean isOkClicked() {
         return okClicked;
     }
-	
-	
 
 	@FXML
 	private void handleSearch() {
-		Timestamp ts_start = new Timestamp(System.currentTimeMillis());
-		System.out.println("Searching...");
+		
 		int total = 0;
+		
+		if(!search.getTweetList().isEmpty()) {
+			search.getTweetList().clear();
+		}
+		Timestamp ts_start = new Timestamp(System.currentTimeMillis());
+		Query query = new Query();
+		QueryResult queryResult;
+		// poner elemento para indicar que busca!!!
+		System.out.println("Searching...");
+		
 		try {
-			search.setQuery(userQuery.getText());
-			Query query = new Query();
-			query.setQuery(search.getQuery());
-			QueryResult queryResult;
+			search.setQuery(userQuery.getText());			
+			query.setQuery(search.getQuery());		
 			do {	
 				queryResult = twitter.search(query);
 				search.addTweets(queryResult);
-				total = queryResult.getCount();
-			} while((query = queryResult.nextQuery()) != null && total <= 500);
+				total += queryResult.getCount();
+			} while((query = queryResult.nextQuery()) != null && total <= 200);
 		} catch (TwitterException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
+		System.out.println("Total: "+total);
 		Timestamp ts_end = new Timestamp(System.currentTimeMillis());
-
-		System.out.println("Collection exists? "+search.getCollection().toString());
 		
 		try {
-			search.getCollection().addNewCollection(search, ts_start, ts_end,user);
+			search.getCollection().addNewCollection(search, ts_start, ts_end, user);
 		} catch(Exception e) {
 			System.err.println("No se ha guardado bien");
 		}
@@ -102,6 +105,10 @@ public class NewHistoricDialogController {
 
 	@FXML
 	private void handleCancel() {
+		
+		search.deleteCollection();
+		search = null;
+		
 		dialogStage.close();
 	}
 	

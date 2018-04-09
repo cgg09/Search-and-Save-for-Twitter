@@ -18,15 +18,13 @@ public class TwitterSearch {
 	public TwitterSearch() {
 
 	}
-	/*
-	public TwitterSearch(String path, String query) {
-		this.collection = new DBCollection(path);
-		this.query = new SimpleStringProperty(query);
-		
-	}*/
 	
 	public DBCollection getCollection(){
 		return collection;
+	}
+	
+	public void deleteCollection(){
+		collection = null;
 	}
 	
 	public String getQuery() {
@@ -46,12 +44,7 @@ public class TwitterSearch {
 	}
 		
 	public void addTweets(QueryResult tweetList) {
-		
-		if(!tweets.isEmpty()) {
-			tweets.clear();
-		}
 		this.tweets.addAll(tweetList.getTweets());
-
 	}	
 	
 }
