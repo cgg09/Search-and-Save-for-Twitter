@@ -10,8 +10,8 @@ import org.apache.http.NameValuePair;
 import com.box.restclientv2.httpclientsupport.HttpClientURIBuilder;
 
 import application.database.DBUserDAO;
-import application.model.AppProperties;
-import application.model.Browser;
+import application.utils.AppProperties;
+import application.utils.Browser;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Worker;

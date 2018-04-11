@@ -1,15 +1,15 @@
-package application.model;
+package application.utils;
 
 import javafx.scene.control.Alert;
 
-public class DialogAlerts {
+public class Exceptions {
 	
 	private String type;
 	private String title;
 	private String header;
 	private String contentText;
 
-	public DialogAlerts() {
+	public Exceptions() {
 		
 	}
 	

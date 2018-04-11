@@ -1,4 +1,4 @@
-package application.model;
+package application.utils;
 
 import javafx.scene.layout.Region;
 import javafx.scene.web.WebEngine;
