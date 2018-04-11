@@ -51,24 +51,21 @@ public class DatabaseDAO {
 			String collection = "CREATE TABLE COLLECTION " +
 					"(COLLECTION_ID		INTEGER			PRIMARY KEY		AUTOINCREMENT, " +
 					" USERNAME			TEXT			NOT NULL, " +
-					" TIME_START		DATETIME		NOT NULL, " + 
-					" TIME_END			DATETIME		NOT NULL, " +
+					" TIME_START		TEXT			NOT NULL, " + 
+					" TIME_END			TEXT			NOT NULL, " +
 					" TYPE				VARCHAR(50)		NOT NULL, " +
 					" QUERY				VARCHAR(50)		NOT NULL, " +
 					" FOREIGN KEY 		(USERNAME)	REFERENCES	USER(USERNAME))";
 
 			String tweet = "CREATE TABLE TWEET " +
 					"(TWEET_ID			INTEGER			NOT NULL, " +
-					" COLLECTION_ID		VARCHAR(50)		NOT NULL, " + 
-//					" RAW_TWEET			VARCHAR(200)	NOT NULL, " + // poner luego !! 
+					" COLLECTION_ID		TEXT			NOT NULL, " + 
+					" RAW_TWEET			TEXT			NOT NULL, " + // poner luego !! 
 					" AUTHOR			VARCHAR(50)		NOT NULL, " +
 					" CREATED_AT		VARCHAR(50)		NOT NULL, " +
 					" TEXT_PRINTABLE	VARCHAR(200)	NOT NULL, " +
-					" CITY				VARCHAR(50), " +
-					" COUNTRY			VARCHAR(50), " +
 					" PRIMARY KEY		(TWEET_ID), "+
 					" FOREIGN KEY 		(COLLECTION_ID)	REFERENCES COLLECTION(COLLECTION_ID))";
-
 			
 			stmt = c.createStatement();
 			stmt.executeUpdate(user);
