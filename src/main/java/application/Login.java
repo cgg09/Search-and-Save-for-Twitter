@@ -9,7 +9,6 @@ import org.apache.http.NameValuePair;
 
 import com.box.restclientv2.httpclientsupport.HttpClientURIBuilder;
 
-import application.database.DB;
 import application.database.DBUserDAO;
 import application.model.AppProperties;
 import application.model.Browser;
@@ -19,7 +18,6 @@ import javafx.concurrent.Worker;
 import javafx.scene.web.WebEngine;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
-import twitter4j.TwitterFactory;
 import twitter4j.auth.AccessToken;
 import twitter4j.auth.RequestToken;
 

@@ -2,16 +2,12 @@ package application.view;
 
 import java.sql.Timestamp;
 
-import application.database.DB;
 import application.database.DBCollection;
-import application.model.HistoricSearch;
-import application.model.TwitterSearch;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import twitter4j.Query;
 import twitter4j.QueryResult;
-import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 
@@ -21,7 +17,7 @@ public class NewHistoricDialogController {
 
 	@FXML
 	private TextField userQuery;
-	private TwitterSearch search;
+	private DBCollection collection;
 	private Stage dialogStage;
 	private boolean okClicked;
 	private String user;
@@ -42,8 +38,8 @@ public class NewHistoricDialogController {
 		this.twitter = twitter;
 	}
 
-	public void setSearch(TwitterSearch search) {
-		this.search = search;
+	public void setCollection(DBCollection c) {
+		this.collection = c;
 	}
 	
 	
@@ -61,8 +57,8 @@ public class NewHistoricDialogController {
 		
 		int total = 0;
 		
-		if(!search.getTweetList().isEmpty()) {
-			search.getTweetList().clear();
+		if(!collection.getTweetList().isEmpty()) {
+			collection.getTweetList().clear();
 		}
 		Timestamp ts_start = new Timestamp(System.currentTimeMillis());
 		Query query = new Query();
@@ -71,12 +67,13 @@ public class NewHistoricDialogController {
 		System.out.println("Searching...");
 		
 		try {
-			search.setQuery(userQuery.getText());			
-			query.setQuery(search.getQuery());		
+			collection.setQuery(userQuery.getText());			
+			query.setQuery(collection.getQuery());		
 			do {	
 				queryResult = twitter.search(query);
-				search.addTweets(queryResult);
-				total += queryResult.getCount();
+				collection.addTweets(queryResult);
+				total += queryResult.getCount(); // mostrar en un pop up los tweets totales encontrados
+				//queryResult.getRateLimitStatus(); -> muy interesante
 			} while((query = queryResult.nextQuery()) != null && total <= 200);
 		} catch (TwitterException e) {
 			e.printStackTrace();
@@ -84,18 +81,9 @@ public class NewHistoricDialogController {
 
 		System.out.println("Total: "+total);
 		Timestamp ts_end = new Timestamp(System.currentTimeMillis());
-		
-		try {
-			search.getCollection().addNewCollection(search, ts_start, ts_end, user);
-		} catch(Exception e) {
-			System.err.println("No se ha guardado bien");
-		}
-		
-		
-		for(Status tweet : search.getTweetList()) {
-			search.getCollection().addTweet(tweet, search); //error aquí
-		}
-		
+	
+		collection.addData(ts_start, ts_end, user);
+
 		okClicked = true;
 		
 		System.out.println("Data saved...");
@@ -105,10 +93,7 @@ public class NewHistoricDialogController {
 
 	@FXML
 	private void handleCancel() {
-		
-		search.deleteCollection();
-		search = null;
-		
+		collection = null;
 		dialogStage.close();
 	}
 	

@@ -3,21 +3,16 @@ package application;
 import java.io.File;
 import java.io.IOException;
 
-import application.database.DB;
+import application.database.DBCollection;
 import application.database.DBUserDAO;
 import application.database.DatabaseDAO;
 import application.model.Browser;
-import application.model.HistoricSearch;
-import application.model.LiveSearch;
-import application.model.TwitterSearch;
 import application.model.TwitterUser;
 import application.view.FastLoginViewController;
 import application.view.LoginViewController;
 import application.view.NewHistoricDialogController;
 import application.view.SearchViewController;
 import javafx.application.Application;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
 import javafx.stage.Stage;
 import twitter4j.Twitter;
@@ -34,10 +29,7 @@ public class Main extends Application {
 	
 	Login login = new Login();
 	TwitterUser u = new TwitterUser();
-	Twitter twitter = TwitterFactory.getSingleton();
-	
-	private ObservableList<HistoricSearch> historicSearch = FXCollections.observableArrayList();
-	private ObservableList<LiveSearch> liveSearch = FXCollections.observableArrayList();
+	Twitter twitter = TwitterFactory.getSingleton();	
 	
 	private Stage primaryStage;
 	
@@ -167,7 +159,7 @@ public class Main extends Application {
 		}
 	}
 	
-	public boolean showNewHistoricSearch(TwitterSearch search) {
+	public boolean showNewHistoricSearch(DBCollection c) {
 		try {
 			FXMLLoader loader = new FXMLLoader();
 			loader.setLocation(Main.class.getResource("view/NewHistoricDialog.fxml"));
@@ -183,7 +175,7 @@ public class Main extends Application {
 			controller.setDialogStage(dialogStage);
 			controller.setTwitter(twitter);
 			controller.setUser(u.getUsername());
-			controller.setSearch(search);
+			controller.setCollection(c);
 			
 			dialogStage.showAndWait();
 			

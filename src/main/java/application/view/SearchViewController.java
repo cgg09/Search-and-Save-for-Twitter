@@ -1,9 +1,7 @@
 package application.view;
 
 import application.Main;
-import application.model.HistoricSearch;
-import application.model.LiveSearch;
-import application.model.TwitterSearch;
+import application.database.DBCollection;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.layout.AnchorPane;
@@ -32,16 +30,16 @@ public class SearchViewController extends AnchorPane {
 		username.setText(u);
 	}
 	
-	public boolean newSearch(TwitterSearch search) {
+	public boolean newSearch(DBCollection c) {
 		
 		boolean okClicked = false;
 		
-		if(search instanceof HistoricSearch){
-			okClicked = main.showNewHistoricSearch(search);
+		if(c.getType() == "Historic"){
+			okClicked = main.showNewHistoricSearch(c);
 			
 		}
-		else if(search instanceof LiveSearch) {
-			//okClicked = main.showNewLiveSearch(search);
+		else if(c.getType() == "Live") {
+			//okClicked = main.showNewLiveSearch(c);
 		}
 		return okClicked;
 		

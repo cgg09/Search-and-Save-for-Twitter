@@ -51,8 +51,8 @@ public class DatabaseDAO {
 			String collection = "CREATE TABLE COLLECTION " +
 					"(COLLECTION_ID		INTEGER			PRIMARY KEY		AUTOINCREMENT, " +
 					" USERNAME			TEXT			NOT NULL, " +
-					" TIME_START		TIMESTAMP		NOT NULL, " + 
-					" TIME_END			TIMESTAMP		NOT NULL, " +
+					" TIME_START		DATETIME		NOT NULL, " + 
+					" TIME_END			DATETIME		NOT NULL, " +
 					" TYPE				VARCHAR(50)		NOT NULL, " +
 					" QUERY				VARCHAR(50)		NOT NULL, " +
 					" FOREIGN KEY 		(USERNAME)	REFERENCES	USER(USERNAME))";
@@ -77,15 +77,6 @@ public class DatabaseDAO {
 			
 		} catch ( Exception e ) {
 			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
-		} finally {
-			try {
-				stmt.close();
-				System.out.println("Initial Statement closed?"+stmt.isClosed());
-				c.close();
-			} catch (SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
 		}
 		
 		System.out.println("Database created successfully");

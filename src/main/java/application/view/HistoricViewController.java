@@ -1,13 +1,8 @@
 package application.view;
 
-import java.sql.Date;
-import java.util.List;
+import java.time.LocalDateTime;
 
-import application.Main;
-import application.database.DB;
 import application.database.DBCollection;
-import application.model.HistoricSearch;
-import application.model.TwitterSearch;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -15,8 +10,6 @@ import javafx.fxml.FXML;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.control.cell.ComboBoxListCell;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.AnchorPane;
 
 import twitter4j.Status;
@@ -27,7 +20,7 @@ public class HistoricViewController extends AnchorPane {
 	private TableView<DBCollection> historySearch;
 
 	@FXML
-	private TableColumn<DBCollection, Date> dateColumn;
+	private TableColumn<DBCollection, LocalDateTime> dateColumn;
 
 	@FXML
 	private TableColumn<DBCollection, String> keywordColumn;
@@ -41,13 +34,15 @@ public class HistoricViewController extends AnchorPane {
 
 	private static SearchViewController searchController;
 	
-	private TwitterSearch search;
-
-	private DBCollection col;
+	private DBCollection collection;
+	
+	//private TwitterSearch search;
 
 	private int from = 0;
 
 	private int to;
+	
+	int listSize = 0;
 
 	public HistoricViewController() {
 
@@ -55,77 +50,70 @@ public class HistoricViewController extends AnchorPane {
 
 	@FXML
 	public void initialize() {
-
-		//dateColumn.setCellValueFactory(cellData -> cellData.getValue().método fecha());
+		
+		dateColumn.setCellValueFactory(cellData -> cellData.getValue().startProperty());
 
 		keywordColumn.setCellValueFactory(cellData -> cellData.getValue().queryProperty());
 
-		// actualizar cambios en la tabla (selección de búsqueda)
-//		historySearch.getSelectionModel().selectedItemProperty().addListener(
-//				(observable, oldValue, newValue) -> {addSearch(newValue);});
-		
-		/* 
-		 * historySearch.getSelectionModel().selectedItemProperty().addListener(
-		 * (observable, oldValue, newValue) ->
-		 * {System.out.println("oldValue: "+oldValue+", newValue: "+newValue);
-		 * System.out.println("Keyword: "+search.getKeyword()); addSearch(newValue);});
-		 */}
+		historySearch.getSelectionModel().selectedItemProperty().addListener(
+				(observable, oldValue, newValue) -> {newValue.updateCollection(); addSearch();});
+	}
+	
+	@FXML
+	private void handleNew() {
+
+		collection = new DBCollection("Historic");
+
+		boolean okClicked = searchController.newSearch(collection);
+		if (okClicked && collection.getTweetList() != null) {
+			addCollection();
+			addSearch();
+		}
+	}
 
 	private void addCollection() {
-		history.add(col);
+		history.add(collection);
 		historySearch.setItems(history);
 	}
 
-	private void addSearch(TwitterSearch search, String keyword) {
+	private void addSearch() {
 
 		if (!data.isEmpty()) {
 			data.clear();
 			System.out.print("Data cleaned\n");
 		}
+		
+		listSize = collection.getTweetList().size();
 
 		int count = 1; // esto se va cuando esté hecha la tableview
 
 		// recuperar la collection_id correcta en base a la keyword y a la fecha
 
-		from = Math.min(from, search.getTweetList().size());
-		to = Math.min(from + 50, search.getTweetList().size());
+		from = Math.min(from, listSize);
+		to = Math.min(from + 50, listSize);
 
-		for (Status tweet : search.getTweetList().subList(from, to)) {
+		for (Status tweet : collection.getTweetList().subList(from, to)) {
 			data.add(count + ": @" + tweet.getUser().getScreenName() + " - " + tweet.getText());
 			count++; // esto se va cuando esté hecha la tableview
 		}
-
-		//System.out.println("Original list count: " + search.getTweetList().size());
 
 		currentSearch.setItems(data);
 
 	}
 
 	@FXML
-	private void handleNew() {
-
-		col = new DBCollection();
-		search = new HistoricSearch(col);
-		boolean okClicked = searchController.newSearch(search);
-		if (okClicked && search.getTweetList() != null) {
-			addCollection();
-			addSearch(search, search.getQuery());
-		}
-	}
-
-	@FXML
 	private void nextTweets() {
 
-		if (to == search.getTweetList().size()) { // FIN DE LISTA: ensombrecer el botón para impedir el click !!
+		if (to == listSize) {
 			System.out.println("Has llegado al final de la lista");
 			return;
 		}
-		from = Math.min(from + 50, search.getTweetList().size());
-		to = Math.min(from + 50, search.getTweetList().size());
+		from = Math.min(from + 50, listSize);
+		to = Math.min(from + 50, listSize);
 
 		int count = from + 1; // esto se va cuando esté hecha la tableview
 		data.clear();
-		for (Status tweet : search.getTweetList().subList(from, to)) {
+		for (Status tweet : collection.getTweetList().subList(from, to)) {
 			data.add(count + ": @" + tweet.getUser().getScreenName() + " - " + tweet.getText().toString());
 			count++; // esto se va cuando esté hecha la tableview
 		}
@@ -141,12 +129,12 @@ public class HistoricViewController extends AnchorPane {
 			return;
 		}
 
-		to = Math.min(from, search.getTweetList().size());
+		to = Math.min(from, listSize );
 		from = Math.max(to - 50, 0);
 
 		int count = from + 1; // esto se va cuando esté hecha la tableview
 		data.clear();
-		for (Status tweet : search.getTweetList().subList(from, to)) {
+		for (Status tweet : collection.getTweetList().subList(from, to)) {
 			data.add(count + ": @" + tweet.getUser().getScreenName() + " - " + tweet.getText());
 			count++; // esto se va cuando esté hecha la tableview
 		}
