@@ -21,19 +21,23 @@ public class HistoricViewController extends AnchorPane {
 
 	@FXML
 	private TableColumn<DBCollection, LocalDateTime> dateColumn;
-
 	@FXML
 	private TableColumn<DBCollection, String> keywordColumn;
-
 	private ObservableList<DBCollection> history = FXCollections.observableArrayList();
 
-	@FXML
-	private ListView<String> currentSearch;
-
-	private ObservableList<String> data = FXCollections.observableArrayList();
-
-	private static SearchViewController searchController;
 	
+	@FXML
+	private TableView<DBCollection> currentSearch;
+	@FXML
+	private TableColumn<DBCollection, LocalDateTime> createdAt;
+	@FXML
+	private TableColumn<DBCollection, String> author;
+	@FXML
+	private TableColumn<DBCollection, String> text;
+	private ObservableList<DBCollection> data = FXCollections.observableArrayList();
+	
+	
+	private static SearchViewController searchController;
 	private DBCollection collection;
 	
 	//private TwitterSearch search;
@@ -45,16 +49,27 @@ public class HistoricViewController extends AnchorPane {
 	int listSize = 0;
 
 	public HistoricViewController() {
+		
+//		text.prefWidthProperty().bind(currentSearch.widthProperty().divide(3).subtract(2.1/3));
+//	    text.maxWidthProperty().bind(text.prefWidthProperty());
+//	    text.setResizable(false);
 
 	}
 
 	@FXML
 	public void initialize() {
 		
+		// initialize historySearch
 		dateColumn.setCellValueFactory(cellData -> cellData.getValue().startProperty());
-
 		keywordColumn.setCellValueFactory(cellData -> cellData.getValue().queryProperty());
 
+		//initialize currentSearch
+		createdAt.setCellValueFactory(cellData -> cellData.getValue().createdAtProperty());
+		author.setCellValueFactory(cellData -> cellData.getValue().authorProperty());
+		text.setCellValueFactory(cellData -> cellData.getValue().tweetTextProperty());
+		
+		
+		
 		historySearch.getSelectionModel().selectedItemProperty().addListener(
 				(observable, oldValue, newValue) -> {newValue.updateCollection(); addSearch();});
 	}
@@ -67,7 +82,7 @@ public class HistoricViewController extends AnchorPane {
 		boolean okClicked = searchController.newSearch(collection);
 		if (okClicked && collection.getTweetList() != null) {
 			addCollection();
-			addSearch();
+			addSearch(); // cambiar para que entre collections
 		}
 	}
 
@@ -93,7 +108,7 @@ public class HistoricViewController extends AnchorPane {
 		to = Math.min(from + 50, listSize);
 
 		for (Status tweet : collection.getTweetList().subList(from, to)) {
-			data.add(count + ": @" + tweet.getUser().getScreenName() + " - " + tweet.getText());
+			data.add((DBCollection) tweet);//count + ": @" + tweet.getUser().getScreenName() + " - " + tweet.getText());
 			count++; // esto se va cuando esté hecha la tableview
 		}
 
@@ -114,7 +129,7 @@ public class HistoricViewController extends AnchorPane {
 		int count = from + 1; // esto se va cuando esté hecha la tableview
 		data.clear();
 		for (Status tweet : collection.getTweetList().subList(from, to)) {
-			data.add(count + ": @" + tweet.getUser().getScreenName() + " - " + tweet.getText().toString());
+			data.add((DBCollection) tweet);//count + ": @" + tweet.getUser().getScreenName() + " - " + tweet.getText().toString());
 			count++; // esto se va cuando esté hecha la tableview
 		}
 
@@ -135,7 +150,7 @@ public class HistoricViewController extends AnchorPane {
 		int count = from + 1; // esto se va cuando esté hecha la tableview
 		data.clear();
 		for (Status tweet : collection.getTweetList().subList(from, to)) {
-			data.add(count + ": @" + tweet.getUser().getScreenName() + " - " + tweet.getText());
+			data.add((DBCollection) tweet);//count + ": @" + tweet.getUser().getScreenName() + " - " + tweet.getText());
 			count++; // esto se va cuando esté hecha la tableview
 		}
 

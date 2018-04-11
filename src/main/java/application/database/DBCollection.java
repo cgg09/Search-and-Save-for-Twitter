@@ -22,18 +22,16 @@ import twitter4j.Status;
 public class DBCollection {
 	
 	private Connection c;
-	
 	private ObjectProperty<LocalDateTime> start_t;
-	
 	private ObjectProperty<LocalDateTime> end_t;
-
 	private String type;
-	
 	private StringProperty query;
-	
 	private List<Status> tweets;
+	private int id = 0;
 	
-	int id = 0;
+	private ObjectProperty<LocalDateTime> createdAt;
+	private StringProperty author;
+	private StringProperty text;
 	
 	public DBCollection(String type) {
 		c = Main.getDatabaseDAO().getConnection();
@@ -92,6 +90,44 @@ public class DBCollection {
 		this.tweets.addAll(tweetList.getTweets());
 	}
 	
+	
+	public LocalDateTime getCreatedAt() {
+        return createdAt.get();
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt.set(createdAt);
+    }
+
+    public ObjectProperty<LocalDateTime> createdAtProperty() {
+        return createdAt;
+    }
+    
+    public String getAuthor() {
+		return author.get();
+	}
+	
+	public void setAuthor(String author) {
+		this.author.set(author);
+	}
+	
+	public StringProperty authorProperty() {
+		return author;
+	}
+	
+	public String getTweetText() {
+		return text.get();
+	}
+	
+	public void setTweetText(String text) {
+		this.text.set(text);
+	}
+	
+	public StringProperty tweetTextProperty() {
+		return text;
+	}
+    
+	
 	/**
 	 * Add info about the search in the Database
 	 * @param start
@@ -128,7 +164,7 @@ public class DBCollection {
 		
 		try {
 			
-			String add = "INSERT INTO COLLECTION (USERNAME, TIME_START, TIME_END, TYPE, QUERY) " +
+			String add = "INSERT INTO collection (USERNAME, TIME_START, TIME_END, TYPE, QUERY) " +
 					"VALUES (?,?,?,?,?);";
 
 			PreparedStatement psmt = c.prepareStatement(add);
@@ -170,7 +206,7 @@ public class DBCollection {
 			
 			TwitterTextParser.parseTweet(tweet.getText());
 			
-			String add = "INSERT INTO TWEET (TWEET_ID, COLLECTION_ID, RAW_TWEET, AUTHOR, CREATED_AT, TEXT_PRINTABLE) " +
+			String add = "INSERT INTO tweet (TWEET_ID, COLLECTION_ID, RAW_TWEET, AUTHOR, CREATED_AT, TEXT_PRINTABLE) " +
 					"VALUES (?,?,?,?,?,?);";
 
 			PreparedStatement psmt_tweet = c.prepareStatement(add);
@@ -195,7 +231,7 @@ public class DBCollection {
 
 		try {			
 			// hacer que seleccione la collection con el tiempo mayor O arreglar timestamps java - sql
-			String select = "SELECT collection_id FROM COLLECTION WHERE query=\""+query.getValue()+"\" ";
+			String select = "SELECT collection_id FROM collection WHERE query=\""+query.getValue()+"\" ";
 			ResultSet rs = c.createStatement().executeQuery(select);
 			while (rs.next()) {
                 return rs.getInt("collection_id");

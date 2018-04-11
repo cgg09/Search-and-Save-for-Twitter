@@ -1,8 +1,12 @@
 package application.view;
 
+import java.util.List;
+
 import application.Main;
+import application.database.DatabaseDAO;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
+import javafx.scene.control.MenuButton;
+import javafx.scene.control.MenuItem;
 import javafx.stage.Stage;
 
 public class LoginViewController {
@@ -12,10 +16,13 @@ public class LoginViewController {
 	// Reference to the main application
 	private Main main;
 	
+	@FXML
+	private MenuButton loginButton;
+	
 	/**
 	 * The constructor, called before the initialize() method
 	 */
-	public LoginViewController() {
+	public LoginViewController() {		
 		
 	}
 
@@ -25,6 +32,23 @@ public class LoginViewController {
 	 */
 	@FXML
 	public void initialize() {
+		
+		List<String> users = Main.getDatabaseDAO().getUsers();
+		if(users!=null) {
+			for(String u : users) {
+				MenuItem m = new MenuItem(u);
+				loginButton.getItems().add(m);
+			}
+		} else {
+			//mostrar botón "opacado", o difuminado ... :|
+		}
+		
+		//loginButton.parentProperty().addListener(  );getChildrenUnmodifiable()
+		
+		loginButton.setOnAction(event -> {
+		    System.out.println("Option 3 selected via Lambda");
+		});
+		
 		
 	}
 
@@ -42,9 +66,15 @@ public class LoginViewController {
 	}
 	
 	@FXML
-	private void handleSingIn() {
+	private void handleLogIn() {
 		main.showFastLogin();
 	}
+/*	
+	@FXML
+	private void handleSignIn() {
+		main.manageFastLogin();
+		currentStage.close();
+	}*/
 	
 	
 	/**

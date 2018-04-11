@@ -32,7 +32,7 @@ public class DBUserDAO {
 
 		try {
 
-			String login = "INSERT INTO USER (USERNAME, ACCESS_TOKEN, ACCESS_SECRET) " +
+			String login = "INSERT INTO user (USERNAME, ACCESS_TOKEN, ACCESS_SECRET) " +
 					"VALUES (?,?,?);";
 
 			PreparedStatement psmt = c.prepareStatement(login);
