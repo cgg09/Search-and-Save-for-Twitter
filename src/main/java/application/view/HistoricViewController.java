@@ -1,6 +1,7 @@
 package application.view;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 
 import application.database.DBCollection;
 import application.utils.Tweet;
@@ -46,10 +47,6 @@ public class HistoricViewController extends AnchorPane {
 	int listSize = 0;
 
 	public HistoricViewController() {
-		
-//		text.prefWidthProperty().bind(currentSearch.widthProperty().divide(3).subtract(2.1/3));
-//	    text.maxWidthProperty().bind(text.prefWidthProperty());
-//	    text.setResizable(false);
 
 	}
 
@@ -67,7 +64,7 @@ public class HistoricViewController extends AnchorPane {
 
 		// update currentSearch from historySearch
 		historySearch.getSelectionModel().selectedItemProperty().addListener(
-				(observable, oldValue, newValue) -> {newValue.updateCollection(); addSearch();});
+				(observable, oldValue, newValue) -> {newValue.updateCollection(); addSearch(newValue);});
 	}
 	
 	@FXML
@@ -78,7 +75,7 @@ public class HistoricViewController extends AnchorPane {
 		boolean okClicked = searchController.newSearch(collection);
 		if (okClicked && collection.getTweetList() != null) {
 			addCollection();
-			addSearch(); // cambiar para que entre collections
+			addSearch(collection); // cambiar para que entre collections
 		}
 	}
 
@@ -87,18 +84,18 @@ public class HistoricViewController extends AnchorPane {
 		historySearch.setItems(history);
 	}
 
-	private void addSearch() {
+	private void addSearch(DBCollection collection) {
 
+		System.out.println("Current search: "+collection.getId());
+		
 		if (!data.isEmpty()) {
 			data.clear();
 			System.out.print("Data cleaned\n");
 		}
 		
+		// ordenar por fecha
+		
 		listSize = collection.getCurrentTweets().size();
-
-		int count = 1; // esto se va cuando esté hecha la tableview
-
-		// recuperar la collection_id correcta en base a la keyword y a la fecha
 
 		from = Math.min(from, listSize);
 		to = Math.min(from + 50, listSize);
@@ -106,22 +103,8 @@ public class HistoricViewController extends AnchorPane {
 		for(Tweet t : collection.getCurrentTweets().subList(from, to)) {
 			data.add(t);
 		}
-		
-/*		if(!collection.getView().isEmpty()) {
-			collection.getView().clear();
-		}
-		
-		collection.setView(collection.getTextTweets().subList(from, to));
-		
-		data.add(collection);*/
-/*
-		for (String tweet : collection.getTextTweets().subList(from, to)) {
-			data.add(count + ": @" + tweet.getUser().getScreenName() + " - " + tweet.getText());
-			count++; // esto se va cuando esté hecha la tableview
-		}*/
 
 		currentSearch.setItems(data);
-
 	}
 
 	@FXML
@@ -134,24 +117,12 @@ public class HistoricViewController extends AnchorPane {
 		from = Math.min(from + 50, listSize);
 		to = Math.min(from + 50, listSize);
 
-		int count = from + 1; // esto se va cuando esté hecha la tableview
 		data.clear();
+		
 		for(Tweet t : collection.getCurrentTweets().subList(from, to)) {
 			data.add(t);
 		}
-		/*for (Status tweet : collection.getTweetList().subList(from, to)) {
-			data.add(count + ": @" + tweet.getUser().getScreenName() + " - " + tweet.getText().toString());
-			count++; // esto se va cuando esté hecha la tableview
-		}*/
-		
-/*		if(!collection.getView().isEmpty()) {
-			collection.getView().clear();
-		}
-		
-		collection.setView(collection.getTextTweets().subList(from, to));
-		
-		data.add(collection);
-*/
+
 		currentSearch.setItems(data);
 	}
 
@@ -166,24 +137,11 @@ public class HistoricViewController extends AnchorPane {
 		to = Math.min(from, listSize );
 		from = Math.max(to - 50, 0);
 
-		int count = from + 1; // esto se va cuando esté hecha la tableview
 		data.clear();
 		
 		for(Tweet t : collection.getCurrentTweets().subList(from, to)) {
 			data.add(t);
 		}
-		/*for (Status tweet : collection.getTweetList().subList(from, to)) {
-			data.add(count + ": @" + tweet.getUser().getScreenName() + " - " + tweet.getText());
-			count++; // esto se va cuando esté hecha la tableview
-		}*/
-
-/*		if(!collection.getView().isEmpty()) {
-			collection.getView().clear();
-		}
-		
-		collection.setView(collection.getTextTweets().subList(from, to));
-
-		data.add(collection);*/
 		
 		currentSearch.setItems(data);
 	}

@@ -6,6 +6,8 @@ import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
 import java.util.Vector;
 
@@ -33,6 +35,18 @@ public class DBCollection {
 	private List<Status> tweets;
 	private List<Tweet> currentTweets;
 	
+	
+	private String addCollection = "INSERT INTO collection (USERNAME, TIME_START, TIME_END, TYPE, QUERY) " +
+						"VALUES (?,?,?,?,?);";
+	private String addTweet = "INSERT INTO tweet (TWEET_ID, COLLECTION_ID, RAW_TWEET, AUTHOR, CREATED_AT, TEXT_PRINTABLE) " + 
+						"VALUES (?,?,?,?,?,?);";
+	
+	//private String selectId = "SELECT collection_id FROM collection WHERE query=\"";//+query.getValue()+"\" ";
+	
+	//private String selectCollection = "SELECT * FROM collection WHERE collection_id=\"";//+id+"\" ";
+	
+	//private String updateTweets = "SELECT created_at, author, text_printable FROM tweet WHERE collection_id=\"";//+id+"\" ";
+	
 		
 	public DBCollection(String type) {
 		c = Main.getDatabaseDAO().getConnection();
@@ -42,6 +56,10 @@ public class DBCollection {
 		this.end_t = new SimpleObjectProperty<LocalDateTime>();
 		this.tweets = new Vector<Status>();
 		this.currentTweets = new Vector<Tweet>();
+	}
+	
+	public int getId() {
+		return id;
 	}
 	
 	public String getType() {
@@ -131,11 +149,8 @@ public class DBCollection {
 	public void addNewCollection(String user) {
 		
 		try {
-			
-			String add = "INSERT INTO collection (USERNAME, TIME_START, TIME_END, TYPE, QUERY) " +
-					"VALUES (?,?,?,?,?);";
 
-			PreparedStatement psmt = c.prepareStatement(add);
+			PreparedStatement psmt = c.prepareStatement(addCollection);
 			
 			psmt.setString(1, user);
 			psmt.setString(2,  getStart().toString());
@@ -168,14 +183,9 @@ public class DBCollection {
 			JSONObject json = new JSONObject(tweet);
 			
 			LocalDateTime createdAt = tweet.getCreatedAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
-			
-			
-			//java.sql.Date sqlStartDate = tweet.getCreatedAt();
 
-			String add = "INSERT INTO tweet (TWEET_ID, COLLECTION_ID, RAW_TWEET, AUTHOR, CREATED_AT, TEXT_PRINTABLE) " +
-					"VALUES (?,?,?,?,?,?);";
-
-			PreparedStatement psmt_tweet = c.prepareStatement(add);
+			PreparedStatement psmt_tweet = c.prepareStatement(addTweet);
+			
 			psmt_tweet.setLong(1, tweet.getId());
 			psmt_tweet.setInt(2, id);
 			psmt_tweet.setString(3, json.toString());
@@ -186,23 +196,24 @@ public class DBCollection {
 			psmt_tweet.executeUpdate();
 			
 			Tweet t = new Tweet(createdAt, tweet.getUser().getScreenName(), tweet.getText());
+
 			currentTweets.add(t);
 			
-			
 		} catch ( Exception e ) {
-			System.err.println( "Maybe is it here? "+e.getClass().getName() + ": " + e.getMessage() );
+			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
 		}
 	}
 
 	/**
-	 * Get a specific search from the history list
+	 * Get the id of a specific collection
 	 */
-	public Integer getIdCollection() {
+	public Integer getIdCollection() { 	// seleccionar la collection con el tiempo mayor O arreglar timestamps java - sql
 
 		try {			
-			// hacer que seleccione la collection con el tiempo mayor O arreglar timestamps java - sql
-			String select = "SELECT collection_id FROM collection WHERE query=\""+query.getValue()+"\" ";
-			ResultSet rs = c.createStatement().executeQuery(select);
+
+			String selectId = "SELECT collection_id FROM collection WHERE query=\""+query.getValue()+"\" ";
+			
+			ResultSet rs = c.createStatement().executeQuery(selectId);
 			while (rs.next()) {
                 return rs.getInt("collection_id");
             }
@@ -235,44 +246,50 @@ public class DBCollection {
 	
 	public void updateCollection() {
 		
-		
 		try {
 			
 			id = getIdCollection();
+
+			System.out.println("Update: "+id);
 			
-			String col = "SELECT * FROM collection WHERE collection_id=\""+id+"\" ";
-			ResultSet rsc = c.createStatement().executeQuery(col);
+			String selectCollection = "SELECT * FROM collection WHERE collection_id=\""+id+"\" ";
 			
-			System.out.println(col);
+			ResultSet rsc = c.createStatement().executeQuery(selectCollection);
 			
-			setStart(rsc.getTimestamp("time_start").toLocalDateTime());
-			setEnd(rsc.getTimestamp("time_end").toLocalDateTime());
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+			
+			setStart(LocalDateTime.parse(rsc.getString("time_start")));
+			setEnd(LocalDateTime.parse(rsc.getString("time_end")));
 			
 			type = rsc.getString("type");
 			
 			setQuery(rsc.getString("query"));
-			
-			//tweets.clear();
-			System.out.println("Tweet list empty? "+tweets.isEmpty());
-			getTweets();
-			
+		
+			updateTweets();
 					
 		} catch(Exception e) {
-			System.err.println(e.getClass().getName()+": "+e.getMessage());
+			System.err.println("Collection updated? "+e.getClass().getName()+": "+e.getMessage());
 		}
 		
 	}
 	
-	public void getTweets() {
+	public void updateTweets() {
 		
 		try {
 			
-			String select = "SELECT * FROM tweet WHERE collection_id=\""+id+"\" ";
-			ResultSet rst = c.createStatement().executeQuery(select);
-			//tweets.addAll(rst); // me falta añadir el JSON ?
+			currentTweets.clear();
+			
+			String updateTweets = "SELECT created_at, author, text_printable FROM tweet WHERE collection_id=\""+id+"\" ";
+			
+			ResultSet rst = c.createStatement().executeQuery(updateTweets);
+			
+			while(rst.next()) {
+				Tweet t = new Tweet(LocalDateTime.parse(rst.getString("created_at")),rst.getString("author"),rst.getString("text_printable"));
+				currentTweets.add(t);
+			}			
 			
 		} catch(Exception e) {
-			System.err.println(e.getClass().getName()+": "+e.getMessage());
+			System.err.println("Tweets updated? "+e.getClass().getName()+": "+e.getMessage());
 		}
 		
 	}

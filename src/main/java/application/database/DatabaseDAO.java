@@ -69,7 +69,7 @@ public class DatabaseDAO {
 					" COLLECTION_ID		TEXT			NOT NULL, " + 
 					" RAW_TWEET			TEXT			NOT NULL, " + // poner luego !! 
 					" AUTHOR			VARCHAR(50)		NOT NULL, " +
-					" CREATED_AT		VARCHAR(50)		NOT NULL, " +
+					" CREATED_AT		TEXT			NOT NULL, " +
 					" TEXT_PRINTABLE	VARCHAR(200)	NOT NULL, " +
 					" PRIMARY KEY		(TWEET_ID), "+
 					" FOREIGN KEY 		(COLLECTION_ID)	REFERENCES COLLECTION(COLLECTION_ID))";
