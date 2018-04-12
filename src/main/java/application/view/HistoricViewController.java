@@ -1,7 +1,6 @@
 package application.view;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
 
 import application.database.DBCollection;
 import application.utils.Tweet;
@@ -92,8 +91,6 @@ public class HistoricViewController extends AnchorPane {
 			data.clear();
 			System.out.print("Data cleaned\n");
 		}
-		
-		// ordenar por fecha
 		
 		listSize = collection.getCurrentTweets().size();
 

@@ -3,7 +3,7 @@ package application.view;
 import java.util.List;
 
 import application.Main;
-import application.database.DatabaseDAO;
+import application.database.DBUserDAO;
 import javafx.fxml.FXML;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
@@ -33,7 +33,8 @@ public class LoginViewController {
 	@FXML
 	public void initialize() {
 		
-		List<String> users = Main.getDatabaseDAO().getUsers();
+		Main.setDBUserDAO(DBUserDAO.getInstance());
+		List<String> users = Main.getDBUserDAO().getUsers();
 		if(users!=null) {
 			for(String u : users) {
 				MenuItem m = new MenuItem(u);

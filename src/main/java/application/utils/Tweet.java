@@ -7,6 +7,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
+//FIXME rename to DisplayableTweet 
 public class Tweet {
 
 	private ObjectProperty<LocalDateTime> createdAt;

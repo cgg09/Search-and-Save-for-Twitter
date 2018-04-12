@@ -1,11 +1,11 @@
 package application.database;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
+import java.util.List;
+import java.util.Vector;
 
 import application.Main;
 
@@ -15,73 +15,70 @@ public class DBUserDAO {
 	private String user;
 	private Connection c;
 
+	// Queries
+	private String login = "INSERT INTO user (USERNAME, ACCESS_TOKEN, ACCESS_SECRET) " + "VALUES (?,?,?)";
+	private String count = "SELECT count() FROM user";
+	private String users = "SELECT * FROM user";
+
 	private DBUserDAO() {
 		c = Main.getDatabaseDAO().getConnection();
 	}
-	
+
 	public static DBUserDAO getInstance() {
-		if(instance == null) {
+		if (instance == null) {
 			instance = new DBUserDAO();
 		}
 		return instance;
 	}
-	
-	public void saveLogin(String username, String token, String tokenSecret) {	
+
+	public void saveLogin(String username, String token, String tokenSecret) {
 
 		user = username;
 
+		PreparedStatement psmt;
 		try {
-
-			String login = "INSERT INTO user (USERNAME, ACCESS_TOKEN, ACCESS_SECRET) " +
-					"VALUES (?,?,?);";
-
-			PreparedStatement psmt = c.prepareStatement(login);
-
+			psmt = c.prepareStatement(login);
 			psmt.setString(1, username);
 			psmt.setString(2, token);
 			psmt.setString(3, tokenSecret);
 			psmt.executeUpdate();
 			psmt.close();
-
-		} catch ( Exception e ) {
-			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+		} catch (SQLException e) {
+			// FIXME throw new DatabaseWriteException
+			e.printStackTrace();
 		}
+
 	}
 
 	/**
 	 * Check if the user exists in the database to do the fast login
+	 * 
 	 * @param user
 	 * @return
 	 */
 	public boolean checkUser(String username) {
-		
-		ResultSet rs = null;
-		
-		try {
-			
-			String s = "SELECT username FROM user WHERE username=\""+username+"\" ";
-			rs = c.createStatement().executeQuery(s);
-			
-			if(rs!=null) {
-				return true;
-			} else {
-				return false;
-			}
 
-		} catch ( Exception e ) {
-			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
-			return false;
-		} finally{
-			try {
-				rs.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
+		ResultSet rs = null;
+
+		String s = "SELECT username FROM user WHERE username=\"" + username + "\" ";
+		try {
+			rs = c.createStatement().executeQuery(s);
+		} catch (SQLException e) {
+			// FIXME throw new DatabaseReadException
+			e.printStackTrace();
 		}
+
+		if (rs != null) {
+			return true;
+		} else {
+			return false;
+		}
+
 	}
 
 	/**
 	 * Get user data
+	 * 
 	 * @param query
 	 * @param user
 	 * @return
@@ -89,21 +86,44 @@ public class DBUserDAO {
 	public String getUserData(String query, String username) {
 
 		user = username;
-		
+
+		ResultSet rsu;
+
+		String select = "SELECT " + query + " FROM user WHERE username=\"" + user + "\" ";
+
+		try {
+			rsu = c.prepareStatement(select).executeQuery();
+			return rsu.getString(query);
+		} catch (SQLException e) {
+			// FIXME throw new DatabaseReadException
+			e.printStackTrace();
+		}
+
+		return null; // FIXME throw new DatabaseReadException
+
+	}
+
+	public List<String> getUsers() { // FIXME método estático ?
+
+		List<String> u = new Vector<String>();
+
 		ResultSet rsu = null;
 
 		try {
+			if (c.createStatement().executeQuery(count).getInt(1) < 1) {
+				return null;
+			}
+			rsu = c.createStatement().executeQuery(users);
+			while (rsu.next()) {
+				u.add(rsu.getString("username"));
+			}
 
-			String select = "SELECT "+query+" FROM user WHERE username=\""+user+"\" ";
-			
-			rsu = c.prepareStatement(select).executeQuery();
-			
-			return rsu.getString(query);
-
-		} catch ( Exception e ) {
-			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
-			return null;
+		} catch (SQLException e) {
+			// FIXME throw new DatabaseReadException
+			e.printStackTrace();
 		}
+
+		return u;
 	}
 
 }

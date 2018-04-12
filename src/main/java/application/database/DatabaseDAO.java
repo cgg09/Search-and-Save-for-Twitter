@@ -2,23 +2,13 @@ package application.database;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.List;
-import java.util.Vector;
-
-import org.sqlite.SQLiteConfig;
 
 public class DatabaseDAO {
 
 	private static DatabaseDAO instance;
 	private Connection c;
 	private String databasePath;
-	
-	// Queries
-	String count = "SELECT count() FROM user";
-	String users = "SELECT * FROM user";
 	
 	private DatabaseDAO(String path) {
 		databasePath = path;
@@ -78,37 +68,18 @@ public class DatabaseDAO {
 			stmt.executeUpdate(user);
 			stmt.executeUpdate(collection);
 			stmt.executeUpdate(tweet);
+		
+			System.out.println("Database created successfully");
 			
 		} catch ( Exception e ) {
 			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+			//FIXME popup para usuario
 		}
-		
-		System.out.println("Database created successfully");
+	
 	}
 	
 	public Connection getConnection() {
 		return c;
-	}
-	
-	public List<String> getUsers() {
-		
-		List<String> u = new Vector<String>();;
-		
-		try {
-			if(c.createStatement().executeQuery(count).getInt(1) < 1) {
-				return null;
-			}
-			
-			ResultSet rsu = c.createStatement().executeQuery(users);
-			
-			while(rsu.next()) {
-				u.add(rsu.getString("username"));
-			}
-			
-		} catch(Exception e) {
-			System.err.println("Hii. "+e.getClass().getName() + ": " + e.getMessage());
-		}
-		return u;
 	}
 	
 }	
