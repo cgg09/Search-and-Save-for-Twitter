@@ -5,12 +5,14 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Vector;
 
 import com.twitter.twittertext.TwitterTextParser;
 
 import application.Main;
+import application.utils.Tweet;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -21,18 +23,17 @@ import twitter4j.Status;
 
 public class DBCollection {
 	
+	private int id = 0;
+	
 	private Connection c;
 	private ObjectProperty<LocalDateTime> start_t;
 	private ObjectProperty<LocalDateTime> end_t;
 	private String type;
 	private StringProperty query;
 	private List<Status> tweets;
-	private int id = 0;
+	private List<Tweet> currentTweets;
 	
-	private ObjectProperty<LocalDateTime> createdAt;
-	private StringProperty author;
-	private StringProperty text;
-	
+		
 	public DBCollection(String type) {
 		c = Main.getDatabaseDAO().getConnection();
 		this.type = type;
@@ -40,6 +41,7 @@ public class DBCollection {
 		this.start_t = new SimpleObjectProperty<LocalDateTime>();
 		this.end_t = new SimpleObjectProperty<LocalDateTime>();
 		this.tweets = new Vector<Status>();
+		this.currentTweets = new Vector<Tweet>();
 	}
 	
 	public String getType() {
@@ -85,49 +87,15 @@ public class DBCollection {
 	public List<Status> getTweetList(){
 		return tweets;
 	}
-		
-	public void addTweets(QueryResult tweetList) {
-		this.tweets.addAll(tweetList.getTweets());
+	
+	public void addTweets(QueryResult queryResult) {
+		this.tweets.addAll(queryResult.getTweets());
 	}
 	
-	
-	public LocalDateTime getCreatedAt() {
-        return createdAt.get();
-    }
+	public List<Tweet> getCurrentTweets(){
+		return currentTweets;
+	}
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt.set(createdAt);
-    }
-
-    public ObjectProperty<LocalDateTime> createdAtProperty() {
-        return createdAt;
-    }
-    
-    public String getAuthor() {
-		return author.get();
-	}
-	
-	public void setAuthor(String author) {
-		this.author.set(author);
-	}
-	
-	public StringProperty authorProperty() {
-		return author;
-	}
-	
-	public String getTweetText() {
-		return text.get();
-	}
-	
-	public void setTweetText(String text) {
-		this.text.set(text);
-	}
-	
-	public StringProperty tweetTextProperty() {
-		return text;
-	}
-    
-	
 	/**
 	 * Add info about the search in the Database
 	 * @param start
@@ -199,13 +167,11 @@ public class DBCollection {
 			
 			JSONObject json = new JSONObject(tweet);
 			
-			java.sql.Date sqlStartDate = new java.sql.Date(tweet.getCreatedAt().getTime());
+			LocalDateTime createdAt = tweet.getCreatedAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+			
+			
+			//java.sql.Date sqlStartDate = tweet.getCreatedAt();
 
-			
-			//System.out.println(TwitterTextParser.parseTweet(tweet.getText()));
-			
-			TwitterTextParser.parseTweet(tweet.getText());
-			
 			String add = "INSERT INTO tweet (TWEET_ID, COLLECTION_ID, RAW_TWEET, AUTHOR, CREATED_AT, TEXT_PRINTABLE) " +
 					"VALUES (?,?,?,?,?,?);";
 
@@ -214,10 +180,14 @@ public class DBCollection {
 			psmt_tweet.setInt(2, id);
 			psmt_tweet.setString(3, json.toString());
 			psmt_tweet.setString(4, tweet.getUser().getScreenName());
-			psmt_tweet.setString(5, sqlStartDate.toString());
+			psmt_tweet.setString(5, createdAt.toString());
 			psmt_tweet.setString(6, tweet.getText());	// PARSE TEXT !! -> esto será lo que vaya a la currentView !!
 
 			psmt_tweet.executeUpdate();
+			
+			Tweet t = new Tweet(createdAt, tweet.getUser().getScreenName(), tweet.getText());
+			currentTweets.add(t);
+			
 			
 		} catch ( Exception e ) {
 			System.err.println( "Maybe is it here? "+e.getClass().getName() + ": " + e.getMessage() );

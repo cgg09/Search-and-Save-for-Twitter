@@ -3,16 +3,13 @@ package application.view;
 import java.time.LocalDateTime;
 
 import application.database.DBCollection;
-
+import application.utils.Tweet;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.control.ListView;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.AnchorPane;
-
-import twitter4j.Status;
 
 public class HistoricViewController extends AnchorPane {
 
@@ -27,14 +24,14 @@ public class HistoricViewController extends AnchorPane {
 
 	
 	@FXML
-	private TableView<DBCollection> currentSearch;
+	private TableView<Tweet> currentSearch;
 	@FXML
-	private TableColumn<DBCollection, LocalDateTime> createdAt;
+	private TableColumn<Tweet, LocalDateTime> createdAt;
 	@FXML
-	private TableColumn<DBCollection, String> author;
+	private TableColumn<Tweet, String> author;
 	@FXML
-	private TableColumn<DBCollection, String> text;
-	private ObservableList<DBCollection> data = FXCollections.observableArrayList();
+	private TableColumn<Tweet, String> text;
+	private ObservableList<Tweet> data = FXCollections.observableArrayList();
 	
 	
 	private static SearchViewController searchController;
@@ -67,9 +64,8 @@ public class HistoricViewController extends AnchorPane {
 		createdAt.setCellValueFactory(cellData -> cellData.getValue().createdAtProperty());
 		author.setCellValueFactory(cellData -> cellData.getValue().authorProperty());
 		text.setCellValueFactory(cellData -> cellData.getValue().tweetTextProperty());
-		
-		
-		
+
+		// update currentSearch from historySearch
 		historySearch.getSelectionModel().selectedItemProperty().addListener(
 				(observable, oldValue, newValue) -> {newValue.updateCollection(); addSearch();});
 	}
@@ -98,7 +94,7 @@ public class HistoricViewController extends AnchorPane {
 			System.out.print("Data cleaned\n");
 		}
 		
-		listSize = collection.getTweetList().size();
+		listSize = collection.getCurrentTweets().size();
 
 		int count = 1; // esto se va cuando esté hecha la tableview
 
@@ -106,11 +102,23 @@ public class HistoricViewController extends AnchorPane {
 
 		from = Math.min(from, listSize);
 		to = Math.min(from + 50, listSize);
-
-		for (Status tweet : collection.getTweetList().subList(from, to)) {
-			data.add((DBCollection) tweet);//count + ": @" + tweet.getUser().getScreenName() + " - " + tweet.getText());
-			count++; // esto se va cuando esté hecha la tableview
+		
+		for(Tweet t : collection.getCurrentTweets().subList(from, to)) {
+			data.add(t);
 		}
+		
+/*		if(!collection.getView().isEmpty()) {
+			collection.getView().clear();
+		}
+		
+		collection.setView(collection.getTextTweets().subList(from, to));
+		
+		data.add(collection);*/
+/*
+		for (String tweet : collection.getTextTweets().subList(from, to)) {
+			data.add(count + ": @" + tweet.getUser().getScreenName() + " - " + tweet.getText());
+			count++; // esto se va cuando esté hecha la tableview
+		}*/
 
 		currentSearch.setItems(data);
 
@@ -128,11 +136,22 @@ public class HistoricViewController extends AnchorPane {
 
 		int count = from + 1; // esto se va cuando esté hecha la tableview
 		data.clear();
-		for (Status tweet : collection.getTweetList().subList(from, to)) {
-			data.add((DBCollection) tweet);//count + ": @" + tweet.getUser().getScreenName() + " - " + tweet.getText().toString());
-			count++; // esto se va cuando esté hecha la tableview
+		for(Tweet t : collection.getCurrentTweets().subList(from, to)) {
+			data.add(t);
 		}
-
+		/*for (Status tweet : collection.getTweetList().subList(from, to)) {
+			data.add(count + ": @" + tweet.getUser().getScreenName() + " - " + tweet.getText().toString());
+			count++; // esto se va cuando esté hecha la tableview
+		}*/
+		
+/*		if(!collection.getView().isEmpty()) {
+			collection.getView().clear();
+		}
+		
+		collection.setView(collection.getTextTweets().subList(from, to));
+		
+		data.add(collection);
+*/
 		currentSearch.setItems(data);
 	}
 
@@ -149,11 +168,23 @@ public class HistoricViewController extends AnchorPane {
 
 		int count = from + 1; // esto se va cuando esté hecha la tableview
 		data.clear();
-		for (Status tweet : collection.getTweetList().subList(from, to)) {
-			data.add((DBCollection) tweet);//count + ": @" + tweet.getUser().getScreenName() + " - " + tweet.getText());
-			count++; // esto se va cuando esté hecha la tableview
+		
+		for(Tweet t : collection.getCurrentTweets().subList(from, to)) {
+			data.add(t);
 		}
+		/*for (Status tweet : collection.getTweetList().subList(from, to)) {
+			data.add(count + ": @" + tweet.getUser().getScreenName() + " - " + tweet.getText());
+			count++; // esto se va cuando esté hecha la tableview
+		}*/
 
+/*		if(!collection.getView().isEmpty()) {
+			collection.getView().clear();
+		}
+		
+		collection.setView(collection.getTextTweets().subList(from, to));
+
+		data.add(collection);*/
+		
 		currentSearch.setItems(data);
 	}
 
