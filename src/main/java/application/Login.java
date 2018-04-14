@@ -10,6 +10,7 @@ import org.apache.http.NameValuePair;
 import com.box.restclientv2.httpclientsupport.HttpClientURIBuilder;
 
 import application.database.DBUserDAO;
+import application.exceptions.DatabaseReadException;
 import application.utils.AppProperties;
 import application.utils.Browser;
 import javafx.beans.value.ChangeListener;
@@ -137,7 +138,7 @@ public class Login {
 			dbu.saveLogin(main.getUser().getUsername(), accessToken.getToken().toString(), accessToken.getTokenSecret().toString());
 			main.showSearch();
 		} catch (TwitterException e) {
-			// TODO Auto-generated catch block
+			// FIXME mi propia excepcion
 			e.printStackTrace();
 		}
 		
@@ -148,8 +149,9 @@ public class Login {
 	 * Retrieve session when the user has signed up before
 	 * @param twitter
 	 * @param user
+	 * @throws DatabaseReadException 
 	 */
-	public void retrieveSession(Twitter twitter, String user, DBUserDAO dbu) {
+	public void retrieveSession(Twitter twitter, String user, DBUserDAO dbu) throws DatabaseReadException {
 		
 		this.dbu = dbu;
 

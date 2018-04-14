@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Vector;
 
 import application.Main;
-import application.utils.Tweet;
+import application.utils.DisplayableTweet;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -31,7 +31,7 @@ public class DBCollection {
 	private String type;
 	private StringProperty query;
 	private List<Status> tweets;
-	private List<Tweet> currentTweets;
+	private List<DisplayableTweet> currentTweets;
 
 	private String addCollection = "INSERT INTO collection (USERNAME, TIME_START, TIME_END, TYPE, QUERY) "
 			+ "VALUES (?,?,?,?,?);";
@@ -54,7 +54,7 @@ public class DBCollection {
 		this.start_t = new SimpleObjectProperty<LocalDateTime>();
 		this.end_t = new SimpleObjectProperty<LocalDateTime>();
 		this.tweets = new Vector<Status>();
-		this.currentTweets = new Vector<Tweet>();
+		this.currentTweets = new Vector<DisplayableTweet>();
 	}
 
 	public int getId() {
@@ -109,7 +109,7 @@ public class DBCollection {
 		this.tweets.addAll(queryResult.getTweets());
 	}
 
-	public List<Tweet> getCurrentTweets() {
+	public List<DisplayableTweet> getCurrentTweets() {
 		return currentTweets;
 	}
 
@@ -188,7 +188,7 @@ public class DBCollection {
 			e.printStackTrace();
 		}
 
-		Tweet t = new Tweet(createdAt, tweet.getUser().getScreenName(), tweet.getText());
+		DisplayableTweet t = new DisplayableTweet(createdAt, tweet.getUser().getScreenName(), tweet.getText());
 		currentTweets.add(t);
 	}
 
@@ -264,7 +264,7 @@ public class DBCollection {
 		try {
 			rst = c.createStatement().executeQuery(updateTweets);
 			while (rst.next()) {
-				Tweet t = new Tweet(LocalDateTime.parse(rst.getString("created_at")), rst.getString("author"),
+				DisplayableTweet t = new DisplayableTweet(LocalDateTime.parse(rst.getString("created_at")), rst.getString("author"),
 						rst.getString("text_printable"));
 				currentTweets.add(t);
 			}

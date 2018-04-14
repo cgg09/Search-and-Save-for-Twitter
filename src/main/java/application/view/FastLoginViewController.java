@@ -1,6 +1,7 @@
 package application.view;
 
 import application.Main;
+import application.exceptions.DatabaseReadException;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
@@ -45,10 +46,10 @@ public class FastLoginViewController {
 	}
 
 	@FXML
-	private void handleLogin() {
+	private void handleLogin() throws DatabaseReadException {
+		currentStage.close();
 		String user = username.getText();
 		main.manageFastLogin(user);
-//		currentStage.close();
 	}
 
 }

@@ -6,6 +6,7 @@ import java.io.IOException;
 import application.database.DBCollection;
 import application.database.DBUserDAO;
 import application.database.DatabaseDAO;
+import application.exceptions.DatabaseReadException;
 import application.utils.Browser;
 import application.utils.TwitterUser;
 import application.view.FastLoginViewController;
@@ -105,7 +106,7 @@ public class Main extends Application {
 		}
 	}
 	
-	public void manageFastLogin(String user) {
+	public void manageFastLogin(String user) throws DatabaseReadException {
 		login.setMainApp(this);
 		setDBUserDAO(DBUserDAO.getInstance());
 		boolean check = dbUserDAO.checkUser(user);

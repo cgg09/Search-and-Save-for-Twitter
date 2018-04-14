@@ -3,7 +3,7 @@ package application.view;
 import java.time.LocalDateTime;
 
 import application.database.DBCollection;
-import application.utils.Tweet;
+import application.utils.DisplayableTweet;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -24,14 +24,14 @@ public class HistoricViewController extends AnchorPane {
 
 	
 	@FXML
-	private TableView<Tweet> currentSearch;
+	private TableView<DisplayableTweet> currentSearch;
 	@FXML
-	private TableColumn<Tweet, LocalDateTime> createdAt;
+	private TableColumn<DisplayableTweet, LocalDateTime> createdAt;
 	@FXML
-	private TableColumn<Tweet, String> author;
+	private TableColumn<DisplayableTweet, String> author;
 	@FXML
-	private TableColumn<Tweet, String> text;
-	private ObservableList<Tweet> data = FXCollections.observableArrayList();
+	private TableColumn<DisplayableTweet, String> text;
+	private ObservableList<DisplayableTweet> data = FXCollections.observableArrayList();
 	
 	
 	private static SearchViewController searchController;
@@ -97,7 +97,7 @@ public class HistoricViewController extends AnchorPane {
 		from = Math.min(from, listSize);
 		to = Math.min(from + 50, listSize);
 		
-		for(Tweet t : collection.getCurrentTweets().subList(from, to)) {
+		for(DisplayableTweet t : collection.getCurrentTweets().subList(from, to)) {
 			data.add(t);
 		}
 
@@ -116,7 +116,7 @@ public class HistoricViewController extends AnchorPane {
 
 		data.clear();
 		
-		for(Tweet t : collection.getCurrentTweets().subList(from, to)) {
+		for(DisplayableTweet t : collection.getCurrentTweets().subList(from, to)) {
 			data.add(t);
 		}
 
@@ -136,7 +136,7 @@ public class HistoricViewController extends AnchorPane {
 
 		data.clear();
 		
-		for(Tweet t : collection.getCurrentTweets().subList(from, to)) {
+		for(DisplayableTweet t : collection.getCurrentTweets().subList(from, to)) {
 			data.add(t);
 		}
 		

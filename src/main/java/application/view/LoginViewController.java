@@ -4,6 +4,7 @@ import java.util.List;
 
 import application.Main;
 import application.database.DBUserDAO;
+import application.exceptions.DatabaseReadException;
 import javafx.fxml.FXML;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
@@ -29,9 +30,10 @@ public class LoginViewController {
 	/**
 	 * Initializes the controller class
 	 * This method is automatically called after the fxml file has been loaded
+	 * @throws DatabaseReadException 
 	 */
 	@FXML
-	public void initialize() {
+	public void initialize() throws DatabaseReadException {
 		
 		Main.setDBUserDAO(DBUserDAO.getInstance());
 		List<String> users = Main.getDBUserDAO().getUsers();
@@ -41,10 +43,10 @@ public class LoginViewController {
 				loginButton.getItems().add(m);
 			}
 		} else {
-			//mostrar botón "opacado", o difuminado ... :|
+			//TODO mostrar botón "opacado", o difuminado ... :|
 		}
 		
-		//loginButton.parentProperty().addListener(  );getChildrenUnmodifiable()
+		//FIXME loginButton.parentProperty().addListener().getChildrenUnmodifiable(); ¿?
 		
 		loginButton.setOnAction(event -> {
 		    System.out.println("Option 3 selected via Lambda");

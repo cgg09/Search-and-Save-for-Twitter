@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Vector;
 
 import application.Main;
+import application.exceptions.DatabaseReadException;
 
 public class DBUserDAO {
 
@@ -55,8 +56,9 @@ public class DBUserDAO {
 	 * 
 	 * @param user
 	 * @return
+	 * @throws DatabaseReadException 
 	 */
-	public boolean checkUser(String username) {
+	public boolean checkUser(String username) throws DatabaseReadException { // FIXME no estoy convencida de esto ...
 
 		ResultSet rs = null;
 
@@ -64,7 +66,6 @@ public class DBUserDAO {
 		try {
 			rs = c.createStatement().executeQuery(s);
 		} catch (SQLException e) {
-			// FIXME throw new DatabaseReadException
 			e.printStackTrace();
 		}
 
@@ -83,7 +84,7 @@ public class DBUserDAO {
 	 * @param user
 	 * @return
 	 */
-	public String getUserData(String query, String username) {
+	public String getUserData(String query, String username) throws DatabaseReadException {
 
 		user = username;
 
@@ -95,15 +96,12 @@ public class DBUserDAO {
 			rsu = c.prepareStatement(select).executeQuery();
 			return rsu.getString(query);
 		} catch (SQLException e) {
-			// FIXME throw new DatabaseReadException
-			e.printStackTrace();
+			throw new DatabaseReadException();	// TODO poner aquí una "DataNotFoundException" ?
 		}
-
-		return null; // FIXME throw new DatabaseReadException
 
 	}
 
-	public List<String> getUsers() { // FIXME método estático ?
+	public List<String> getUsers() throws DatabaseReadException {
 
 		List<String> u = new Vector<String>();
 
@@ -111,7 +109,7 @@ public class DBUserDAO {
 
 		try {
 			if (c.createStatement().executeQuery(count).getInt(1) < 1) {
-				return null;
+				return null; // FIXME throw new DataNotFoundException
 			}
 			rsu = c.createStatement().executeQuery(users);
 			while (rsu.next()) {
@@ -119,8 +117,7 @@ public class DBUserDAO {
 			}
 
 		} catch (SQLException e) {
-			// FIXME throw new DatabaseReadException
-			e.printStackTrace();
+			throw new DatabaseReadException();
 		}
 
 		return u;
