@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Vector;
 
 import application.Main;
+import application.exceptions.DatabaseReadException;
 import application.utils.DisplayableTweet;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -119,8 +120,9 @@ public class DBCollection {
 	 * @param start
 	 * @param end
 	 * @param user
+	 * @throws DatabaseReadException 
 	 */
-	public void addData(Timestamp start, Timestamp end, String user) {
+	public void addData(Timestamp start, Timestamp end, String user) { //FIXME throws DatabaseReadException
 
 		setStart(start.toLocalDateTime());
 		setEnd(end.toLocalDateTime());
@@ -164,8 +166,9 @@ public class DBCollection {
 	 * Add a tweet from a search in the database
 	 * 
 	 * @param tweet
+	 * @throws DatabaseReadException 
 	 */
-	public void addTweet(Status tweet) {
+	public void addTweet(Status tweet) { //FIXME throws DatabaseReadException
 
 		JSONObject json = new JSONObject(tweet);
 
@@ -212,7 +215,7 @@ public class DBCollection {
 		return null; // FIXME throw new DatabaseReadException
 	}
 
-	public boolean tweetExists(Status tweet) {
+	public boolean tweetExists(Status tweet) { // FIXME throws DatabaseReadException
 
 		String select = "SELECT * FROM tweet WHERE collection_id=\"" + id + "\" AND tweet_id=\"" + tweet.getId()
 				+ "\" ";
@@ -225,8 +228,7 @@ public class DBCollection {
 				return false;
 			}
 		} catch (SQLException e) {
-			// FIXME throw new DatabaseReadException
-			e.printStackTrace();
+			e.printStackTrace(); //FIXME throw new DatabaseReadException();
 		}
 		return false; // FIXME throw new DatabaseReadException
 	}

@@ -1,7 +1,10 @@
 package application.view;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Vector;
 
+import application.Main;
 import application.database.DBCollection;
 import application.utils.DisplayableTweet;
 import javafx.collections.FXCollections;
@@ -36,14 +39,14 @@ public class HistoricViewController extends AnchorPane {
 	
 	private static SearchViewController searchController;
 	private DBCollection collection;
-	
-	//private TwitterSearch search;
 
 	private int from = 0;
 
 	private int to;
 	
 	int listSize = 0;
+	
+	private Main main;
 
 	public HistoricViewController() {
 
@@ -51,6 +54,7 @@ public class HistoricViewController extends AnchorPane {
 
 	@FXML
 	public void initialize() {
+		System.out.println("Initializing Historic VC");
 		
 		// initialize historySearch
 		dateColumn.setCellValueFactory(cellData -> cellData.getValue().startProperty());
@@ -61,9 +65,24 @@ public class HistoricViewController extends AnchorPane {
 		author.setCellValueFactory(cellData -> cellData.getValue().authorProperty());
 		text.setCellValueFactory(cellData -> cellData.getValue().tweetTextProperty());
 
+		updateTable();
+
 		// update currentSearch from historySearch
 		historySearch.getSelectionModel().selectedItemProperty().addListener(
 				(observable, oldValue, newValue) -> {newValue.updateCollection(); addSearch(newValue);});
+
+		//historySearch.setItems(history);
+	}
+	
+	public void updateTable() {
+		// initialize user historySearch
+		List<DBCollection> cols = new Vector<DBCollection>();
+		//cols = 
+		for(DBCollection dbc: Main.getDBUserDAO().retrieveCollections()) {
+			history.add(dbc);
+		}
+		System.out.println("Is empty? "+history.isEmpty());
+		historySearch.setItems(history);
 	}
 	
 	@FXML
@@ -153,7 +172,6 @@ public class HistoricViewController extends AnchorPane {
 	 */
 	public static void init(SearchViewController controller) {
 		searchController = controller;
-
 	}
 
 }

@@ -151,7 +151,7 @@ public class Login {
 	 * @param user
 	 * @throws DatabaseReadException 
 	 */
-	public void retrieveSession(Twitter twitter, String user, DBUserDAO dbu) throws DatabaseReadException {
+	public void retrieveSession(Twitter twitter, String user, DBUserDAO dbu) { //FIXME throws DatabaseReadException {
 		
 		this.dbu = dbu;
 

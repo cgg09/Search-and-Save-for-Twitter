@@ -7,18 +7,21 @@ import application.database.DBCollection;
 import application.database.DBUserDAO;
 import application.database.DatabaseDAO;
 import application.exceptions.DatabaseReadException;
+import application.exceptions.RateLimitException;
 import application.utils.Browser;
 import application.utils.TwitterUser;
 import application.view.FastLoginViewController;
 import application.view.LoginViewController;
 import application.view.NewHistoricDialogController;
 import application.view.SearchViewController;
+import javafx.animation.RotateTransition;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.stage.Stage;
 import twitter4j.Twitter;
 import twitter4j.TwitterFactory;
 import javafx.scene.Scene;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
 
@@ -106,7 +109,7 @@ public class Main extends Application {
 		}
 	}
 	
-	public void manageFastLogin(String user) throws DatabaseReadException {
+	public void manageFastLogin(String user) { //FIXME throws DatabaseReadException
 		login.setMainApp(this);
 		setDBUserDAO(DBUserDAO.getInstance());
 		boolean check = dbUserDAO.checkUser(user);
@@ -180,6 +183,21 @@ public class Main extends Application {
 			
 			dialogStage.showAndWait();
 			
+			
+/*			RotateTransition rotate = new RotateTransition();
+			rotate.setOnFinished(e -> {
+				try {
+					controller.handleSearch();
+				} catch (RateLimitException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				} catch (DatabaseReadException e2) {
+					// TODO Auto-generated catch block
+					e2.printStackTrace();
+				}
+			});
+			rotate.play();
+*/			
 			return controller.isOkClicked();
 		
 		} catch(IOException e) {

@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Vector;
 
@@ -58,7 +59,7 @@ public class DBUserDAO {
 	 * @return
 	 * @throws DatabaseReadException 
 	 */
-	public boolean checkUser(String username) throws DatabaseReadException { // FIXME no estoy convencida de esto ...
+	public boolean checkUser(String username) { // FIXME  throws DatabaseReadException
 
 		ResultSet rs = null;
 
@@ -84,7 +85,7 @@ public class DBUserDAO {
 	 * @param user
 	 * @return
 	 */
-	public String getUserData(String query, String username) throws DatabaseReadException {
+	public String getUserData(String query, String username) { // FIXME throws DatabaseReadException
 
 		user = username;
 
@@ -96,12 +97,13 @@ public class DBUserDAO {
 			rsu = c.prepareStatement(select).executeQuery();
 			return rsu.getString(query);
 		} catch (SQLException e) {
-			throw new DatabaseReadException();	// TODO poner aquí una "DataNotFoundException" ?
+			e.printStackTrace(); //FIXME throw new DatabaseReadException();
 		}
+		return null;
 
 	}
 
-	public List<String> getUsers() throws DatabaseReadException {
+	public List<String> getUsers() { // FIXME throws DatabaseReadException
 
 		List<String> u = new Vector<String>();
 
@@ -117,10 +119,31 @@ public class DBUserDAO {
 			}
 
 		} catch (SQLException e) {
-			throw new DatabaseReadException();
+			e.printStackTrace(); //FIXME throw new DatabaseReadException();
 		}
 
 		return u;
+	}
+	
+	public List<DBCollection> retrieveCollections(){
+		List<DBCollection> cols = new Vector<DBCollection>();
+		
+		ResultSet rsc = null;
+		String col = "SELECT * FROM collection WHERE username=\""+user+"\"";
+		
+		try {
+			rsc = c.createStatement().executeQuery(col);
+			while (rsc.next()) {
+				DBCollection dbc = new DBCollection(rsc.getString("type"));
+				dbc.setStart(LocalDateTime.parse(rsc.getString("time_start")));
+				dbc.setEnd(LocalDateTime.parse(rsc.getString("time_start")));
+				dbc.setQuery(rsc.getString("query"));
+				cols.add(dbc);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace(); //FIXME throw new DatabaseReadException();
+		}
+		return cols;
 	}
 
 }

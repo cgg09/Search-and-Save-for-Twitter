@@ -46,8 +46,8 @@ public class FastLoginViewController {
 	}
 
 	@FXML
-	private void handleLogin() throws DatabaseReadException {
-		currentStage.close();
+	private void handleLogin() { //FIXME throws DatabaseReadException
+		//currentStage.close();
 		String user = username.getText();
 		main.manageFastLogin(user);
 	}

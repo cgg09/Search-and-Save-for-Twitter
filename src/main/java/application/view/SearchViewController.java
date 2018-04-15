@@ -11,6 +11,7 @@ public class SearchViewController extends AnchorPane {
 	@FXML
 	private Label username;
 	private Main main;
+	//private HistoricViewController historicVC = new HistoricViewController();
 	
 	public SearchViewController() {
 		
@@ -18,6 +19,7 @@ public class SearchViewController extends AnchorPane {
 	
 	@FXML
 	public void initialize() {
+		
 		HistoricViewController.init(this);
 		//LiveViewController.init(this);
 	}
