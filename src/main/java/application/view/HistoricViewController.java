@@ -1,8 +1,6 @@
 package application.view;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Vector;
 
 import application.Main;
 import application.database.DBCollection;
@@ -12,6 +10,7 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 
 public class HistoricViewController extends AnchorPane {
@@ -24,7 +23,6 @@ public class HistoricViewController extends AnchorPane {
 	@FXML
 	private TableColumn<DBCollection, String> keywordColumn;
 	private ObservableList<DBCollection> history = FXCollections.observableArrayList();
-
 	
 	@FXML
 	private TableView<DisplayableTweet> currentSearch;
@@ -34,19 +32,16 @@ public class HistoricViewController extends AnchorPane {
 	private TableColumn<DisplayableTweet, String> author;
 	@FXML
 	private TableColumn<DisplayableTweet, String> text;
-	private ObservableList<DisplayableTweet> data = FXCollections.observableArrayList();
-	
+	private ObservableList<DisplayableTweet> data = FXCollections.observableArrayList();	
 	
 	private static SearchViewController searchController;
+	
 	private DBCollection collection;
 
 	private int from = 0;
-
 	private int to;
+	private int listSize = 0;
 	
-	int listSize = 0;
-	
-	private Main main;
 
 	public HistoricViewController() {
 
@@ -54,7 +49,6 @@ public class HistoricViewController extends AnchorPane {
 
 	@FXML
 	public void initialize() {
-		System.out.println("Initializing Historic VC");
 		
 		// initialize historySearch
 		dateColumn.setCellValueFactory(cellData -> cellData.getValue().startProperty());
@@ -65,24 +59,28 @@ public class HistoricViewController extends AnchorPane {
 		author.setCellValueFactory(cellData -> cellData.getValue().authorProperty());
 		text.setCellValueFactory(cellData -> cellData.getValue().tweetTextProperty());
 
-		updateTable();
-
-		// update currentSearch from historySearch
-		historySearch.getSelectionModel().selectedItemProperty().addListener(
-				(observable, oldValue, newValue) -> {newValue.updateCollection(); addSearch(newValue);});
-
-		//historySearch.setItems(history);
-	}
-	
-	public void updateTable() {
-		// initialize user historySearch
-		List<DBCollection> cols = new Vector<DBCollection>();
-		//cols = 
+		// initialize user historySearch 
 		for(DBCollection dbc: Main.getDBUserDAO().retrieveCollections()) {
 			history.add(dbc);
 		}
-		System.out.println("Is empty? "+history.isEmpty());
 		historySearch.setItems(history);
+
+		// update currentSearch from historySearch
+		historySearch.getSelectionModel().selectedItemProperty().addListener(
+				(observable, oldValue, newValue) -> {
+					System.out.println("oldValue: "+oldValue+", newValue: "+newValue.getId());
+					newValue.updateCollection(); 
+					addSearch(newValue);	
+				});
+	}
+	
+	@FXML
+	private void openWeb(MouseEvent event) {
+		
+		// see the selected tweet in a browser
+		if(event.getClickCount() == 2) {
+			System.out.println("Tweet selected: "+event.toString());
+		}
 	}
 	
 	@FXML
@@ -91,9 +89,9 @@ public class HistoricViewController extends AnchorPane {
 		collection = new DBCollection("Historic");
 
 		boolean okClicked = searchController.newSearch(collection);
-		if (okClicked && collection.getTweetList() != null) {
+		if (okClicked && collection.getTweetStatus() != null) {
 			addCollection();
-			addSearch(collection); // cambiar para que entre collections
+			addSearch(collection);
 		}
 	}
 
@@ -103,13 +101,14 @@ public class HistoricViewController extends AnchorPane {
 	}
 
 	private void addSearch(DBCollection collection) {
-
-		System.out.println("Current search: "+collection.getId());
+		
+		this.collection = collection;
 		
 		if (!data.isEmpty()) {
 			data.clear();
-			System.out.print("Data cleaned\n");
 		}
+		
+		from = 0;
 		
 		listSize = collection.getCurrentTweets().size();
 
@@ -130,10 +129,11 @@ public class HistoricViewController extends AnchorPane {
 			System.out.println("Has llegado al final de la lista");
 			return;
 		}
+		
+		data.clear();
+		
 		from = Math.min(from + 50, listSize);
 		to = Math.min(from + 50, listSize);
-
-		data.clear();
 		
 		for(DisplayableTweet t : collection.getCurrentTweets().subList(from, to)) {
 			data.add(t);
@@ -150,10 +150,10 @@ public class HistoricViewController extends AnchorPane {
 			return;
 		}
 
+		data.clear();
+		
 		to = Math.min(from, listSize );
 		from = Math.max(to - 50, 0);
-
-		data.clear();
 		
 		for(DisplayableTweet t : collection.getCurrentTweets().subList(from, to)) {
 			data.add(t);
@@ -161,10 +161,6 @@ public class HistoricViewController extends AnchorPane {
 		
 		currentSearch.setItems(data);
 	}
-
-	/*
-	 * añadir método para seleccionar una búsqueda y mostrarla en la vista de tweets
-	 */
 
 	/*
 	 * @FXML private void handleExport() { Database.exportCSV(search.getKeyword());

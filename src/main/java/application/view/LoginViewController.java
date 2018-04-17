@@ -5,26 +5,18 @@ import java.util.List;
 import application.Main;
 import application.database.DBUserDAO;
 import application.exceptions.DatabaseReadException;
-import javafx.collections.ListChangeListener;
-import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.scene.control.ButtonBase;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.stage.Stage;
 
 public class LoginViewController {
-	
-	private Stage currentStage;
-	
-	// Reference to the main application
-	private Main main;
-	
+
 	@FXML
 	private MenuButton loginButton;
-//	private ObservableList<MenuItem> options;
+	private Stage currentStage;
+	private Main main;
+	
 	
 	/**
 	 * The constructor, called before the initialize() method
@@ -46,7 +38,7 @@ public class LoginViewController {
 		if(users!=null) {
 			for(String u : users) {
 				MenuItem m = new MenuItem(u);
-				m.setOnAction(e-> {
+				m.setOnAction(e -> {
 					MenuItem source = (MenuItem) e.getSource(); 
 					main.manageFastLogin(source.getText());	// FIXME currentStage.close(); ??
 				});

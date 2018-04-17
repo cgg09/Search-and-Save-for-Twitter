@@ -135,9 +135,11 @@ public class DBUserDAO {
 			rsc = c.createStatement().executeQuery(col);
 			while (rsc.next()) {
 				DBCollection dbc = new DBCollection(rsc.getString("type"));
+				dbc.setId(rsc.getInt("collection_id"));
 				dbc.setStart(LocalDateTime.parse(rsc.getString("time_start")));
 				dbc.setEnd(LocalDateTime.parse(rsc.getString("time_start")));
 				dbc.setQuery(rsc.getString("query"));
+				dbc.updateTweets();
 				cols.add(dbc);
 			}
 		} catch (SQLException e) {

@@ -63,8 +63,8 @@ public class NewHistoricDialogController {
 
 		int total = 0;
 
-		if (!collection.getTweetList().isEmpty()) {
-			collection.getTweetList().clear();
+		if (!collection.getTweetStatus().isEmpty()) {
+			collection.getTweetStatus().clear();
 		}
 		
 		Query query = new Query();
@@ -74,11 +74,11 @@ public class NewHistoricDialogController {
 		query.setQuery(collection.getQuery());
 
 		System.out.println("Searching...");
-		ProgressIndicator pi = new ProgressIndicator();
-		FlowPane root = new FlowPane();
-		root.setPadding(new Insets(10));
-        root.setHgap(10);
-        root.getChildren().addAll(pi);
+//		ProgressIndicator pi = new ProgressIndicator();
+//		FlowPane root = new FlowPane();
+//		root.setPadding(new Insets(10));
+//		root.setHgap(10);
+//		root.getChildren().addAll(pi);
 //        Scene scene = new Scene(root, 200, 150);
 //        Stage progressStage = new Stage();
 //        progressStage.setScene(scene);
@@ -93,7 +93,7 @@ public class NewHistoricDialogController {
 			} catch (TwitterException e) {
 				e.printStackTrace(); //FIXME throw new RateLimitException();
 			}
-			collection.addTweets(queryResult);
+			collection.saveTweetStatus(queryResult);
 			total += queryResult.getCount();// mostrar en un pop up los tweets totales encontrados
 			// queryResult.getRateLimitStatus(); -> muy interesante
 		} while ((query = queryResult.nextQuery()) != null && total <= 200);

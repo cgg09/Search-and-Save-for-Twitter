@@ -61,6 +61,10 @@ public class DBCollection {
 	public int getId() {
 		return id;
 	}
+	
+	public void setId(int id) {
+		this.id = id;
+	}
 
 	public String getType() {
 		return type;
@@ -102,11 +106,11 @@ public class DBCollection {
 		return end_t;
 	}
 
-	public List<Status> getTweetList() {
+	public List<Status> getTweetStatus() {
 		return tweets;
 	}
 
-	public void addTweets(QueryResult queryResult) {
+	public void saveTweetStatus(QueryResult queryResult) {
 		this.tweets.addAll(queryResult.getTweets());
 	}
 
@@ -127,10 +131,7 @@ public class DBCollection {
 		setStart(start.toLocalDateTime());
 		setEnd(end.toLocalDateTime());
 
-		// FIXME id should be captured here
-		addNewCollection(user);
-
-		id = this.getIdCollection();
+		id = addNewCollection(user);
 
 		for (Status tweet : tweets) {
 			addTweet(tweet);
@@ -142,9 +143,10 @@ public class DBCollection {
 	 * 
 	 * @param user
 	 */
-	public void addNewCollection(String user) {
+	public Integer addNewCollection(String user) {
 
 		PreparedStatement psmt;
+		ResultSet rsk = null;
 		try {
 			psmt = c.prepareStatement(addCollection);
 			psmt.setString(1, user);
@@ -154,11 +156,21 @@ public class DBCollection {
 			psmt.setString(5, getQuery());
 
 			psmt.executeUpdate();
+
+			rsk = psmt.getGeneratedKeys();
+			if (rsk.next()) {
+                setId(rsk.getInt(1));
+            }
+			
 			psmt.close();
+			return rsk.getInt(1);
+			
 		} catch (SQLException e) {
 			// FIXME throw new DatabaseWriteException
 			e.printStackTrace();
+			
 		}
+		return null;
 
 	}
 
@@ -235,10 +247,6 @@ public class DBCollection {
 
 	public void updateCollection() {
 
-		id = getIdCollection();
-
-		System.out.println("Update: " + id);
-
 		String selectCollection = "SELECT * FROM collection WHERE collection_id=\"" + id + "\" ";
 		ResultSet rsc;
 		try {
@@ -257,19 +265,27 @@ public class DBCollection {
 
 	public void updateTweets() {
 
-		currentTweets.clear();
+		if(!currentTweets.isEmpty()) {
+			System.out.println("Tweets already collected :)");
+			return;
+		}
+		//currentTweets.clear();
 
 		String updateTweets = "SELECT created_at, author, text_printable FROM tweet WHERE collection_id=\"" + id
 				+ "\" ";
 
 		ResultSet rst;
+		ResultSet rsc;
 		try {
 			rst = c.createStatement().executeQuery(updateTweets);
+			rsc = c.createStatement().executeQuery("SELECT count() FROM tweet WHERE collection_id=\""+id+"\"");
+			System.out.println("Num of tweets collected: "+rsc.getInt(1));
 			while (rst.next()) {
 				DisplayableTweet t = new DisplayableTweet(LocalDateTime.parse(rst.getString("created_at")), rst.getString("author"),
 						rst.getString("text_printable"));
 				currentTweets.add(t);
 			}
+			System.out.println(currentTweets.size());
 		} catch (SQLException e) {
 			// FIXME throw new DatabaseReadException
 			e.printStackTrace();

@@ -10,7 +10,6 @@ import application.exceptions.DatabaseReadException;
 import application.exceptions.RateLimitException;
 import application.utils.Browser;
 import application.utils.TwitterUser;
-import application.view.FastLoginViewController;
 import application.view.LoginViewController;
 import application.view.NewHistoricDialogController;
 import application.view.SearchViewController;
@@ -84,31 +83,7 @@ public class Main extends Application {
 		login.createRequest(twitter,dbUserDAO);		
 	}
 	
-	/**
-	 * Login view for a fast login
-	 */
-	public void showFastLogin() {
-		try {
-			// Load login from fxml file
-			FXMLLoader loader = new FXMLLoader();
-			loader.setLocation(Main.class.getResource("view/FastLoginView.fxml"));
-			AnchorPane fastLoginView = (AnchorPane) loader.load();
-			
-			// Show the scene containing the login view
-			Scene scene = new Scene(fastLoginView);
-			primaryStage.setScene(scene);
-			primaryStage.show();
-			
-			// Give the controller access to the main app
-			FastLoginViewController controller = loader.getController();
-			controller.setMainApp(this);
-			controller.setStage(primaryStage);
-			
-		} catch(IOException e) {
-			e.printStackTrace();
-		}
-	}
-	
+	// Probablemente se pueda retocar más, ya que nunca saltará al "else" que está puesto aquí
 	public void manageFastLogin(String user) { //FIXME throws DatabaseReadException
 		login.setMainApp(this);
 		setDBUserDAO(DBUserDAO.getInstance());
@@ -235,9 +210,12 @@ public class Main extends Application {
 		
 		if(!file.exists()) {
 			System.out.println("Database does not exist. Create a new one");
-			databaseDAO.createDatabase();
-		} else {
 			databaseDAO.connect();
+			databaseDAO.createUserTable();
+			databaseDAO.createCollectionTable();
+			databaseDAO.createTweetTable();
+		} else {
+			databaseDAO.checkDatabase();
 		}
 		
 		launch(args);
