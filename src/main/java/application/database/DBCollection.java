@@ -33,7 +33,10 @@ public class DBCollection {
 	private StringProperty query;
 	private List<Status> tweets;
 	private List<DisplayableTweet> currentTweets;
+	
+	private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-mm-dd hh:mm:ss");
 
+	//Queries
 	private String addCollection = "INSERT INTO collection (USERNAME, TIME_START, TIME_END, TYPE, QUERY) "
 			+ "VALUES (?,?,?,?,?);";
 	private String addTweet = "INSERT INTO tweet (TWEET_ID, COLLECTION_ID, RAW_TWEET, AUTHOR, CREATED_AT, TEXT_PRINTABLE) "
@@ -128,6 +131,12 @@ public class DBCollection {
 	 */
 	public void addData(Timestamp start, Timestamp end, String user) { //FIXME throws DatabaseReadException
 
+		//String st = start.toString();
+		//String nd = end.toString();
+		
+		//setStart(LocalDateTime.parse(st, formatter));
+		//setEnd(LocalDateTime.parse(nd, formatter));
+		
 		setStart(start.toLocalDateTime());
 		setEnd(end.toLocalDateTime());
 
@@ -184,8 +193,9 @@ public class DBCollection {
 
 		JSONObject json = new JSONObject(tweet);
 
-		LocalDateTime createdAt = tweet.getCreatedAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
-
+		LocalDateTime createdAt = tweet.getCreatedAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();	
+//		createdAt = LocalDateTime.parse(createdAt.toString(), formatter);
+		
 		PreparedStatement psmt_tweet;
 
 		try {

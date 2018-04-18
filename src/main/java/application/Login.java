@@ -32,14 +32,12 @@ public class Login {
 	private Main main;
 	private DBUserDAO dbu;
 
-
 	public Login() {
 
 	}
 
 	/**
-	 * New login process
-	 * 1st step: Request an authorization to Twitter
+	 * New login process 1st step: Request an authorization to Twitter
 	 */
 	public void createRequest(Twitter twitter, DBUserDAO dbu) {
 
@@ -61,8 +59,9 @@ public class Login {
 
 		try {
 			requestToken = twitter.getOAuthRequestToken(appProps.getValue("base_callback_url"));
-		} catch( TwitterException e ) {
-			System.out.println("No pude conectarme con Twitter"); // pedir al usuario que se conecte a Internet (ventana emergente)
+		} catch (TwitterException e) {
+			System.out.println("No pude conectarme con Twitter"); // pedir al usuario que se conecte a Internet (ventana
+																	// emergente)
 			System.exit(0);
 		}
 
@@ -72,87 +71,85 @@ public class Login {
 	}
 
 	/**
-	 * New login process
-	 * 2n step: Retrieve tokens from callback url
+	 * New login process 2n step: Retrieve tokens from callback url
 	 */
 	public void retrieveTokens(Browser browser) {
 
 		webEngine = browser.getWebEngine();
 
-		webEngine.getLoadWorker().stateProperty().addListener(
-				new ChangeListener<Worker.State>() {
+		webEngine.getLoadWorker().stateProperty().addListener(new ChangeListener<Worker.State>() {
 
-					@Override
-					public void changed(ObservableValue<? extends javafx.concurrent.Worker.State> observable,
-							javafx.concurrent.Worker.State oldState, javafx.concurrent.Worker.State newState) {
+			@Override
+			public void changed(ObservableValue<? extends javafx.concurrent.Worker.State> observable,
+					javafx.concurrent.Worker.State oldState, javafx.concurrent.Worker.State newState) {
 
-						if( newState.equals(javafx.concurrent.Worker.State.FAILED) ) {
-							String location = webEngine.getLocation();
-							if( location.startsWith(appProps.getValue("base_callback_url")) ) {
-								String callbackURLWithTokens = location;
-								browser.closeBrowser();
-								verifyTokens(callbackURLWithTokens);
+				if (newState.equals(javafx.concurrent.Worker.State.FAILED)) {
+					String location = webEngine.getLocation();
+					if (location.startsWith(appProps.getValue("base_callback_url"))) {
+						String callbackURLWithTokens = location;
+						browser.closeBrowser();
+						verifyTokens(callbackURLWithTokens);
 
-							} else {
-								// Mostrar ventana emergente "Couldn't connect to " + location
-							}
-						}
-
+					} else {
+						// Mostrar ventana emergente "Couldn't connect to " + location
 					}
-				});
+				}
+
+			}
+		});
 
 	}
 
 	/**
-	 * New login process
-	 * 3rd step: Verify identity and sign in
+	 * New login process 3rd step: Verify identity and sign in
 	 */
 	public void verifyTokens(String callbackURL) {
 
 		String oauthToken;
 		String oauthVerifier;
 
-		try {
-			oauthToken = getParameter(callbackURL, "oauth_token");
-			oauthVerifier = getParameter(callbackURL, "oauth_verifier");
-			if(oauthVerifier!=null && ((requestToken.getToken().toString().equalsIgnoreCase(oauthToken)))) {
-				webEngine.getLoadWorker().cancel();
+		oauthToken = getParameter(callbackURL, "oauth_token");
+		oauthVerifier = getParameter(callbackURL, "oauth_verifier");
+		if (oauthVerifier != null && ((requestToken.getToken().toString().equalsIgnoreCase(oauthToken)))) {
+			webEngine.getLoadWorker().cancel();
+			try {
 				accessToken = twitter.getOAuthAccessToken(requestToken, oauthVerifier);
-			}
-
-			else {
-				accessToken = twitter.getOAuthAccessToken();
-			}
-
-		} catch (TwitterException te) {
-			if (401 == te.getStatusCode()) {
-				System.out.println("Unable to get the access token.");
-				//return false;
-			} else {
-				te.printStackTrace();
+			} catch (TwitterException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 		}
-		
+
+		else {
+			try {
+				accessToken = twitter.getOAuthAccessToken();
+			} catch (TwitterException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
 		try {
 			main.getUser().setUsername(twitter.verifyCredentials().getScreenName());
-			dbu.saveLogin(main.getUser().getUsername(), accessToken.getToken().toString(), accessToken.getTokenSecret().toString());
-			main.showSearch();
 		} catch (TwitterException e) {
-			// FIXME mi propia excepcion
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+		dbu.saveLogin(main.getUser().getUsername(), accessToken.getToken().toString(),
+				accessToken.getTokenSecret().toString());
+		main.showSearch();
 
 	}
-	
+
 	/**
 	 * Retrieve session when the user has signed up before
+	 * 
 	 * @param twitter
 	 * @param user
-	 * @throws DatabaseReadException 
+	 * @throws DatabaseReadException
 	 */
-	public void retrieveSession(Twitter twitter, String user, DBUserDAO dbu) { //FIXME throws DatabaseReadException {
-		
+	public void retrieveSession(Twitter twitter, String user, DBUserDAO dbu) { // FIXME throws DatabaseReadException {
+
 		this.dbu = dbu;
 
 		try {
@@ -162,30 +159,29 @@ public class Login {
 			System.out.println("archivo cargado incorrectamente");
 			e.printStackTrace();
 		}
-		
-	    twitter.setOAuthConsumer(appProps.getValue("consumer_key"), appProps.getValue("consumer_secret"));
-	    
-	    String token = dbu.getUserData("access_token",user);
-	    String secret = dbu.getUserData("access_secret",user);
-	    
-	    AccessToken at = new AccessToken(token,secret);
-	    twitter.setOAuthAccessToken(at);
-	    
-	    try {
+
+		twitter.setOAuthConsumer(appProps.getValue("consumer_key"), appProps.getValue("consumer_secret"));
+
+		String token = dbu.getUserData("access_token", user);
+		String secret = dbu.getUserData("access_secret", user);
+
+		AccessToken at = new AccessToken(token, secret);
+		twitter.setOAuthAccessToken(at);
+
+		try {
 			twitter.verifyCredentials().getId();
 		} catch (TwitterException e1) {
-			e1.printStackTrace();				//Access Exceptions --> tokens expirados, acceso revocado..., etc
+			e1.printStackTrace(); // Access Exceptions --> tokens expirados, acceso revocado..., etc
 		}
 
-	    try {
-	    	main.getUser().setUsername(twitter.verifyCredentials().getScreenName());
-			main.showSearch();
+		try {
+			main.getUser().setUsername(twitter.verifyCredentials().getScreenName());			
 		} catch (TwitterException e2) {
 			e2.printStackTrace();
 		}
-	    
-	}
+		main.showSearch();
 
+	}
 
 	/**
 	 * Retrieve parameters from a URL
@@ -196,15 +192,14 @@ public class Login {
 		HttpClientURIBuilder uri;
 		try {
 			uri = new HttpClientURIBuilder(url);
-		}
-		catch (URISyntaxException e) {
+		} catch (URISyntaxException e) {
 			return null;
 		}
 
 		List<NameValuePair> query = uri.getQueryParams();
 		for (NameValuePair param : query) {
 			if (param.getName().equalsIgnoreCase(p)) {
-				if(param.getValue()!=null) {
+				if (param.getValue() != null) {
 					return param.getValue();
 				}
 				return null;

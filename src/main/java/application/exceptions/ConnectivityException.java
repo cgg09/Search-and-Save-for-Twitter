@@ -1,9 +1,19 @@
 package application.exceptions;
 
 public class ConnectivityException extends Exception {
-	
-	public ConnectivityException() {
-		super("You are not connected to the internet. Check your connection.");
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	public ConnectivityException(String message) {
+		super(message);
 	}
+
+	/*
+	 * public String toString() { return
+	 * "You are not connected to the internet. Check your connection."; }
+	 */
 
 }
