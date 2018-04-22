@@ -1,9 +1,13 @@
 package application.view;
 
 import java.util.List;
+import java.util.Vector;
 
 import application.Main;
 import application.database.DBUserDAO;
+import application.exceptions.AccessException;
+import application.exceptions.ConnectivityException;
+import application.exceptions.DataNotFoundException;
 import application.exceptions.DatabaseReadException;
 import javafx.fxml.FXML;
 import javafx.scene.control.MenuButton;
@@ -34,13 +38,22 @@ public class LoginViewController {
 	public void initialize() { //FIXME throws DatabaseReadException
 		
 		Main.setDBUserDAO(DBUserDAO.getInstance());
-		List<String> users = Main.getDBUserDAO().getUsers();
+		List<String> users = new Vector<String>();
+		try {
+			users = Main.getDBUserDAO().getUsers();
+		} catch (DatabaseReadException | DataNotFoundException e2) {
+			e2.printStackTrace();
+		}
 		if(users!=null) {
 			for(String u : users) {
 				MenuItem m = new MenuItem(u);
 				m.setOnAction(e -> {
 					MenuItem source = (MenuItem) e.getSource(); 
-					main.manageFastLogin(source.getText());	// FIXME currentStage.close(); ??
+					try {
+						main.manageFastLogin(source.getText());
+					} catch (ConnectivityException e1) {
+						e1.printStackTrace();
+					}
 				});
 				loginButton.getItems().add(m);
 			}
@@ -65,10 +78,12 @@ public class LoginViewController {
 	
 	/**
 	 * When the user clicks the login button
+	 * @throws ConnectivityException 
+	 * @throws AccessException 
 	 * @throws Exception
 	 */
 	@FXML
-	private void handleSignUp() {
+	private void handleSignUp() throws ConnectivityException, AccessException {
 		main.manageNewLogin();
 		currentStage.close();
 	}	

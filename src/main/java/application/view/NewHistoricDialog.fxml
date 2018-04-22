@@ -17,12 +17,13 @@
           <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
         </rowConstraints>
          <children>
-            <Label text="Palabra clave:" />
+            <Label text="Keyword:" />
             <TextField fx:id="userQuery" GridPane.columnIndex="1" />
+            <Label fx:id="downloadedTweets" GridPane.rowIndex="1" />
          </children>
       </GridPane>
-      <Button layoutX="334.0" layoutY="211.0" mnemonicParsing="false" onAction="#handleSearch" text="Buscar" AnchorPane.bottomAnchor="15.0" AnchorPane.rightAnchor="15.0" />
-      <Button layoutX="14.0" layoutY="211.0" mnemonicParsing="false" onAction="#handleCancel" text="Cancelar" AnchorPane.bottomAnchor="15.0" AnchorPane.leftAnchor="15.0" />
+      <Button fx:id="searchButton" layoutX="334.0" layoutY="211.0" mnemonicParsing="false" onAction="#handleSearch" text="Search" AnchorPane.bottomAnchor="15.0" AnchorPane.rightAnchor="15.0" />
+      <Button layoutX="14.0" layoutY="211.0" mnemonicParsing="false" onAction="#handleCancel" text="Cancel" AnchorPane.bottomAnchor="15.0" AnchorPane.leftAnchor="15.0" />
       <Label layoutX="155.0" layoutY="42.0" text="Nueva búsqueda" />
    </children>
 </AnchorPane>

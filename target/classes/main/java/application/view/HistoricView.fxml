@@ -13,7 +13,7 @@
                <children>
                   <TableView fx:id="historySearch" layoutX="-79.0" layoutY="-72.0" prefHeight="142.0" prefWidth="57.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                     <columns>
-                      <TableColumn fx:id="dateColumn" prefWidth="75.0" text="Date" />
+                      <TableColumn fx:id="dateColumn" prefWidth="75.0" sortType="DESCENDING" text="Date" />
                       <TableColumn fx:id="keywordColumn" prefWidth="75.0" text="Query" />
                     </columns>
                   </TableView>

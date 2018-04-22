@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import application.Main;
 import application.database.DBCollection;
+import application.exceptions.DatabaseReadException;
 import application.utils.DisplayableTweet;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -60,16 +61,23 @@ public class HistoricViewController extends AnchorPane {
 		text.setCellValueFactory(cellData -> cellData.getValue().tweetTextProperty());
 
 		// initialize user historySearch 
-		for(DBCollection dbc: Main.getDBUserDAO().retrieveCollections()) {
-			history.add(dbc);
+		try {
+			for(DBCollection dbc: Main.getDBUserDAO().retrieveCollections()) {
+				history.add(dbc);
+			}
+		} catch (DatabaseReadException e) {
+			e.printStackTrace();
 		}
 		historySearch.setItems(history);
 
 		// update currentSearch from historySearch
 		historySearch.getSelectionModel().selectedItemProperty().addListener(
 				(observable, oldValue, newValue) -> {
-					System.out.println("oldValue: "+oldValue+", newValue: "+newValue.getId());
-					newValue.updateCollection(); 
+					try {
+						newValue.updateCollection();
+					} catch (DatabaseReadException e) {
+						e.printStackTrace();
+					} 
 					addSearch(newValue);	
 				});
 	}

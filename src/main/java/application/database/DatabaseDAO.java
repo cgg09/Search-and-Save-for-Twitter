@@ -6,6 +6,9 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import application.exceptions.DatabaseReadException;
+import application.exceptions.DatabaseWriteException;
+
 public class DatabaseDAO {
 
 	private static DatabaseDAO instance;
@@ -39,6 +42,7 @@ public class DatabaseDAO {
 			" AUTHOR			VARCHAR(50)		NOT NULL, " +
 			" CREATED_AT		TEXT			NOT NULL, " +
 			" TEXT_PRINTABLE	VARCHAR(200)	NOT NULL, " +	// FIXME pendiente de parsear texto !!
+			" RETWEET			INTEGER			NOT NULL, " +
 			" PRIMARY KEY		(TWEET_ID), "+
 			" FOREIGN KEY 		(COLLECTION_ID)	REFERENCES COLLECTION(COLLECTION_ID))";
 	
@@ -53,6 +57,10 @@ public class DatabaseDAO {
 		}
 		return instance;
 	}
+
+	public Connection getConnection() {
+		return c;
+	}
 	
 	public void connect() {
 		try {
@@ -62,7 +70,7 @@ public class DatabaseDAO {
 		}
 	}
 	
-	public void checkDatabase() {
+	public void checkDatabase() throws DatabaseReadException {
 		connect();
 		
 		PreparedStatement psu = null;
@@ -74,62 +82,67 @@ public class DatabaseDAO {
 			psc = c.prepareStatement(checkC);
 			pst = c.prepareStatement(checkT);
 		} catch (SQLException e) {
-			e.printStackTrace();
+			throw new DatabaseReadException("There was an error reading the database.");
 		}
 		
 		if(psu == null) {
 			System.out.println("Hi, users");
-			createUserTable();
+			try {
+				createUserTable();
+			} catch (DatabaseWriteException e) {
+				e.printStackTrace();
+			}
 		}
 		
 		if(psc == null) {
 			System.out.println("Hi, collections");
-			createCollectionTable();
+			try {
+				createCollectionTable();
+			} catch (DatabaseWriteException e) {
+				e.printStackTrace();
+			}
 		}
 		
 		if(pst == null) {
 			System.out.println("Hi, tweets");
-			createTweetTable();
+			try {
+				createTweetTable();
+			} catch (DatabaseWriteException e) {
+				e.printStackTrace();
+			}
 		}
 	
 		System.out.println("DB checked");
 	}
 	
-	public void createUserTable() {
+	public void createUserTable() throws DatabaseWriteException {
 		Statement stmtU = null;
 		try {
 			stmtU = c.createStatement();
 			stmtU.executeUpdate(userTable);
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new DatabaseWriteException("There was an error creating the users table.");
 		}
 	}
 	
-	public void createCollectionTable() {
+	public void createCollectionTable() throws DatabaseWriteException {
 		Statement stmtC = null;
 		try {
 			stmtC = c.createStatement();
 			stmtC.executeUpdate(collectionTable);
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new DatabaseWriteException("There was an error creating the collections table.");
 		}
 	}
 	
-	public void createTweetTable() {
+	public void createTweetTable() throws DatabaseWriteException {
 		Statement stmtT = null;
 		try {
 			stmtT = c.createStatement();
 			stmtT.executeUpdate(tweetTable);
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new DatabaseWriteException("There was an error creating the tweets table.");
 		}
-	}
-	
-	public Connection getConnection() {
-		return c;
 	}
 	
 }	

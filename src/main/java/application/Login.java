@@ -10,7 +10,10 @@ import org.apache.http.NameValuePair;
 import com.box.restclientv2.httpclientsupport.HttpClientURIBuilder;
 
 import application.database.DBUserDAO;
+import application.exceptions.AccessException;
+import application.exceptions.ConnectivityException;
 import application.exceptions.DatabaseReadException;
+import application.exceptions.DatabaseWriteException;
 import application.utils.AppProperties;
 import application.utils.Browser;
 import javafx.beans.value.ChangeListener;
@@ -38,8 +41,11 @@ public class Login {
 
 	/**
 	 * New login process 1st step: Request an authorization to Twitter
+	 * 
+	 * @throws ConnectivityException
+	 * @throws AccessException
 	 */
-	public void createRequest(Twitter twitter, DBUserDAO dbu) {
+	public void createRequest(Twitter twitter, DBUserDAO dbu) throws ConnectivityException, AccessException {
 
 		this.dbu = dbu;
 		this.twitter = twitter;
@@ -60,9 +66,11 @@ public class Login {
 		try {
 			requestToken = twitter.getOAuthRequestToken(appProps.getValue("base_callback_url"));
 		} catch (TwitterException e) {
-			System.out.println("No pude conectarme con Twitter"); // pedir al usuario que se conecte a Internet (ventana
-																	// emergente)
-			System.exit(0);
+			if (401 == e.getStatusCode()) {
+				throw new AccessException("401: Unable to get the access token. Please check your credentials.");
+			} else {
+				throw new ConnectivityException();
+			}
 		}
 
 		if (null == accessToken) {
@@ -88,7 +96,11 @@ public class Login {
 					if (location.startsWith(appProps.getValue("base_callback_url"))) {
 						String callbackURLWithTokens = location;
 						browser.closeBrowser();
-						verifyTokens(callbackURLWithTokens);
+						try {
+							verifyTokens(callbackURLWithTokens);
+						} catch (AccessException | ConnectivityException e) {
+							e.printStackTrace();
+						}
 
 					} else {
 						// Mostrar ventana emergente "Couldn't connect to " + location
@@ -102,8 +114,10 @@ public class Login {
 
 	/**
 	 * New login process 3rd step: Verify identity and sign in
+	 * @throws AccessException 
+	 * @throws ConnectivityException 
 	 */
-	public void verifyTokens(String callbackURL) {
+	public void verifyTokens(String callbackURL) throws AccessException, ConnectivityException {
 
 		String oauthToken;
 		String oauthVerifier;
@@ -115,8 +129,11 @@ public class Login {
 			try {
 				accessToken = twitter.getOAuthAccessToken(requestToken, oauthVerifier);
 			} catch (TwitterException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				if (401 == e.getStatusCode()) {
+					throw new AccessException("401: Unable to get the access token. Please check your credentials.");
+				} else {
+					throw new ConnectivityException();
+				}
 			}
 		}
 
@@ -135,8 +152,12 @@ public class Login {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		dbu.saveLogin(main.getUser().getUsername(), accessToken.getToken().toString(),
-				accessToken.getTokenSecret().toString());
+		try {
+			dbu.saveLogin(main.getUser().getUsername(), accessToken.getToken().toString(),
+					accessToken.getTokenSecret().toString());
+		} catch (DatabaseWriteException e) {
+			e.printStackTrace();
+		}
 		main.showSearch();
 
 	}
@@ -146,9 +167,13 @@ public class Login {
 	 * 
 	 * @param twitter
 	 * @param user
+	 * @throws ConnectivityException
 	 * @throws DatabaseReadException
 	 */
-	public void retrieveSession(Twitter twitter, String user, DBUserDAO dbu) { // FIXME throws DatabaseReadException {
+	public void retrieveSession(Twitter twitter, String user, DBUserDAO dbu) throws ConnectivityException { // FIXME
+																											// throws
+																											// DatabaseReadException
+																											// {
 
 		this.dbu = dbu;
 
@@ -162,22 +187,35 @@ public class Login {
 
 		twitter.setOAuthConsumer(appProps.getValue("consumer_key"), appProps.getValue("consumer_secret"));
 
-		String token = dbu.getUserData("access_token", user);
-		String secret = dbu.getUserData("access_secret", user);
+		String token = null;
+		try {
+			token = dbu.getUserData("access_token", user);
+		} catch (DatabaseReadException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		String secret = null;
+		try {
+			secret = dbu.getUserData("access_secret", user);
+		} catch (DatabaseReadException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
 		AccessToken at = new AccessToken(token, secret);
 		twitter.setOAuthAccessToken(at);
 
 		try {
 			twitter.verifyCredentials().getId();
-		} catch (TwitterException e1) {
-			e1.printStackTrace(); // Access Exceptions --> tokens expirados, acceso revocado..., etc
+		} catch (TwitterException e1) { // FIXME connectivity exception / Access Exceptions (tokens expirados, acceso
+										// revocado..., etc) ?
+			throw new ConnectivityException();
 		}
 
 		try {
-			main.getUser().setUsername(twitter.verifyCredentials().getScreenName());			
-		} catch (TwitterException e2) {
-			e2.printStackTrace();
+			main.getUser().setUsername(twitter.verifyCredentials().getScreenName());
+		} catch (TwitterException e2) { // FIXME connectivity exception
+			throw new ConnectivityException();
 		}
 		main.showSearch();
 

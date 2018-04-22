@@ -9,8 +9,14 @@ import java.util.List;
 import java.util.Vector;
 
 import application.Main;
+import application.exceptions.DataNotFoundException;
 import application.exceptions.DatabaseReadException;
+import application.exceptions.DatabaseWriteException;
 
+/**
+ * @author María Cristina
+ *
+ */
 public class DBUserDAO {
 
 	public static DBUserDAO instance;
@@ -33,7 +39,7 @@ public class DBUserDAO {
 		return instance;
 	}
 
-	public void saveLogin(String username, String token, String tokenSecret) {
+	public void saveLogin(String username, String token, String tokenSecret) throws DatabaseWriteException {
 
 		user = username;
 
@@ -46,8 +52,7 @@ public class DBUserDAO {
 			psmt.executeUpdate();
 			psmt.close();
 		} catch (SQLException e) {
-			// FIXME throw new DatabaseWriteException
-			e.printStackTrace();
+			throw new DatabaseWriteException("An error occurred while saving the data.");
 		}
 
 	}
@@ -57,9 +62,10 @@ public class DBUserDAO {
 	 * 
 	 * @param user
 	 * @return
-	 * @throws DatabaseReadException 
+	 * @throws DatabaseReadException
+	 * @throws DataNotFoundException
 	 */
-	public boolean checkUser(String username) { // FIXME  throws DatabaseReadException
+	public boolean checkUser(String username) throws DatabaseReadException, DataNotFoundException {
 
 		ResultSet rs = null;
 
@@ -67,13 +73,13 @@ public class DBUserDAO {
 		try {
 			rs = c.createStatement().executeQuery(s);
 		} catch (SQLException e) {
-			e.printStackTrace();
+			throw new DatabaseReadException("An error occurred while reading the data.");
 		}
 
 		if (rs != null) {
 			return true;
 		} else {
-			return false;
+			throw new DataNotFoundException("The user was not found in the database."); // Debería ser un error ¿?
 		}
 
 	}
@@ -84,8 +90,9 @@ public class DBUserDAO {
 	 * @param query
 	 * @param user
 	 * @return
+	 * @throws DatabaseReadException 
 	 */
-	public String getUserData(String query, String username) { // FIXME throws DatabaseReadException
+	public String getUserData(String query, String username) throws DatabaseReadException {
 
 		user = username;
 
@@ -97,21 +104,20 @@ public class DBUserDAO {
 			rsu = c.prepareStatement(select).executeQuery();
 			return rsu.getString(query);
 		} catch (SQLException e) {
-			e.printStackTrace(); //FIXME throw new DatabaseReadException();
+			throw new DatabaseReadException("An error occurred while reading the data.");
 		}
-		return null;
 
 	}
 
-	public List<String> getUsers() { // FIXME throws DatabaseReadException
+	public List<String> getUsers() throws DatabaseReadException, DataNotFoundException {
 
 		List<String> u = new Vector<String>();
 
 		ResultSet rsu = null;
 
 		try {
-			if (c.createStatement().executeQuery(count).getInt(1) < 1) {
-				return null; // FIXME throw new DataNotFoundException
+			if (c.createStatement().executeQuery(count).getInt(1) < 1) { // FIXME no es una "EXCEPTION", qué poner aquí ?
+				return null; // FIXME throw new DataNotFoundException();
 			}
 			rsu = c.createStatement().executeQuery(users);
 			while (rsu.next()) {
@@ -119,18 +125,23 @@ public class DBUserDAO {
 			}
 
 		} catch (SQLException e) {
-			e.printStackTrace(); //FIXME throw new DatabaseReadException();
+			throw new DatabaseReadException("An error occurred while reading the data.");
 		}
 
 		return u;
 	}
 	
-	public List<DBCollection> retrieveCollections(){
+	/**
+	 * 
+	 * @return
+	 * @throws DatabaseReadException
+	 */
+	public List<DBCollection> retrieveCollections() throws DatabaseReadException {
 		List<DBCollection> cols = new Vector<DBCollection>();
-		
+
 		ResultSet rsc = null;
-		String col = "SELECT * FROM collection WHERE username=\""+user+"\"";
-		
+		String col = "SELECT * FROM collection WHERE username=\"" + user + "\"";
+
 		try {
 			rsc = c.createStatement().executeQuery(col);
 			while (rsc.next()) {
@@ -143,8 +154,9 @@ public class DBUserDAO {
 				cols.add(dbc);
 			}
 		} catch (SQLException e) {
-			e.printStackTrace(); //FIXME throw new DatabaseReadException();
+			throw new DatabaseReadException("An error occurred while reading the data.");
 		}
+
 		return cols;
 	}
 

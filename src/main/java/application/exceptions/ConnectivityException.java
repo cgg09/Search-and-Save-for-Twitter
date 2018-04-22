@@ -7,8 +7,8 @@ public class ConnectivityException extends Exception {
 	 */
 	private static final long serialVersionUID = 1L;
 
-	public ConnectivityException(String message) {
-		super(message);
+	public ConnectivityException() {
+		super("You do not have internet connection. Please check it out before continue.");
 	}
 
 	/*

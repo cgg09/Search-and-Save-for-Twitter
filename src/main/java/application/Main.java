@@ -6,7 +6,11 @@ import java.io.IOException;
 import application.database.DBCollection;
 import application.database.DBUserDAO;
 import application.database.DatabaseDAO;
+import application.exceptions.AccessException;
+import application.exceptions.ConnectivityException;
+import application.exceptions.DataNotFoundException;
 import application.exceptions.DatabaseReadException;
+import application.exceptions.DatabaseWriteException;
 import application.exceptions.RateLimitException;
 import application.utils.Browser;
 import application.utils.TwitterUser;
@@ -78,7 +82,7 @@ public class Main extends Application {
 		controller.setStage(primaryStage);
 	}
 
-	public void manageNewLogin() {
+	public void manageNewLogin() throws ConnectivityException, AccessException {
 		login.setMainApp(this);
 		setDBUserDAO(DBUserDAO.getInstance());
 		login.createRequest(twitter, dbUserDAO);
@@ -86,10 +90,15 @@ public class Main extends Application {
 
 	// Probablemente se pueda retocar más, ya que nunca saltará al "else" que está
 	// puesto aquí
-	public void manageFastLogin(String user) { // FIXME throws DatabaseReadException
+	public void manageFastLogin(String user) throws ConnectivityException { // FIXME throws DatabaseReadException
 		login.setMainApp(this);
 		setDBUserDAO(DBUserDAO.getInstance());
-		boolean check = dbUserDAO.checkUser(user);
+		boolean check = false;
+		try {
+			check = dbUserDAO.checkUser(user);
+		} catch (DatabaseReadException | DataNotFoundException e) {
+			e.printStackTrace();
+		}
 		if (check) {
 			login.retrieveSession(twitter, user, dbUserDAO);
 		} else {
@@ -167,13 +176,6 @@ public class Main extends Application {
 
 		dialogStage.showAndWait();
 
-		/*
-		 * RotateTransition rotate = new RotateTransition(); rotate.setOnFinished(e -> {
-		 * try { controller.handleSearch(); } catch (RateLimitException e1) { // TODO
-		 * Auto-generated catch block e1.printStackTrace(); } catch
-		 * (DatabaseReadException e2) { // TODO Auto-generated catch block
-		 * e2.printStackTrace(); } }); rotate.play();
-		 */
 		return controller.isOkClicked();
 
 	}
@@ -207,11 +209,27 @@ public class Main extends Application {
 		if (!file.exists()) {
 			System.out.println("Database does not exist. Create a new one");
 			databaseDAO.connect();
-			databaseDAO.createUserTable();
-			databaseDAO.createCollectionTable();
-			databaseDAO.createTweetTable();
+			try {
+				databaseDAO.createUserTable();
+			} catch (DatabaseWriteException e) {
+				e.printStackTrace();
+			}
+			try {
+				databaseDAO.createCollectionTable();
+			} catch (DatabaseWriteException e) {
+				e.printStackTrace();
+			}
+			try {
+				databaseDAO.createTweetTable();
+			} catch (DatabaseWriteException e) {
+				e.printStackTrace();
+			}
 		} else {
-			databaseDAO.checkDatabase();
+			try {
+				databaseDAO.checkDatabase();
+			} catch (DatabaseReadException e) {
+				e.printStackTrace();
+			}
 		}
 
 		launch(args);

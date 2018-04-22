@@ -12,11 +12,13 @@ public class DisplayableTweet {
 	private ObjectProperty<LocalDateTime> createdAt;
 	private StringProperty author;
 	private StringProperty text;
+	private boolean retweet;
 	
-	public DisplayableTweet(LocalDateTime c, String a, String t) {
+	public DisplayableTweet(LocalDateTime c, String a, String t, boolean r) {
 		this.createdAt = new SimpleObjectProperty<LocalDateTime>(c);
 		this.author = new SimpleStringProperty(a);
 		this.text = new SimpleStringProperty(t);
+		this.retweet = r;
 	}
 	
 	public LocalDateTime getCreatedAt() {
@@ -53,5 +55,13 @@ public class DisplayableTweet {
 	
 	public StringProperty tweetTextProperty() {
 		return text;
+	}
+	
+	public boolean getRetweet() {
+		return retweet;
+	}
+	
+	public void setRetweet(boolean retweet) {
+		this.retweet = retweet;
 	}
 }
