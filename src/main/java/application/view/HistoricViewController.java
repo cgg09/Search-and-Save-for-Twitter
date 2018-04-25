@@ -13,6 +13,7 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.input.MouseButton;
@@ -76,6 +77,10 @@ public class HistoricViewController extends AnchorPane {
 		}
 
 		historySearch.setItems(history);
+		
+		historySearch.getSelectionModel().setSelectionMode(
+			    SelectionMode.MULTIPLE
+			);
 		
 		// initialize historicSearch options for each collection
 		MenuItem m1 = new MenuItem("Export collection");
