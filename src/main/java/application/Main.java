@@ -127,7 +127,7 @@ public class Main extends Application {
 		// Load login from fxml file
 		FXMLLoader loader = new FXMLLoader();
 		loader.setLocation(Main.class.getResource("view/SearchView.fxml"));
-		AnchorPane searchView = null;
+		AnchorPane searchView = new AnchorPane();
 		try {
 			searchView = (AnchorPane) loader.load();
 		} catch (IOException e) {
