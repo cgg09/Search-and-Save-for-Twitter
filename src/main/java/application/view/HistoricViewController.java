@@ -8,6 +8,7 @@ import application.exceptions.DatabaseReadException;
 import application.utils.DisplayableTweet;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -60,7 +61,7 @@ public class HistoricViewController extends AnchorPane {
 		author.setCellValueFactory(cellData -> cellData.getValue().authorProperty());
 		text.setCellValueFactory(cellData -> cellData.getValue().tweetTextProperty());
 
-		// initialize user historySearch 
+		// initialize user historySearch (sorted) 
 		try {
 			for(DBCollection dbc: Main.getDBUserDAO().retrieveCollections()) {
 				history.add(dbc);
@@ -68,8 +69,16 @@ public class HistoricViewController extends AnchorPane {
 		} catch (DatabaseReadException e) {
 			e.printStackTrace();
 		}
-		historySearch.setItems(history);
 
+/*		
+		SortedList<DBCollection> sortedHistory = new SortedList<>(history);
+		
+		sortedHistory.comparatorProperty().bind(historySearch.comparatorProperty());
+		
+		historySearch.setItems(sortedHistory);
+*/
+		historySearch.setItems(history);
+		
 		// update currentSearch from historySearch
 		historySearch.getSelectionModel().selectedItemProperty().addListener(
 				(observable, oldValue, newValue) -> {
@@ -78,8 +87,9 @@ public class HistoricViewController extends AnchorPane {
 					} catch (DatabaseReadException e) {
 						e.printStackTrace();
 					} 
-					addSearch(newValue);	
+					addSearch(newValue);
 				});
+		
 	}
 	
 	@FXML
@@ -115,7 +125,7 @@ public class HistoricViewController extends AnchorPane {
 		if (!data.isEmpty()) {
 			data.clear();
 		}
-		
+		/*
 		from = 0;
 		
 		listSize = collection.getCurrentTweets().size();
@@ -125,11 +135,17 @@ public class HistoricViewController extends AnchorPane {
 		
 		for(DisplayableTweet t : collection.getCurrentTweets().subList(from, to)) {
 			data.add(t);
-		}
+		}*/
+		
+		data.addAll(collection.getCurrentTweets());
 
-		currentSearch.setItems(data);
+		SortedList<DisplayableTweet> sortedData = new SortedList<>(data);
+		
+		sortedData.comparatorProperty().bind(currentSearch.comparatorProperty());
+		
+		currentSearch.setItems(sortedData);
 	}
-
+/*
 	@FXML
 	private void nextTweets() {
 
@@ -169,7 +185,7 @@ public class HistoricViewController extends AnchorPane {
 		
 		currentSearch.setItems(data);
 	}
-
+*/
 	/*
 	 * @FXML private void handleExport() { Database.exportCSV(search.getKeyword());
 	 * }

@@ -5,7 +5,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.layout.AnchorPane?>
 
-<AnchorPane prefHeight="200.0" prefWidth="400.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.view.HistoricViewController">
+<AnchorPane layoutY="75.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.view.HistoricViewController">
    <children>
       <SplitPane dividerPositions="0.1513" layoutX="-20.0" layoutY="10.0" prefHeight="290.0" prefWidth="729.0" AnchorPane.bottomAnchor="56.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <items>
@@ -13,7 +13,7 @@
                <children>
                   <TableView fx:id="historySearch" layoutX="-79.0" layoutY="-72.0" prefHeight="142.0" prefWidth="57.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                     <columns>
-                      <TableColumn fx:id="dateColumn" prefWidth="75.0" sortType="DESCENDING" text="Date" />
+                      <TableColumn fx:id="dateColumn" prefWidth="75.0" text="Date" />
                       <TableColumn fx:id="keywordColumn" prefWidth="75.0" text="Query" />
                     </columns>
                   </TableView>
@@ -25,7 +25,7 @@
                     <columns>
                       <TableColumn fx:id="createdAt" prefWidth="75.0" text="Created At" />
                       <TableColumn fx:id="author" prefWidth="75.0" text="Author" />
-                        <TableColumn fx:id="text" prefWidth="75.0" text="Text" />
+                      <TableColumn fx:id="text" prefWidth="75.0" text="Text" />
                     </columns>
                   </TableView>
                </children>
@@ -33,7 +33,9 @@
         </items>
       </SplitPane>
       <Button layoutX="48.0" layoutY="307.0" mnemonicParsing="false" onAction="#handleNew" text="New search" AnchorPane.bottomAnchor="15.0" AnchorPane.leftAnchor="15.0" />
+<!--      
       <Button layoutX="260.0" layoutY="150.0" mnemonicParsing="false" onAction="#nextTweets" text="Next" AnchorPane.bottomAnchor="15.0" AnchorPane.rightAnchor="220.0" />
       <Button layoutX="194.0" layoutY="150.0" mnemonicParsing="false" onAction="#previousTweets" text="Previous" AnchorPane.bottomAnchor="15.0" AnchorPane.rightAnchor="300.0" />
+-->
    </children>
 </AnchorPane>

@@ -27,16 +27,14 @@
           </Menu>
         </menus>
       </MenuBar>
-      <Label fx:id="username" layoutX="542.0" layoutY="37.0" text="username" AnchorPane.rightAnchor="30.0" AnchorPane.topAnchor="30.0" />
-      <TabPane layoutX="14.0" layoutY="150.0" prefHeight="347.0" prefWidth="600.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="50.0">
-        <tabs>
-          <Tab text="Historic Search">
-               <content>
-                  <fx:include source="HistoricView.fxml" />
-               </content>
-          </Tab>
-          <Tab text="Live Search" />
-        </tabs>
-      </TabPane>
+      <Label fx:id="username" layoutX="542.0" layoutY="37.0" text="username" AnchorPane.leftAnchor="30.0" AnchorPane.rightAnchor="518.0" AnchorPane.topAnchor="40.0" />
+      <fx:include source="HistoricView.fxml" />
+      <MenuButton layoutX="487.0" layoutY="36.0" mnemonicParsing="false" popupSide="LEFT" text="Show" AnchorPane.rightAnchor="15.0" AnchorPane.topAnchor="40.0">
+        <items>
+          <MenuItem mnemonicParsing="false" text="Last 200 tweets" />
+          <MenuItem mnemonicParsing="false" text="All tweets (except RTs)" />
+            <MenuItem mnemonicParsing="false" text="All tweets: " />
+        </items>
+      </MenuButton>
    </children>
 </AnchorPane>

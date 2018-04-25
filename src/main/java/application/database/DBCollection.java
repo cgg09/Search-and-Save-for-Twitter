@@ -209,21 +209,11 @@ public class DBCollection {
 		LocalDateTime createdAt = tweet.getCreatedAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();	
 //		createdAt = LocalDateTime.parse(createdAt.toString(), formatter);
 		
-		System.out.println(tweet.getText());
-//		System.out.println(tweet.getRetweetedStatus().getText());
-		
 		PreparedStatement psmt_tweet;
 		
 		if(tweet.getRetweetedStatus()!=null) {
 			retweet = 1;
 			RT = true;
-		}		
-		
-		try {
-			json.get("retweeted_status");
-		} catch (JSONException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
 		}
 
 		try {
@@ -261,7 +251,7 @@ public class DBCollection {
 				return rs.getInt("collection_id");
 			}
 		} catch (SQLException e) {
-			throw new DatabaseReadException("There was an error searching the collection id.");
+			throw new DatabaseReadException("There was an error searching the collection id.",e);
 		}
 		throw new DataNotFoundException("This collection does not exist");
 	}
@@ -277,7 +267,7 @@ public class DBCollection {
 				return true;
 			}			
 		} catch (SQLException e) {
-			throw new DatabaseReadException("There was an error searching the tweet.");
+			throw new DatabaseReadException("There was an error searching the tweet.",e);
 		}
 		throw new DataNotFoundException("This tweet does not exist");
 	}
@@ -293,7 +283,7 @@ public class DBCollection {
 			type = rsc.getString("type");
 			setQuery(rsc.getString("query"));
 		} catch (SQLException e) {
-			throw new DatabaseReadException("There was an error reading the collection info.");
+			throw new DatabaseReadException("There was an error reading the collection info.",e);
 		}
 
 		updateTweets();
@@ -307,16 +297,14 @@ public class DBCollection {
 		
 		boolean RT = false;
 
-		String updateTweets = "SELECT created_at, author, text_printable FROM tweet WHERE collection_id=\"" + id
+		String updateTweets = "SELECT created_at, author, text_printable, retweet FROM tweet WHERE collection_id=\"" + id
 				+ "\" ";
 
 		ResultSet rst;
-		//ResultSet rsc;
 		try {
 			rst = c.createStatement().executeQuery(updateTweets);
-			//rsc = c.createStatement().executeQuery("SELECT count() FROM tweet WHERE collection_id=\""+id+"\"");
 			while (rst.next()) {
-				if(rst.getInt("retweet") == 1) {
+				if(rst.getInt("retweet") == 1) { // FIXME !!!!
 					RT = true;
 				}				
 				DisplayableTweet t = new DisplayableTweet(LocalDateTime.parse(rst.getString("created_at")), rst.getString("author"),
@@ -324,9 +312,14 @@ public class DBCollection {
 				currentTweets.add(t);
 			}
 		} catch (SQLException e) {
-			throw new DatabaseReadException("There was an error reading the tweets info.");
+			throw new DatabaseReadException("There was an error reading the tweets info.",e);
+			
 		}
 
 	}
 
+	public void sortTweets() {
+		// currentTweets ...
+	}
+	
 }

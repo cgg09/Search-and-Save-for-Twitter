@@ -26,23 +26,23 @@ public class DatabaseDAO {
 			" access_secret TEXT not NULL, " +
 			" PRIMARY KEY ( username ))";
 	
-	private String collectionTable = "CREATE TABLE COLLECTION " +
-			"(COLLECTION_ID		INTEGER			PRIMARY KEY		AUTOINCREMENT, " +
-			" USERNAME			TEXT			NOT NULL, " +
-			" TIME_START		TEXT			NOT NULL, " + 
-			" TIME_END			TEXT			NOT NULL, " +
-			" TYPE				VARCHAR(50)		NOT NULL, " +
-			" QUERY				VARCHAR(50)		NOT NULL, " +
+	private String collectionTable = "CREATE TABLE collection " +
+			"(collection_id		INTEGER			PRIMARY KEY		AUTOINCREMENT, " +
+			" username			TEXT			NOT NULL, " +
+			" time_start		TEXT			NOT NULL, " + 
+			" time_end			TEXT			NOT NULL, " +
+			" type				VARCHAR(50)		NOT NULL, " +
+			" query				VARCHAR(50)		NOT NULL, " +
 			" FOREIGN KEY 		(USERNAME)	REFERENCES	USER(USERNAME))";
 	
-	private String tweetTable = "CREATE TABLE TWEET " +
-			"(TWEET_ID			INTEGER			NOT NULL, " +
-			" COLLECTION_ID		TEXT			NOT NULL, " + 
-			" RAW_TWEET			TEXT			NOT NULL, " + 
-			" AUTHOR			VARCHAR(50)		NOT NULL, " +
-			" CREATED_AT		TEXT			NOT NULL, " +
-			" TEXT_PRINTABLE	VARCHAR(200)	NOT NULL, " +	// FIXME pendiente de parsear texto !!
-			" RETWEET			INTEGER			NOT NULL, " +
+	private String tweetTable = "CREATE TABLE tweet " +
+			"(tweet_id			INTEGER			NOT NULL, " +
+			" collection_id		TEXT			NOT NULL, " + 
+			" raw_tweet			TEXT			NOT NULL, " + 
+			" author			VARCHAR(50)		NOT NULL, " +
+			" created_at		TEXT			NOT NULL, " +
+			" text_printable	VARCHAR(200)	NOT NULL, " +	// FIXME pendiente de parsear texto !!
+			" retweet			INTEGER			NOT NULL, " +
 			" PRIMARY KEY		(TWEET_ID), "+
 			" FOREIGN KEY 		(COLLECTION_ID)	REFERENCES COLLECTION(COLLECTION_ID))";
 	
@@ -82,7 +82,7 @@ public class DatabaseDAO {
 			psc = c.prepareStatement(checkC);
 			pst = c.prepareStatement(checkT);
 		} catch (SQLException e) {
-			throw new DatabaseReadException("There was an error reading the database.");
+			throw new DatabaseReadException("There was an error reading the database.",e);
 		}
 		
 		if(psu == null) {

@@ -73,7 +73,7 @@ public class DBUserDAO {
 		try {
 			rs = c.createStatement().executeQuery(s);
 		} catch (SQLException e) {
-			throw new DatabaseReadException("An error occurred while reading the data.");
+			throw new DatabaseReadException("An error occurred while reading the data.",e);
 		}
 
 		if (rs != null) {
@@ -104,7 +104,7 @@ public class DBUserDAO {
 			rsu = c.prepareStatement(select).executeQuery();
 			return rsu.getString(query);
 		} catch (SQLException e) {
-			throw new DatabaseReadException("An error occurred while reading the data.");
+			throw new DatabaseReadException("An error occurred while reading the data.",e);
 		}
 
 	}
@@ -125,7 +125,7 @@ public class DBUserDAO {
 			}
 
 		} catch (SQLException e) {
-			throw new DatabaseReadException("An error occurred while reading the data.");
+			throw new DatabaseReadException("An error occurred while reading the data.",e);
 		}
 
 		return u;
@@ -154,7 +154,7 @@ public class DBUserDAO {
 				cols.add(dbc);
 			}
 		} catch (SQLException e) {
-			throw new DatabaseReadException("An error occurred while reading the data.");
+			throw new DatabaseReadException("An error occurred while reading the data.",e);
 		}
 
 		return cols;

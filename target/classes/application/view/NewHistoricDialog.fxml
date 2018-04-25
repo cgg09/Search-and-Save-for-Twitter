@@ -17,8 +17,9 @@
           <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
         </rowConstraints>
          <children>
-            <Label text="Palabra clave:" />
+            <Label text="Keyword:" />
             <TextField fx:id="userQuery" GridPane.columnIndex="1" />
+            <Label fx:id="downloadedTweets" GridPane.rowIndex="1" />
          </children>
       </GridPane>
       <Button fx:id="searchButton" layoutX="334.0" layoutY="211.0" mnemonicParsing="false" onAction="#handleSearch" text="Search" AnchorPane.bottomAnchor="15.0" AnchorPane.rightAnchor="15.0" />
