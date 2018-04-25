@@ -9,9 +9,13 @@ import application.utils.DisplayableTweet;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.SortedList;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 
@@ -25,6 +29,9 @@ public class HistoricViewController extends AnchorPane {
 	@FXML
 	private TableColumn<DBCollection, String> keywordColumn;
 	private ObservableList<DBCollection> history = FXCollections.observableArrayList();
+
+	private ContextMenu historyOptions = new ContextMenu();
+	
 	
 	@FXML
 	private TableView<DisplayableTweet> currentSearch;
@@ -34,16 +41,14 @@ public class HistoricViewController extends AnchorPane {
 	private TableColumn<DisplayableTweet, String> author;
 	@FXML
 	private TableColumn<DisplayableTweet, String> text;
-	private ObservableList<DisplayableTweet> data = FXCollections.observableArrayList();	
-	
-	private static SearchViewController searchController;
-	
-	private DBCollection collection;
+	private ObservableList<DisplayableTweet> data = FXCollections.observableArrayList();
 
-	private int from = 0;
-	private int to;
-	private int listSize = 0;
-	
+	private static SearchViewController searchController;
+
+	private DBCollection collection;
+	/*
+	 * private int from = 0; private int to; private int listSize = 0;
+	 */
 
 	public HistoricViewController() {
 
@@ -51,56 +56,72 @@ public class HistoricViewController extends AnchorPane {
 
 	@FXML
 	public void initialize() {
-		
+
 		// initialize historySearch
 		dateColumn.setCellValueFactory(cellData -> cellData.getValue().startProperty());
 		keywordColumn.setCellValueFactory(cellData -> cellData.getValue().queryProperty());
 
-		//initialize currentSearch
+		// initialize currentSearch
 		createdAt.setCellValueFactory(cellData -> cellData.getValue().createdAtProperty());
 		author.setCellValueFactory(cellData -> cellData.getValue().authorProperty());
 		text.setCellValueFactory(cellData -> cellData.getValue().tweetTextProperty());
 
-		// initialize user historySearch (sorted) 
+		// initialize user historySearch
 		try {
-			for(DBCollection dbc: Main.getDBUserDAO().retrieveCollections()) {
+			for (DBCollection dbc : Main.getDBUserDAO().retrieveCollections()) {
 				history.add(dbc);
 			}
 		} catch (DatabaseReadException e) {
 			e.printStackTrace();
 		}
 
-/*		
-		SortedList<DBCollection> sortedHistory = new SortedList<>(history);
-		
-		sortedHistory.comparatorProperty().bind(historySearch.comparatorProperty());
-		
-		historySearch.setItems(sortedHistory);
-*/
 		historySearch.setItems(history);
 		
+		// initialize historicSearch options for each collection
+		MenuItem m1 = new MenuItem("Export collection");
+		MenuItem m2 = new MenuItem("Delete collection");
+		historyOptions.getItems().add(m1);
+		historyOptions.getItems().add(m2);
+
 		// update currentSearch from historySearch
-		historySearch.getSelectionModel().selectedItemProperty().addListener(
-				(observable, oldValue, newValue) -> {
-					try {
-						newValue.updateCollection();
-					} catch (DatabaseReadException e) {
-						e.printStackTrace();
-					} 
-					addSearch(newValue);
-				});
+		historySearch.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+			try {
+				newValue.updateCollection();
+			} catch (DatabaseReadException e) {
+				e.printStackTrace();
+			}
+			addSearch(newValue);
+		});
 		
+		// opciones al seleccionar con click derecho una collection
+		historySearch.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+
+			@Override
+			public void handle(MouseEvent m) {
+				if(m.getButton() == MouseButton.SECONDARY) {	// FIXME the menu is shown in an empty row !!
+					DBCollection col = historySearch.getSelectionModel().getSelectedItem();
+					m1.setOnAction(e -> handleExport(col));
+					m2.setOnAction(e ->	handleDelete(col));
+					historyOptions.show(historySearch, m.getScreenX(), m.getScreenY());
+					
+					
+				}
+				
+			}
+			
+		});
+
 	}
-	
+
 	@FXML
 	private void openWeb(MouseEvent event) {
-		
-		// see the selected tweet in a browser
-		if(event.getClickCount() == 2) {
-			System.out.println("Tweet selected: "+event.toString());
+
+		// TODO see the selected tweet in a browser
+		if (event.getClickCount() == 2) {
+			System.out.println("Tweet selected: " + event.toString());
 		}
 	}
-	
+
 	@FXML
 	private void handleNew() {
 
@@ -119,79 +140,79 @@ public class HistoricViewController extends AnchorPane {
 	}
 
 	private void addSearch(DBCollection collection) {
-		
+
 		this.collection = collection;
-		
+
 		if (!data.isEmpty()) {
 			data.clear();
 		}
 		/*
-		from = 0;
-		
-		listSize = collection.getCurrentTweets().size();
+		 * from = 0;
+		 * 
+		 * listSize = collection.getCurrentTweets().size();
+		 * 
+		 * from = Math.min(from, listSize); to = Math.min(from + 50, listSize);
+		 * 
+		 * for(DisplayableTweet t : collection.getCurrentTweets().subList(from, to)) {
+		 * data.add(t); }
+		 */
 
-		from = Math.min(from, listSize);
-		to = Math.min(from + 50, listSize);
-		
-		for(DisplayableTweet t : collection.getCurrentTweets().subList(from, to)) {
-			data.add(t);
-		}*/
-		
 		data.addAll(collection.getCurrentTweets());
 
 		SortedList<DisplayableTweet> sortedData = new SortedList<>(data);
-		
+
 		sortedData.comparatorProperty().bind(currentSearch.comparatorProperty());
-		
+
 		currentSearch.setItems(sortedData);
 	}
-/*
-	@FXML
-	private void nextTweets() {
 
-		if (to == listSize) {
-			System.out.println("Has llegado al final de la lista");
-			return;
-		}
-		
-		data.clear();
-		
-		from = Math.min(from + 50, listSize);
-		to = Math.min(from + 50, listSize);
-		
-		for(DisplayableTweet t : collection.getCurrentTweets().subList(from, to)) {
-			data.add(t);
-		}
 
-		currentSearch.setItems(data);
+	
+	private void handleExport(DBCollection c) { //Database.exportCSV(search.getKeyword());
+		System.out.println("Collection to export: "+ c);
 	}
-
-	@FXML
-	private void previousTweets() {
-
-		if (from == 0) { // INICIO DE LISTA: ensombrecer el botón para impedir el click !!
-			System.out.println("Has llegado al inicio de la lista");
-			return;
-		}
-
-		data.clear();
-		
-		to = Math.min(from, listSize );
-		from = Math.max(to - 50, 0);
-		
-		for(DisplayableTweet t : collection.getCurrentTweets().subList(from, to)) {
-			data.add(t);
-		}
-		
-		currentSearch.setItems(data);
+	
+	
+	
+	private void handleDelete(DBCollection c) {
+		System.out.println("Collection to delete: "+ c);
 	}
-*/
-	/*
-	 * @FXML private void handleExport() { Database.exportCSV(search.getKeyword());
-	 * }
-	 */
+	
+	 
+	
 	public static void init(SearchViewController controller) {
 		searchController = controller;
 	}
+	
+	
+	/*
+	 * @FXML private void nextTweets() {
+	 * 
+	 * if (to == listSize) { System.out.println("Has llegado al final de la lista");
+	 * return; }
+	 * 
+	 * data.clear();
+	 * 
+	 * from = Math.min(from + 50, listSize); to = Math.min(from + 50, listSize);
+	 * 
+	 * for(DisplayableTweet t : collection.getCurrentTweets().subList(from, to)) {
+	 * data.add(t); }
+	 * 
+	 * currentSearch.setItems(data); }
+	 * 
+	 * @FXML private void previousTweets() {
+	 * 
+	 * if (from == 0) { // INICIO DE LISTA: ensombrecer el botón para impedir el
+	 * click !! System.out.println("Has llegado al inicio de la lista"); return; }
+	 * 
+	 * data.clear();
+	 * 
+	 * to = Math.min(from, listSize ); from = Math.max(to - 50, 0);
+	 * 
+	 * for(DisplayableTweet t : collection.getCurrentTweets().subList(from, to)) {
+	 * data.add(t); }
+	 * 
+	 * currentSearch.setItems(data); }
+	 */
 
 }

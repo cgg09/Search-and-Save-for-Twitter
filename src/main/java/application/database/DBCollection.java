@@ -5,14 +5,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Vector;
-
-import com.twitter.twittertext.Range;
-import com.twitter.twittertext.TwitterTextParseResults;
 
 import application.Main;
 import application.exceptions.DataNotFoundException;
@@ -23,7 +21,6 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import twitter4j.JSONException;
 import twitter4j.JSONObject;
 import twitter4j.QueryResult;
 import twitter4j.Status;
@@ -39,10 +36,10 @@ public class DBCollection {
 	private StringProperty query;
 	private List<Status> tweets;
 	private List<DisplayableTweet> currentTweets;
-	
-	private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-mm-dd hh:mm:ss");
 
-	//Queries
+	private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+
+	// Queries
 	private String addCollection = "INSERT INTO collection (USERNAME, TIME_START, TIME_END, TYPE, QUERY) "
 			+ "VALUES (?,?,?,?,?);";
 	private String addTweet = "INSERT INTO tweet (TWEET_ID, COLLECTION_ID, RAW_TWEET, AUTHOR, CREATED_AT, TEXT_PRINTABLE, RETWEET) "
@@ -70,7 +67,7 @@ public class DBCollection {
 	public int getId() {
 		return id;
 	}
-	
+
 	public void setId(int id) {
 		this.id = id;
 	}
@@ -133,15 +130,10 @@ public class DBCollection {
 	 * @param start
 	 * @param end
 	 * @param user
+	 * @throws ParseException
 	 */
 	public void addData(Timestamp start, Timestamp end, String user) {
 
-		//String st = start.toString();
-		//String nd = end.toString();
-		
-		//setStart(LocalDateTime.parse(st, formatter));
-		//setEnd(LocalDateTime.parse(nd, formatter));
-		
 		setStart(start.toLocalDateTime());
 		setEnd(end.toLocalDateTime());
 
@@ -164,7 +156,7 @@ public class DBCollection {
 	 * Add a new search to the database
 	 * 
 	 * @param user
-	 * @throws DatabaseWriteException 
+	 * @throws DatabaseWriteException
 	 */
 	public Integer addNewCollection(String user) throws DatabaseWriteException {
 
@@ -182,12 +174,12 @@ public class DBCollection {
 
 			rsk = psmt.getGeneratedKeys();
 			if (rsk.next()) {
-                setId(rsk.getInt(1));
-            }
-			
+				setId(rsk.getInt(1));
+			}
+
 			psmt.close();
 			return rsk.getInt(1);
-			
+
 		} catch (SQLException e) {
 			throw new DatabaseWriteException("There was an error saving the collection info.");
 		}
@@ -197,8 +189,8 @@ public class DBCollection {
 	 * Add a tweet from a search in the database
 	 * 
 	 * @param tweet
-	 * @throws DatabaseWriteException 
-	 * @throws DatabaseReadException 
+	 * @throws DatabaseWriteException
+	 * @throws DatabaseReadException
 	 */
 	public void addTweet(Status tweet) throws DatabaseWriteException {
 
@@ -206,12 +198,11 @@ public class DBCollection {
 		int retweet = 0;
 		boolean RT = false;
 
-		LocalDateTime createdAt = tweet.getCreatedAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();	
-//		createdAt = LocalDateTime.parse(createdAt.toString(), formatter);
-		
+		LocalDateTime createdAt = tweet.getCreatedAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+
 		PreparedStatement psmt_tweet;
-		
-		if(tweet.getRetweetedStatus()!=null) {
+
+		if (tweet.getRetweetedStatus() != null) {
 			retweet = 1;
 			RT = true;
 		}
@@ -223,7 +214,7 @@ public class DBCollection {
 			psmt_tweet.setString(3, json.toString());
 			psmt_tweet.setString(4, tweet.getUser().getScreenName());
 			psmt_tweet.setString(5, createdAt.toString());
-			psmt_tweet.setString(6, tweet.getText()); // PARSE TEXT !!
+			psmt_tweet.setString(6, tweet.getText()); // FIXME PARSE TEXT !!
 			psmt_tweet.setInt(7, retweet);
 
 			psmt_tweet.executeUpdate();
@@ -231,17 +222,19 @@ public class DBCollection {
 			throw new DatabaseWriteException("There was an error saving the tweet info.");
 		}
 
+		// FIXME parse date in format yyyy-MM-dd HH:mm
 		DisplayableTweet t = new DisplayableTweet(createdAt, tweet.getUser().getScreenName(), tweet.getText(), RT);
 		currentTweets.add(t);
 	}
 
 	/**
 	 * Get the id of a specific collection
-	 * @throws DatabaseReadException 
-	 * @throws DataNotFoundException 
+	 * 
+	 * @throws DatabaseReadException
+	 * @throws DataNotFoundException
 	 */
-	public Integer getIdCollection() throws DatabaseReadException, DataNotFoundException { // TODO seleccionar la collection con el tiempo mayor O arreglar timestamps java -
-										// sql
+	public Integer getIdCollection() throws DatabaseReadException, DataNotFoundException { // TODO collection_id + start
+
 		String selectId = "SELECT collection_id FROM collection WHERE query=\"" + query.getValue() + "\" ";
 
 		ResultSet rs;
@@ -251,7 +244,7 @@ public class DBCollection {
 				return rs.getInt("collection_id");
 			}
 		} catch (SQLException e) {
-			throw new DatabaseReadException("There was an error searching the collection id.",e);
+			throw new DatabaseReadException("There was an error searching the collection id.", e);
 		}
 		throw new DataNotFoundException("This collection does not exist");
 	}
@@ -265,9 +258,9 @@ public class DBCollection {
 			rs = c.createStatement().executeQuery(select);
 			if (rs != null) {
 				return true;
-			}			
+			}
 		} catch (SQLException e) {
-			throw new DatabaseReadException("There was an error searching the tweet.",e);
+			throw new DatabaseReadException("There was an error searching the tweet.", e);
 		}
 		throw new DataNotFoundException("This tweet does not exist");
 	}
@@ -283,7 +276,7 @@ public class DBCollection {
 			type = rsc.getString("type");
 			setQuery(rsc.getString("query"));
 		} catch (SQLException e) {
-			throw new DatabaseReadException("There was an error reading the collection info.",e);
+			throw new DatabaseReadException("There was an error reading the collection info.", e);
 		}
 
 		updateTweets();
@@ -291,35 +284,49 @@ public class DBCollection {
 
 	public void updateTweets() throws DatabaseReadException {
 
-		if(!currentTweets.isEmpty()) {
+		if (!currentTweets.isEmpty()) {
 			return;
 		}
-		
+
 		boolean RT = false;
 
-		String updateTweets = "SELECT created_at, author, text_printable, retweet FROM tweet WHERE collection_id=\"" + id
-				+ "\" ";
+		String updateTweets = "SELECT created_at, author, text_printable, retweet FROM tweet WHERE collection_id=\""
+				+ id + "\" ";
 
 		ResultSet rst;
 		try {
 			rst = c.createStatement().executeQuery(updateTweets);
 			while (rst.next()) {
-				if(rst.getInt("retweet") == 1) { // FIXME !!!!
+				if (rst.getInt("retweet") == 1) {
 					RT = true;
-				}				
-				DisplayableTweet t = new DisplayableTweet(LocalDateTime.parse(rst.getString("created_at")), rst.getString("author"),
-						rst.getString("text_printable"), RT);
+				}
+
+				// FIXME parse date in format yyyy-MM-dd HH:mm
+				DisplayableTweet t = new DisplayableTweet(LocalDateTime.parse(rst.getString("created_at")),
+						rst.getString("author"), rst.getString("text_printable"), RT);
 				currentTweets.add(t);
 			}
 		} catch (SQLException e) {
-			throw new DatabaseReadException("There was an error reading the tweets info.",e);
-			
+			throw new DatabaseReadException("There was an error reading the tweets info.", e);
+
 		}
 
 	}
 
-	public void sortTweets() {
+	public void sortTweets() { // TODO sort tweet list descending by date
 		// currentTweets ...
 	}
-	
+
+	public String parseTime(LocalDateTime date) {
+
+		String d = null;
+
+		try {
+			d = formatter.format(formatter.parse(date.toString()));
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		return d;
+	}
+
 }

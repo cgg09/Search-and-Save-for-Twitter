@@ -4,15 +4,7 @@ import java.sql.Timestamp;
 
 import application.database.DBCollection;
 import application.exceptions.ConnectivityException;
-import application.exceptions.DatabaseReadException;
-import application.exceptions.RateLimitException;
-import javafx.application.Platform;
-import javafx.concurrent.Service;
-import javafx.concurrent.Task;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.scene.Cursor;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
