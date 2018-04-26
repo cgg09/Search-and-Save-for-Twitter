@@ -131,7 +131,6 @@ public class Main extends Application {
 		try {
 			searchView = (AnchorPane) loader.load();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 

@@ -6,11 +6,12 @@ import application.Main;
 import application.database.DBCollection;
 import application.exceptions.DatabaseReadException;
 import application.utils.DisplayableTweet;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.transformation.SortedList;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
@@ -23,8 +24,10 @@ import javafx.scene.layout.AnchorPane;
 public class HistoricViewController extends AnchorPane {
 
 	@FXML
-	private TableView<DBCollection> historySearch;
+	private ChoiceBox<String> filterMenu = new ChoiceBox<String>();
 
+	@FXML
+	private TableView<DBCollection> historySearch;
 	@FXML
 	private TableColumn<DBCollection, LocalDateTime> dateColumn;
 	@FXML
@@ -32,8 +35,7 @@ public class HistoricViewController extends AnchorPane {
 	private ObservableList<DBCollection> history = FXCollections.observableArrayList();
 
 	private ContextMenu historyOptions = new ContextMenu();
-	
-	
+
 	@FXML
 	private TableView<DisplayableTweet> currentSearch;
 	@FXML
@@ -47,6 +49,7 @@ public class HistoricViewController extends AnchorPane {
 	private static SearchViewController searchController;
 
 	private DBCollection collection;
+
 	/*
 	 * private int from = 0; private int to; private int listSize = 0;
 	 */
@@ -77,17 +80,18 @@ public class HistoricViewController extends AnchorPane {
 		}
 
 		historySearch.setItems(history);
-		
-		historySearch.getSelectionModel().setSelectionMode(
-			    SelectionMode.MULTIPLE
-			);
-		
+
+		historySearch.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+
 		// initialize historicSearch options for each collection
 		MenuItem m1 = new MenuItem("Export collection");
 		MenuItem m2 = new MenuItem("Delete collection");
 		historyOptions.getItems().add(m1);
 		historyOptions.getItems().add(m2);
 
+		// initialize filter button to "last 200 tweets"
+		filterMenu.getItems().addAll("Last 200 tweets", "All tweets (except RTs)", "All tweets");
+		
 		// update currentSearch from historySearch
 		historySearch.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
 			try {
@@ -97,24 +101,30 @@ public class HistoricViewController extends AnchorPane {
 			}
 			addSearch(newValue);
 		});
-		
+
 		// opciones al seleccionar con click derecho una collection
 		historySearch.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
 
 			@Override
 			public void handle(MouseEvent m) {
-				if(m.getButton() == MouseButton.SECONDARY) {	// FIXME the menu is shown in an empty row !!
+				if (m.getButton() == MouseButton.SECONDARY) { // FIXME the menu is shown in an empty row !!
 					DBCollection col = historySearch.getSelectionModel().getSelectedItem();
 					m1.setOnAction(e -> handleExport(col));
-					m2.setOnAction(e ->	handleDelete(col));
+					m2.setOnAction(e -> handleDelete(col));
 					historyOptions.show(historySearch, m.getScreenX(), m.getScreenY());
-					
-					
+
 				}
-				
+
 			}
-			
+
 		});
+		
+		// change of selection in filter button "show"
+		filterMenu.getSelectionModel().selectedIndexProperty()
+				.addListener((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
+					System.out.println("You clicked #"+newValue+": "+filterMenu.getItems().get((Integer) newValue));
+				});
+
 
 	}
 
@@ -125,6 +135,11 @@ public class HistoricViewController extends AnchorPane {
 		if (event.getClickCount() == 2) {
 			System.out.println("Tweet selected: " + event.toString());
 		}
+	}
+	
+	@FXML
+	private void testBox() {
+		System.out.println("I am here :p");
 	}
 
 	@FXML
@@ -144,9 +159,9 @@ public class HistoricViewController extends AnchorPane {
 		historySearch.setItems(history);
 	}
 
-	private void addSearch(DBCollection collection) {
+	private void addSearch(DBCollection c) {
 
-		this.collection = collection;
+		collection = c;
 
 		if (!data.isEmpty()) {
 			data.clear();
@@ -162,34 +177,55 @@ public class HistoricViewController extends AnchorPane {
 		 * data.add(t); }
 		 */
 
-		data.addAll(collection.getCurrentTweets());
+		int to = Math.min(200, collection.getCurrentTweets().size());
 
-		SortedList<DisplayableTweet> sortedData = new SortedList<>(data);
+		data.addAll(collection.getCurrentTweets().subList(0, to));
 
-		sortedData.comparatorProperty().bind(currentSearch.comparatorProperty());
+		// SortedList<DisplayableTweet> sortedData = new SortedList<>(data);
 
-		currentSearch.setItems(sortedData);
+		// sortedData.comparatorProperty().bind(currentSearch.comparatorProperty()); //
+		// no se si esto de aquí funciona o no, diría que no
+
+		currentSearch.setItems(data);
 	}
 
-
-	
-	private void handleExport(DBCollection c) { //Database.exportCSV(search.getKeyword());
-		System.out.println("Collection to export: "+ c);
+	private void handleExport(DBCollection c) { // Database.exportCSV(search.getKeyword());
+		System.out.println("Collection to export: " + c);
 	}
-	
-	
-	
+
 	private void handleDelete(DBCollection c) {
-		System.out.println("Collection to delete: "+ c);
+		System.out.println("Collection to delete: " + c);
 	}
-	
-	 
-	
+
+	public void filterFunction(int number) { // FIXME Data es empty!!! :-( :-(
+		if (data.isEmpty()) {
+			System.out.println("Meh :(");
+			return;
+		}
+		System.out.println("Buu");
+		data.clear();
+		if (number == 0) { // last 200 tweets (default)
+			System.out.println("Hi");
+			int to = Math.min(200, collection.getCurrentTweets().size());
+			data.addAll(collection.getCurrentTweets().subList(0, to));
+		} else if (number == 1) { // all non-RT tweets
+			System.out.println("Hii");
+			for (DisplayableTweet t : collection.getCurrentTweets()) {
+				if (!t.getRetweet()) {
+					data.add(t);
+				}
+			}
+		} else if (number == 2) { // all tweets
+			System.out.println("Hiii");
+			data.addAll(collection.getCurrentTweets());
+		}
+		currentSearch.setItems(data);
+	}
+
 	public static void init(SearchViewController controller) {
 		searchController = controller;
 	}
-	
-	
+
 	/*
 	 * @FXML private void nextTweets() {
 	 * 
