@@ -33,7 +33,7 @@
         </items>
       </SplitPane>
       <Button layoutX="48.0" layoutY="307.0" mnemonicParsing="false" onAction="#handleNew" text="New search" AnchorPane.bottomAnchor="15.0" AnchorPane.leftAnchor="15.0" />
-      <ChoiceBox fx:id="filterMenu" layoutX="554.0" layoutY="50.0" onMouseDragOver="#testBox" prefWidth="150.0" value="Last 200 tweets" AnchorPane.rightAnchor="15.0" AnchorPane.topAnchor="-38.0" />
+      <ChoiceBox fx:id="filterMenu" layoutX="554.0" layoutY="50.0" prefWidth="150.0" value="Last 200 tweets" AnchorPane.rightAnchor="15.0" AnchorPane.topAnchor="-38.0" />
 <!--      
       <Button layoutX="260.0" layoutY="150.0" mnemonicParsing="false" onAction="#nextTweets" text="Next" AnchorPane.bottomAnchor="15.0" AnchorPane.rightAnchor="220.0" />
       <Button layoutX="194.0" layoutY="150.0" mnemonicParsing="false" onAction="#previousTweets" text="Previous" AnchorPane.bottomAnchor="15.0" AnchorPane.rightAnchor="300.0" />

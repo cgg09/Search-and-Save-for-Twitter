@@ -121,7 +121,7 @@ public class DatabaseDAO {
 			stmtU = c.createStatement();
 			stmtU.executeUpdate(userTable);
 		} catch (SQLException e) {
-			throw new DatabaseWriteException("There was an error creating the users table.");
+			throw new DatabaseWriteException("There was an error creating the users table.",e);
 		}
 	}
 	
@@ -131,7 +131,7 @@ public class DatabaseDAO {
 			stmtC = c.createStatement();
 			stmtC.executeUpdate(collectionTable);
 		} catch (SQLException e) {
-			throw new DatabaseWriteException("There was an error creating the collections table.");
+			throw new DatabaseWriteException("There was an error creating the collections table.",e);
 		}
 	}
 	
@@ -141,7 +141,7 @@ public class DatabaseDAO {
 			stmtT = c.createStatement();
 			stmtT.executeUpdate(tweetTable);
 		} catch (SQLException e) {
-			throw new DatabaseWriteException("There was an error creating the tweets table.");
+			throw new DatabaseWriteException("There was an error creating the tweets table.",e);
 		}
 	}
 	

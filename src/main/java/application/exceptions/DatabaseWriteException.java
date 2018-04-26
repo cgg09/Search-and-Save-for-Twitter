@@ -1,5 +1,7 @@
 package application.exceptions;
 
+import java.sql.SQLException;
+
 public class DatabaseWriteException extends Exception {
 
 	/**
@@ -7,8 +9,9 @@ public class DatabaseWriteException extends Exception {
 	 */
 	private static final long serialVersionUID = 1L;
 
-	public DatabaseWriteException(String message) {
+	public DatabaseWriteException(String message, SQLException e) {
 		super(message);
+		e.printStackTrace();
 	}
 
 	/*

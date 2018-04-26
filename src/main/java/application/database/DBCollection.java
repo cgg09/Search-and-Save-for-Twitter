@@ -53,6 +53,8 @@ public class DBCollection {
 
 	// private String updateTweets = "SELECT created_at, author, text_printable FROM
 	// tweet WHERE collection_id=\"";//+id+"\" ";
+	private String delTweets = "DELETE FROM tweet WHERE collection_id = ?";
+	private String delCol = "DELETE FROM collection where collection_id = ?";
 
 	public DBCollection(String type) {
 		c = Main.getDatabaseDAO().getConnection();
@@ -181,7 +183,7 @@ public class DBCollection {
 			return rsk.getInt(1);
 
 		} catch (SQLException e) {
-			throw new DatabaseWriteException("There was an error saving the collection info.");
+			throw new DatabaseWriteException("There was an error saving the collection info.", e);
 		}
 	}
 
@@ -219,7 +221,7 @@ public class DBCollection {
 
 			psmt_tweet.executeUpdate();
 		} catch (SQLException e) {
-			throw new DatabaseWriteException("There was an error saving the tweet info.");
+			throw new DatabaseWriteException("There was an error saving the tweet info.", e);
 		}
 
 		// FIXME parse date in format yyyy-MM-dd HH:mm
@@ -327,6 +329,29 @@ public class DBCollection {
 			e.printStackTrace();
 		}
 		return d;
+	}
+
+	public void deleteCollection() throws DatabaseWriteException {
+
+
+
+		
+		try {
+			PreparedStatement psdt = c.prepareStatement(delTweets);//.executeQuery(delTweets);
+			psdt.setInt(1,id);
+			psdt.executeUpdate();
+		} catch (SQLException e) {
+			throw new DatabaseWriteException("There was an error deleting the tweets of the collection.", e);
+		}
+		try {
+			PreparedStatement psdc = c.prepareStatement(delCol);
+			psdc.setInt(1,id);
+			psdc.executeUpdate();
+
+		} catch (SQLException e) {
+			throw new DatabaseWriteException("There was an error deleting the collection info.", e);
+		}
+
 	}
 
 }

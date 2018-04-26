@@ -1,22 +1,28 @@
 package application.view;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import application.Main;
 import application.database.DBCollection;
 import application.exceptions.DatabaseReadException;
+import application.exceptions.DatabaseWriteException;
 import application.utils.DisplayableTweet;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonType;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
@@ -93,13 +99,21 @@ public class HistoricViewController extends AnchorPane {
 		filterMenu.getItems().addAll("Last 200 tweets", "All tweets (except RTs)", "All tweets");
 		
 		// update currentSearch from historySearch
-		historySearch.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-			try {
-				newValue.updateCollection();
-			} catch (DatabaseReadException e) {
-				e.printStackTrace();
-			}
-			addSearch(newValue);
+		historySearch.setRowFactory( tv -> {
+		    TableRow<DBCollection> row = new TableRow<>();
+		    row.setOnMouseClicked(event -> {
+		        if (event.getClickCount() == 2 && (! row.isEmpty()) ) {
+		        	DBCollection rowData = row.getItem();
+		            try {
+						rowData.updateCollection();
+					} catch (DatabaseReadException e) {
+						e.printStackTrace();
+					}
+		            filterMenu.setValue("Last 200 tweets");
+					addSearch(rowData);
+		        }
+		    });
+		    return row ;
 		});
 
 		// opciones al seleccionar con click derecho una collection
@@ -136,11 +150,6 @@ public class HistoricViewController extends AnchorPane {
 		if (event.getClickCount() == 2) {
 			System.out.println("Tweet selected: " + event.toString());
 		}
-	}
-	
-	@FXML
-	private void testBox() {
-		System.out.println("I am here :p");
 	}
 
 	@FXML
@@ -195,14 +204,36 @@ public class HistoricViewController extends AnchorPane {
 	}
 
 	private void handleDelete(DBCollection c) {
-		System.out.println("Collection to delete: " + c);
+	
+		Alert alert = new Alert(AlertType.CONFIRMATION);
+        alert.setTitle("DELETE COLLECTION");
+        alert.setHeaderText("Delete Collection");
+        alert.setContentText("Are you sure you want to delete the collection \""+c.getQuery()+"\"?");
+        
+        Optional<ButtonType> result = alert.showAndWait(); 
+        if(result.get() == ButtonType.OK) {
+        	try {
+    			c.deleteCollection();
+    		} catch (DatabaseWriteException e) {
+    			// TODO Auto-generated catch block
+    			e.printStackTrace();
+    		}
+        	
+        	int selectedIndex = historySearch.getSelectionModel().getSelectedIndex();
+        	historySearch.getItems().remove(selectedIndex);
+        	if(!data.isEmpty()) {
+        		data.clear();
+        	}
+        	c = null;
+        }
+
 	}
 
 	public void filterFunction(int number) { //FIXME filter works! I just need to check things on it :o
-		if (data.isEmpty()) {
+		/*if (data.isEmpty()) {
 			System.out.println("Meh :(");
 			return;
-		}
+		}*/ // por ahora, ni idea de si esto sirve para algo
 		System.out.println("Buu");
 		data.clear();
 		if (number == 0) { // last 200 tweets (default)

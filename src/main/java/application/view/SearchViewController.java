@@ -18,6 +18,7 @@ public class SearchViewController extends AnchorPane {
 
 	@FXML
 	public void initialize() {
+		HistoricViewController.init(this); // necesario para poder hacer las búsquedas
 		//System.out.println("Hi Search");
 	}
 

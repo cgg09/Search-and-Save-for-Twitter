@@ -52,7 +52,7 @@ public class DBUserDAO {
 			psmt.executeUpdate();
 			psmt.close();
 		} catch (SQLException e) {
-			throw new DatabaseWriteException("An error occurred while saving the data.");
+			throw new DatabaseWriteException("An error occurred while saving the data.",e);
 		}
 
 	}
