@@ -123,6 +123,7 @@ public class HistoricViewController extends AnchorPane {
 		filterMenu.getSelectionModel().selectedIndexProperty()
 				.addListener((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
 					System.out.println("You clicked #"+newValue+": "+filterMenu.getItems().get((Integer) newValue));
+					filterFunction((Integer)newValue);
 				});
 
 
@@ -197,7 +198,7 @@ public class HistoricViewController extends AnchorPane {
 		System.out.println("Collection to delete: " + c);
 	}
 
-	public void filterFunction(int number) { // FIXME Data es empty!!! :-( :-(
+	public void filterFunction(int number) { //FIXME filter works! I just need to check things on it :o
 		if (data.isEmpty()) {
 			System.out.println("Meh :(");
 			return;
