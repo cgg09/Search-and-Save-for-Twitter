@@ -1,7 +1,15 @@
 package application.view;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import org.omg.CORBA.Environment;
 
 import application.Main;
 import application.database.DBCollection;
@@ -26,6 +34,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
+import javafx.stage.FileChooser;
 
 public class HistoricViewController extends AnchorPane {
 
@@ -97,23 +106,23 @@ public class HistoricViewController extends AnchorPane {
 
 		// initialize filter button to "last 200 tweets"
 		filterMenu.getItems().addAll("Last 200 tweets", "All tweets (except RTs)", "All tweets");
-		
+
 		// update currentSearch from historySearch
-		historySearch.setRowFactory( tv -> {
-		    TableRow<DBCollection> row = new TableRow<>();
-		    row.setOnMouseClicked(event -> {
-		        if (event.getClickCount() == 2 && (! row.isEmpty()) ) {
-		        	DBCollection rowData = row.getItem();
-		            try {
+		historySearch.setRowFactory(tv -> {
+			TableRow<DBCollection> row = new TableRow<>();
+			row.setOnMouseClicked(event -> {
+				if (event.getClickCount() == 2 && (!row.isEmpty())) {
+					DBCollection rowData = row.getItem();
+					try {
 						rowData.updateCollection();
 					} catch (DatabaseReadException e) {
 						e.printStackTrace();
 					}
-		            filterMenu.setValue("Last 200 tweets");
+					filterMenu.setValue("Last 200 tweets");
 					addSearch(rowData);
-		        }
-		    });
-		    return row ;
+				}
+			});
+			return row;
 		});
 
 		// opciones al seleccionar con click derecho una collection
@@ -132,14 +141,14 @@ public class HistoricViewController extends AnchorPane {
 			}
 
 		});
-		
+
 		// change of selection in filter button "show"
 		filterMenu.getSelectionModel().selectedIndexProperty()
 				.addListener((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
-					System.out.println("You clicked #"+newValue+": "+filterMenu.getItems().get((Integer) newValue));
-					filterFunction((Integer)newValue);
+					System.out
+							.println("You clicked #" + newValue + ": " + filterMenu.getItems().get((Integer) newValue));
+					filterFunction((Integer) newValue);
 				});
-
 
 	}
 
@@ -200,40 +209,67 @@ public class HistoricViewController extends AnchorPane {
 	}
 
 	private void handleExport(DBCollection c) { // Database.exportCSV(search.getKeyword());
-		System.out.println("Collection to export: " + c);
+
+		String date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("uuuuMMdd"));
+		String filename = date + "_" + c.getQuery() + ".csv";
+
+		String tweets = "";
+		try {
+			tweets = c.exportTweets();
+		} catch (DatabaseReadException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		FileChooser fileChooser = new FileChooser();
+		fileChooser.setTitle("Save as");
+		fileChooser.setInitialDirectory(new File(System.getProperty("user.home")));
+		fileChooser.setInitialFileName(filename);
+		fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("CSV file", ".csv"));
+		File file = fileChooser.showSaveDialog(Main.getPrimaryStage());
+		if (file != null) {
+			try {
+				FileWriter fileWriter = null;
+				fileWriter = new FileWriter(file);
+				fileWriter.write(tweets);
+				fileWriter.close();
+			} catch (IOException ex) {
+				Logger.getLogger(HistoricViewController.class.getName()).log(Level.SEVERE, null, ex);
+			}
+
+		}
 	}
 
 	private void handleDelete(DBCollection c) {
-	
+
 		Alert alert = new Alert(AlertType.CONFIRMATION);
-        alert.setTitle("DELETE COLLECTION");
-        alert.setHeaderText("Delete Collection");
-        alert.setContentText("Are you sure you want to delete the collection \""+c.getQuery()+"\"?");
-        
-        Optional<ButtonType> result = alert.showAndWait(); 
-        if(result.get() == ButtonType.OK) {
-        	try {
-    			c.deleteCollection();
-    		} catch (DatabaseWriteException e) {
-    			// TODO Auto-generated catch block
-    			e.printStackTrace();
-    		}
-        	
-        	int selectedIndex = historySearch.getSelectionModel().getSelectedIndex();
-        	historySearch.getItems().remove(selectedIndex);
-        	if(!data.isEmpty()) {
-        		data.clear();
-        	}
-        	c = null;
-        }
+		alert.setTitle("DELETE COLLECTION");
+		alert.setHeaderText("Delete Collection");
+		alert.setContentText("Are you sure you want to delete the collection \"" + c.getQuery() + "\"?");
+
+		Optional<ButtonType> result = alert.showAndWait();
+		if (result.get() == ButtonType.OK) {
+			try {
+				c.deleteCollection();
+			} catch (DatabaseWriteException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+			int selectedIndex = historySearch.getSelectionModel().getSelectedIndex();
+			historySearch.getItems().remove(selectedIndex);
+			if (!data.isEmpty()) {
+				data.clear();
+			}
+			c = null;
+		}
 
 	}
 
-	public void filterFunction(int number) { //FIXME filter works! I just need to check things on it :o
-		/*if (data.isEmpty()) {
-			System.out.println("Meh :(");
-			return;
-		}*/ // por ahora, ni idea de si esto sirve para algo
+	public void filterFunction(int number) { // FIXME filter works! I just need to check things on it :o
+		/*
+		 * if (data.isEmpty()) { System.out.println("Meh :("); return; }
+		 */ // por ahora, ni idea de si esto sirve para algo
 		System.out.println("Buu");
 		data.clear();
 		if (number == 0) { // last 200 tweets (default)

@@ -34,7 +34,7 @@ public class Main extends Application {
 	TwitterUser u = new TwitterUser();
 	Twitter twitter = TwitterFactory.getSingleton();
 
-	private Stage primaryStage;
+	private static Stage primaryStage;
 
 	public Twitter getTwitterInstance() {
 		return twitter;
@@ -176,7 +176,7 @@ public class Main extends Application {
 
 	}
 
-	public Stage getPrimaryStage() {
+	public static Stage getPrimaryStage() {
 		return primaryStage;
 	}
 

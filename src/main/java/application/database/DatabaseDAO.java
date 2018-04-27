@@ -37,7 +37,7 @@ public class DatabaseDAO {
 	
 	private String tweetTable = "CREATE TABLE tweet " +
 			"(tweet_id			INTEGER			NOT NULL, " +
-			" collection_id		TEXT			NOT NULL, " + 
+			" collection_id		INTEGER			NOT NULL, " + 
 			" raw_tweet			TEXT			NOT NULL, " + 
 			" author			VARCHAR(50)		NOT NULL, " +
 			" created_at		TEXT			NOT NULL, " +

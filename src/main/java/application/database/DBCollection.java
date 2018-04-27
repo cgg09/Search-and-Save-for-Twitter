@@ -1,5 +1,6 @@
 package application.database;
 
+import java.io.File;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -55,6 +56,8 @@ public class DBCollection {
 	// tweet WHERE collection_id=\"";//+id+"\" ";
 	private String delTweets = "DELETE FROM tweet WHERE collection_id = ?";
 	private String delCol = "DELETE FROM collection where collection_id = ?";
+
+	private String exportCol = "SELECT * FROM tweet WHERE collection_id= ?";
 
 	public DBCollection(String type) {
 		c = Main.getDatabaseDAO().getConnection();
@@ -333,25 +336,45 @@ public class DBCollection {
 
 	public void deleteCollection() throws DatabaseWriteException {
 
-
-
-		
 		try {
-			PreparedStatement psdt = c.prepareStatement(delTweets);//.executeQuery(delTweets);
-			psdt.setInt(1,id);
+			PreparedStatement psdt = c.prepareStatement(delTweets);// .executeQuery(delTweets);
+			psdt.setInt(1, id);
 			psdt.executeUpdate();
 		} catch (SQLException e) {
 			throw new DatabaseWriteException("There was an error deleting the tweets of the collection.", e);
 		}
 		try {
 			PreparedStatement psdc = c.prepareStatement(delCol);
-			psdc.setInt(1,id);
+			psdc.setInt(1, id);
 			psdc.executeUpdate();
 
 		} catch (SQLException e) {
 			throw new DatabaseWriteException("There was an error deleting the collection info.", e);
 		}
 
+	}
+
+	public String exportTweets() throws DatabaseReadException {
+		PreparedStatement pstmt;
+		String tweetsExported = "tweet_id,collection_id,raw_tweet,author,created_at,text_printable,retweet\n";
+		try {
+			pstmt = c.prepareStatement(exportCol);
+
+			pstmt.setInt(1, id);
+
+			ResultSet rsExp = pstmt.executeQuery();
+
+			while (rsExp.next()) {
+				tweetsExported += rsExp.getInt("tweet_id") + "," + rsExp.getInt("collection_id") + ","
+						+ rsExp.getString("raw_tweet") + "," + rsExp.getString("author") + ","
+						+ rsExp.getString("created_at") + "," + rsExp.getString("text_printable") + ","
+						+ rsExp.getInt("retweet") + "\n";
+			}
+
+		} catch (SQLException e) {
+			throw new DatabaseReadException("There was an error while exporting the tweets from the database.", e);
+		}
+		return tweetsExported;
 	}
 
 }
