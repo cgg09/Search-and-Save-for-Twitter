@@ -233,11 +233,22 @@ public class HistoricViewController extends AnchorPane {
 				fileWriter = new FileWriter(file);
 				fileWriter.write(tweets);
 				fileWriter.close();
+				
+				
+				
+				
 			} catch (IOException ex) {
 				Logger.getLogger(HistoricViewController.class.getName()).log(Level.SEVERE, null, ex);
 			}
+			Alert alert = new Alert(AlertType.INFORMATION);
+			alert.setTitle("COLLECTION EXPORTED");
+			alert.setHeaderText("Delete Collection");
+			alert.setContentText("Well done! You have exported succesfully the collection \"" + c.getQuery() + "\". ");
+			alert.showAndWait();
+
 
 		}
+		
 	}
 
 	private void handleDelete(DBCollection c) {
