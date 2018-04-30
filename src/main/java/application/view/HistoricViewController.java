@@ -217,7 +217,6 @@ public class HistoricViewController extends AnchorPane {
 		try {
 			tweets = c.exportTweets();
 		} catch (DatabaseReadException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -232,11 +231,9 @@ public class HistoricViewController extends AnchorPane {
 				FileWriter fileWriter = null;
 				fileWriter = new FileWriter(file);
 				fileWriter.write(tweets);
+				fileWriter.flush();
 				fileWriter.close();
-				
-				
-				
-				
+
 			} catch (IOException ex) {
 				Logger.getLogger(HistoricViewController.class.getName()).log(Level.SEVERE, null, ex);
 			}

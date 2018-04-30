@@ -4,7 +4,12 @@ import java.sql.Timestamp;
 
 import application.database.DBCollection;
 import application.exceptions.ConnectivityException;
+import javafx.application.Platform;
+import javafx.concurrent.Task;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.scene.Cursor;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -23,40 +28,46 @@ public class NewHistoricDialogController {
 	@FXML
 	private TextField userQuery;
 	@FXML
-	private Button searchButton;
+	private Button searchButton;// = new Button("Search");
 	private DBCollection collection;
 	private Stage dialogStage;
 	private boolean okClicked;
 	private String user;
-	
 
 	public NewHistoricDialogController() {
 
 	}
 
 	public void initialize() {
+		
+		searchButton.setOnAction(new EventHandler<ActionEvent>() {
 
-		/*searchButton.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
-			public void handle(ActionEvent event) {
-				Task<?> task = new Task<Object>() {
+			public void handle(ActionEvent arg0) {
+				System.out.println("Button: "+searchButton.getText());
+				dialogStage.getScene().setCursor(Cursor.WAIT);
+				//searchButton.setText("Searching...");	// FIXME la 1a vez cambia, pero la segunda no...
+				Task<Void> task1 = new Task<Void>() {
 					@Override
-					protected Integer call() throws Exception {
-						int iterations;
-						dialogStage.getScene().setCursor(Cursor.WAIT); // Change cursor to wait style
-						for (iterations = 0; iterations < 100000; iterations++) {
-							System.out.println("Iteration " + iterations);
-						}
-						handleSearch();
-						dialogStage.getScene().setCursor(Cursor.DEFAULT); // Change cursor to default style
+					public Void call() {
+						Platform.runLater(new Runnable() {
+							@Override
+							public void run() {
+								try {
+									handleSearch();
+								} catch (ConnectivityException e) {
+									e.printStackTrace();
+								}
+							}
+						});
 						return null;
 					}
 				};
-				Thread th = new Thread(task);
-				th.setDaemon(true);
-				th.start();
+				new Thread(task1).start();
+				//System.out.println("Button: "+searchButton.getText());
 			}
-		});*/
+
+		});
 
 	}
 
@@ -84,10 +95,8 @@ public class NewHistoricDialogController {
 	@FXML
 	public void handleSearch() throws ConnectivityException { // FIXME throws RateLimitException, DatabaseReadException
 
-		searchButton.setText("Searching..."); // FIXME thread también ¿?
-		
 		int total = 0;
-		
+
 		if (!collection.getTweetStatus().isEmpty()) {
 			collection.getTweetStatus().clear();
 		}
@@ -113,7 +122,8 @@ public class NewHistoricDialogController {
 			}
 			collection.saveTweetStatus(queryResult);
 			total += queryResult.getCount();// mostrar en un pop up los tweets totales encontrados
-			downloadedTweets.setText("Downloaded tweets: "+total); // FIXME thread también ¿?
+			// downloadedTweets.setText("Downloaded tweets: "+total); // FIXME thread
+			// también ¿?
 			// queryResult.getRateLimitStatus(); -> muy interesante
 		} while ((query = queryResult.nextQuery()) != null && total <= 200);
 
@@ -127,7 +137,7 @@ public class NewHistoricDialogController {
 
 		System.out.println("Data saved...");
 		dialogStage.close(); // FIXME !!!
-		searchButton.setText("Search");
+//		searchButton.setText("Search");
 
 	}
 
