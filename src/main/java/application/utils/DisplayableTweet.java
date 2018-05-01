@@ -13,6 +13,7 @@ public class DisplayableTweet {
 	private StringProperty author;
 	private StringProperty text;
 	private boolean retweet;
+	// TODO crear parámetro nuevo: link del tweet
 	
 	public DisplayableTweet(LocalDateTime c, String a, String t, boolean r) {
 		this.createdAt = new SimpleObjectProperty<LocalDateTime>(c);

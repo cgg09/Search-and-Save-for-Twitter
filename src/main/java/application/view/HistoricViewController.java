@@ -96,7 +96,7 @@ public class HistoricViewController extends AnchorPane {
 
 		historySearch.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
-		// initialize historicSearch options for each collection
+		// initialize historicSearch options for each collection //FIXME add repeat search
 		MenuItem m1 = new MenuItem("Export collection");
 		MenuItem m2 = new MenuItem("Delete collection");
 		historyOptions.getItems().add(m1);
@@ -105,11 +105,13 @@ public class HistoricViewController extends AnchorPane {
 		// initialize filter button to "last 200 tweets"
 		filterMenu.getItems().addAll("Last 200 tweets", "All tweets (except RTs)", "All tweets");
 
-		// update currentSearch from historySearch
+		
+		
+		// update currentSearch from historySearch && select options for each collection of the historySearch view
 		historySearch.setRowFactory(tv -> {
 			TableRow<DBCollection> row = new TableRow<>();
 			row.setOnMouseClicked(event -> {
-				if (event.getClickCount() == 2 && (!row.isEmpty())) {
+				if (event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2 && (!row.isEmpty())) {
 					DBCollection rowData = row.getItem();
 					try {
 						rowData.updateCollection();
@@ -118,24 +120,17 @@ public class HistoricViewController extends AnchorPane {
 					}
 					filterMenu.setValue("Last 200 tweets");
 					addSearch(rowData);
-				}
-			});
-			return row;
-		});
-
-		// options for every collection of the history
-		historySearch.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
-			@Override
-			public void handle(MouseEvent m) {
-				if (m.getButton() == MouseButton.SECONDARY) { // FIXME the menu is shown in an empty row !!
+				} 
+				else if (event.getButton() == MouseButton.SECONDARY && (!row.isEmpty())) {
 					DBCollection col = historySearch.getSelectionModel().getSelectedItem();
 					m1.setOnAction(e -> handleExport(col));
 					m2.setOnAction(e -> handleDelete(col));
 					historySearch.setContextMenu(historyOptions);
 				}
-			}
+			});
+			return row;
 		});
-
+		
 		// change of selection in filter button "show"
 		filterMenu.getSelectionModel().selectedIndexProperty()
 				.addListener((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
@@ -143,16 +138,25 @@ public class HistoricViewController extends AnchorPane {
 							.println("You clicked #" + newValue + ": " + filterMenu.getItems().get((Integer) newValue));
 					filterFunction((Integer) newValue);
 				});
-
+		
+		// show a selected tweet in a browser
+		currentSearch.setRowFactory(cRow -> {
+			TableRow<DisplayableTweet> currentRow = new TableRow<>();
+			currentRow.setOnMouseClicked(event -> {
+				if (event.getClickCount() == 2 && !currentRow.isEmpty()) {
+					DisplayableTweet rowTweet = currentRow.getItem();
+					System.out.println("Author: "+rowTweet.getAuthor());	// FIXME desplegar aquí url del tweet
+				}
+			});
+			return currentRow;
+		});
 	}
 
-	@FXML
+	@FXML // deprecated
 	private void openWeb(MouseEvent event) {
 
 		// TODO see the selected tweet in a browser
-		if (event.getClickCount() == 2) {
-			System.out.println("Tweet selected: " + event.toString());
-		}
+		
 	}
 
 	@FXML
@@ -202,7 +206,7 @@ public class HistoricViewController extends AnchorPane {
 		currentSearch.setItems(data);
 	}
 
-	private void handleExport(DBCollection c) { // Database.exportCSV(search.getKeyword());
+	private void handleExport(DBCollection c) {
 
 		String date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("uuuuMMdd"));
 		String filename = date + "_" + c.getQuery() + ".csv";
@@ -254,7 +258,6 @@ public class HistoricViewController extends AnchorPane {
 			try {
 				c.deleteCollection();
 			} catch (DatabaseWriteException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 
@@ -269,24 +272,18 @@ public class HistoricViewController extends AnchorPane {
 	}
 
 	public void filterFunction(int number) { // FIXME filter works! I just need to check things on it :o
-		/*
-		 * if (data.isEmpty()) { System.out.println("Meh :("); return; }
-		 */ // por ahora, ni idea de si esto sirve para algo
-		System.out.println("Buu");
+		
 		data.clear();
 		if (number == 0) { // last 200 tweets (default)
-			System.out.println("Hi");
 			int to = Math.min(200, collection.getCurrentTweets().size());
 			data.addAll(collection.getCurrentTweets().subList(0, to));
 		} else if (number == 1) { // all non-RT tweets
-			System.out.println("Hii");
 			for (DisplayableTweet t : collection.getCurrentTweets()) {
 				if (!t.getRetweet()) {
 					data.add(t);
 				}
 			}
 		} else if (number == 2) { // all tweets
-			System.out.println("Hiii");
 			data.addAll(collection.getCurrentTweets());
 		}
 		currentSearch.setItems(data);

@@ -170,11 +170,8 @@ public class Login {
 	 * @throws ConnectivityException
 	 * @throws DatabaseReadException
 	 */
-	public void retrieveSession(Twitter twitter, String user, DBUserDAO dbu) throws ConnectivityException { // FIXME
-																											// throws
-																											// DatabaseReadException
-																											// {
-
+	public void retrieveSession(Twitter twitter, String user, DBUserDAO dbu) throws ConnectivityException {
+		
 		this.dbu = dbu;
 
 		try {
@@ -184,7 +181,7 @@ public class Login {
 			System.out.println("archivo cargado incorrectamente");
 			e.printStackTrace();
 		}
-
+		
 		twitter.setOAuthConsumer(appProps.getValue("consumer_key"), appProps.getValue("consumer_secret"));
 
 		String token = null;
@@ -218,7 +215,6 @@ public class Login {
 			throw new ConnectivityException();
 		}
 		main.showSearch();
-
 	}
 
 	/**

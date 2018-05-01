@@ -124,7 +124,7 @@ public class NewHistoricDialogController {
 			// downloadedTweets.setText("Downloaded tweets: "+total); // FIXME thread
 			// también ¿?
 			// queryResult.getRateLimitStatus(); -> muy interesante
-		} while ((query = queryResult.nextQuery()) != null && total <= 200);
+		} while ((query = queryResult.nextQuery()) != null && total <= 430);
 
 		Timestamp ts_end = new Timestamp(System.currentTimeMillis());
 

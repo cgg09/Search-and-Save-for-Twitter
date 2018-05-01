@@ -1,6 +1,5 @@
 package application.database;
 
-import java.io.File;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -12,6 +11,9 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Vector;
+
+import com.twitter.twittertext.TwitterTextConfiguration;
+import com.twitter.twittertext.TwitterTextParser;
 
 import application.Main;
 import application.exceptions.DataNotFoundException;
@@ -28,6 +30,9 @@ import twitter4j.Status;
 
 public class DBCollection {
 
+	int T = 0;
+	int F = 0;
+	
 	private int id = 0;
 
 	private Connection c;
@@ -46,15 +51,17 @@ public class DBCollection {
 	private String addTweet = "INSERT INTO tweet (TWEET_ID, COLLECTION_ID, RAW_TWEET, AUTHOR, CREATED_AT, TEXT_PRINTABLE, RETWEET) "
 			+ "VALUES (?,?,?,?,?,?,?);";
 
-	// private String selectId = "SELECT collection_id FROM collection WHERE
-	// query=\"";//+query.getValue()+"\" ";
+	// private String selectId = "SELECT collection_id FROM collection WHERE query=
+	// ?"; //query.getValue()
 
 	// private String selectCollection = "SELECT * FROM collection WHERE
-	// collection_id=\"";//+id+"\" ";
+	// collection_id= ?"; //id
 
 	// private String updateTweets = "SELECT created_at, author, text_printable FROM
-	// tweet WHERE collection_id=\"";//+id+"\" ";
+	// tweet WHERE collection_id= ?"; //id
+
 	private String delTweets = "DELETE FROM tweet WHERE collection_id = ?";
+
 	private String delCol = "DELETE FROM collection where collection_id = ?";
 
 	private String exportCol = "SELECT * FROM tweet WHERE collection_id= ?";
@@ -211,7 +218,18 @@ public class DBCollection {
 			retweet = 1;
 			RT = true;
 		}
-
+		
+		//TwitterTextParser tweetParser = new TwitterTextParser();
+		//TwitterTextConfiguration tweetParser = new TwitterTextConfiguration();
+		//tweetParser.getClass()
+		//String text = tweet.getText().replace("\n", "").replace("\r", "");
+		
+		
+/*
+		if(text.contains("\n")) {
+			System.out.println("Newline in tweet: "+tweet.getText());
+		}*/
+		
 		try {
 			psmt_tweet = c.prepareStatement(addTweet);
 			psmt_tweet.setLong(1, tweet.getId());
