@@ -41,10 +41,9 @@ public class NewHistoricDialogController {
 	public void initialize() {
 		
 		searchButton.setOnAction(new EventHandler<ActionEvent>() {
-
 			@Override
 			public void handle(ActionEvent arg0) {
-				System.out.println("Button: "+searchButton.getText());
+				//System.out.println("Button: "+searchButton.getText());
 				dialogStage.getScene().setCursor(Cursor.WAIT);
 				//searchButton.setText("Searching...");	// FIXME la 1a vez cambia, pero la segunda no...
 				Task<Void> task1 = new Task<Void>() {

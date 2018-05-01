@@ -9,8 +9,6 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.omg.CORBA.Environment;
-
 import application.Main;
 import application.database.DBCollection;
 import application.exceptions.DatabaseReadException;
@@ -125,21 +123,17 @@ public class HistoricViewController extends AnchorPane {
 			return row;
 		});
 
-		// opciones al seleccionar con click derecho una collection
+		// options for every collection of the history
 		historySearch.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
-
 			@Override
 			public void handle(MouseEvent m) {
 				if (m.getButton() == MouseButton.SECONDARY) { // FIXME the menu is shown in an empty row !!
 					DBCollection col = historySearch.getSelectionModel().getSelectedItem();
 					m1.setOnAction(e -> handleExport(col));
 					m2.setOnAction(e -> handleDelete(col));
-					historyOptions.show(historySearch, m.getScreenX(), m.getScreenY());
-
+					historySearch.setContextMenu(historyOptions);
 				}
-
 			}
-
 		});
 
 		// change of selection in filter button "show"
