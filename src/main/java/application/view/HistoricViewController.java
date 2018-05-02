@@ -202,8 +202,12 @@ public class HistoricViewController extends AnchorPane {
 
 		// sortedData.comparatorProperty().bind(currentSearch.comparatorProperty()); //
 		// no se si esto de aquí funciona o no, diría que no
+		
 
 		currentSearch.setItems(data);
+		int listSize = collection.getCurrentTweets().size();
+		listSize++;
+		filterMenu.getItems().set(2, "All tweets ("+listSize+")");
 	}
 
 	private void handleExport(DBCollection c) {

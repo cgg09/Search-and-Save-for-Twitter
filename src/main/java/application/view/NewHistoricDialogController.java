@@ -10,9 +10,11 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Cursor;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Alert.AlertType;
 import javafx.stage.Stage;
 import twitter4j.Query;
 import twitter4j.QueryResult;
@@ -33,6 +35,7 @@ public class NewHistoricDialogController {
 	private Stage dialogStage;
 	private boolean okClicked;
 	private String user;
+	int total;
 
 	public NewHistoricDialogController() {
 
@@ -46,6 +49,7 @@ public class NewHistoricDialogController {
 				//System.out.println("Button: "+searchButton.getText());
 				dialogStage.getScene().setCursor(Cursor.WAIT);
 				//searchButton.setText("Searching...");	// FIXME la 1a vez cambia, pero la segunda no...
+				// downloadedTweets.setText("Downloaded tweets: "+total); // FIXME de momento no hace caso... :(
 				Task<Void> task1 = new Task<Void>() {
 					@Override
 					public Void call() {
@@ -94,7 +98,7 @@ public class NewHistoricDialogController {
 	@FXML
 	public void handleSearch() throws ConnectivityException { // FIXME throws RateLimitException, DatabaseReadException
 
-		int total = 0;
+		total = 0;
 
 		if (!collection.getTweetStatus().isEmpty()) {
 			collection.getTweetStatus().clear();
@@ -114,15 +118,12 @@ public class NewHistoricDialogController {
 
 			try {
 				queryResult = twitter.search(query);
-				// TODO twitter.addRateLimitStatusListener(e -> throw new
-				// RateLimitException(););
 			} catch (TwitterException e) {
 				throw new ConnectivityException();
 			}
 			collection.saveTweetStatus(queryResult);
-			total += queryResult.getCount();// mostrar en un pop up los tweets totales encontrados
-			// downloadedTweets.setText("Downloaded tweets: "+total); // FIXME thread
-			// también ¿?
+			total += queryResult.getCount();
+			// TODO twitter.addRateLimitStatusListener(e -> throw new RateLimitException());
 			// queryResult.getRateLimitStatus(); -> muy interesante
 		} while ((query = queryResult.nextQuery()) != null && total <= 430);
 
@@ -135,7 +136,14 @@ public class NewHistoricDialogController {
 		okClicked = true;
 
 		System.out.println("Data saved...");
-		dialogStage.close(); // FIXME !!!
+		dialogStage.close();
+		
+		Alert alert = new Alert(AlertType.INFORMATION);
+		alert.setTitle("NEW SEARCH FINISHED");
+		alert.setHeaderText("Tweets downloaded");
+		alert.setContentText("Well done! You have downloaded succesfully "+total+" tweets");
+		alert.showAndWait();
+		
 //		searchButton.setText("Search");
 
 	}
