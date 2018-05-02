@@ -17,7 +17,6 @@ import application.utils.DisplayableTweet;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ChoiceBox;
@@ -42,7 +41,7 @@ public class HistoricViewController extends AnchorPane {
 	@FXML
 	private TableView<DBCollection> historySearch;
 	@FXML
-	private TableColumn<DBCollection, LocalDateTime> dateColumn;
+	private TableColumn<DBCollection, String> dateColumn;
 	@FXML
 	private TableColumn<DBCollection, String> keywordColumn;
 	private ObservableList<DBCollection> history = FXCollections.observableArrayList();
@@ -52,7 +51,7 @@ public class HistoricViewController extends AnchorPane {
 	@FXML
 	private TableView<DisplayableTweet> currentSearch;
 	@FXML
-	private TableColumn<DisplayableTweet, LocalDateTime> createdAt;
+	private TableColumn<DisplayableTweet, String> createdAt;
 	@FXML
 	private TableColumn<DisplayableTweet, String> author;
 	@FXML

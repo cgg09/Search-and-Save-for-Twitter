@@ -4,7 +4,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Vector;
 
@@ -14,7 +13,7 @@ import application.exceptions.DatabaseReadException;
 import application.exceptions.DatabaseWriteException;
 
 /**
- * @author María Cristina
+ * @author María Cristina, cgg09
  *
  */
 public class DBUserDAO {
@@ -147,8 +146,8 @@ public class DBUserDAO {
 			while (rsc.next()) {
 				DBCollection dbc = new DBCollection(rsc.getString("type"));
 				dbc.setId(rsc.getInt("collection_id"));
-				dbc.setStart(LocalDateTime.parse(rsc.getString("time_start")));
-				dbc.setEnd(LocalDateTime.parse(rsc.getString("time_start")));
+				dbc.setStart(rsc.getString("time_start"));
+				dbc.setEnd(rsc.getString("time_start"));
 				dbc.setQuery(rsc.getString("query"));
 				dbc.updateTweets();
 				cols.add(dbc);

@@ -1,36 +1,32 @@
 package application.utils;
 
-import java.time.LocalDateTime;
-
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
 public class DisplayableTweet {
 
-	private ObjectProperty<LocalDateTime> createdAt;
+	private /*ObjectProperty<LocalDateTime>*/StringProperty createdAt;
 	private StringProperty author;
 	private StringProperty text;
 	private boolean retweet;
 	// TODO crear parámetro nuevo: link del tweet
 	
-	public DisplayableTweet(LocalDateTime c, String a, String t, boolean r) {
-		this.createdAt = new SimpleObjectProperty<LocalDateTime>(c);
+	public DisplayableTweet(String c, String a, String t, boolean r) {
+		this.createdAt = new SimpleStringProperty(c);//new SimpleObjectProperty<LocalDateTime>(string);
 		this.author = new SimpleStringProperty(a);
 		this.text = new SimpleStringProperty(t);
 		this.retweet = r;
 	}
 	
-	public LocalDateTime getCreatedAt() {
+	public String getCreatedAt() {
         return createdAt.get();
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
+    public void setCreatedAt(String createdAt) {
         this.createdAt.set(createdAt);
     }
 
-    public ObjectProperty<LocalDateTime> createdAtProperty() {
+    public StringProperty createdAtProperty() {
         return createdAt;
     }
     

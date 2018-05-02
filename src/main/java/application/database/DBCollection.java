@@ -9,19 +9,18 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Vector;
 
-import com.twitter.twittertext.TwitterTextConfiguration;
-import com.twitter.twittertext.TwitterTextParser;
+//import com.twitter.twittertext.TwitterTextConfiguration;
+//import com.twitter.twittertext.TwitterTextParser;
 
 import application.Main;
 import application.exceptions.DataNotFoundException;
 import application.exceptions.DatabaseReadException;
 import application.exceptions.DatabaseWriteException;
 import application.utils.DisplayableTweet;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import twitter4j.JSONObject;
@@ -32,12 +31,12 @@ public class DBCollection {
 
 	int T = 0;
 	int F = 0;
-	
+
 	private int id = 0;
 
 	private Connection c;
-	private ObjectProperty<LocalDateTime> start_t;
-	private ObjectProperty<LocalDateTime> end_t;
+	private StringProperty start_t;
+	private StringProperty end_t;
 	private String type;
 	private StringProperty query;
 	private List<Status> tweets;
@@ -70,8 +69,8 @@ public class DBCollection {
 		c = Main.getDatabaseDAO().getConnection();
 		this.type = type;
 		this.query = new SimpleStringProperty("");
-		this.start_t = new SimpleObjectProperty<LocalDateTime>();
-		this.end_t = new SimpleObjectProperty<LocalDateTime>();
+		this.start_t = new SimpleStringProperty("");
+		this.end_t = new SimpleStringProperty("");
 		this.tweets = new Vector<Status>();
 		this.currentTweets = new Vector<DisplayableTweet>();
 	}
@@ -100,27 +99,27 @@ public class DBCollection {
 		return query;
 	}
 
-	public LocalDateTime getStart() {
+	public String getStart() {
 		return start_t.get();
 	}
 
-	public void setStart(LocalDateTime start) {
+	public void setStart(String start) {
 		this.start_t.set(start);
 	}
 
-	public ObjectProperty<LocalDateTime> startProperty() {
+	public StringProperty startProperty() {
 		return start_t;
 	}
 
-	public LocalDateTime getEnd() {
+	public String getEnd() {
 		return end_t.get();
 	}
 
-	public void setEnd(LocalDateTime end) {
+	public void setEnd(String end) {
 		this.end_t.set(end);
 	}
 
-	public ObjectProperty<LocalDateTime> endProperty() {
+	public StringProperty endProperty() {
 		return end_t;
 	}
 
@@ -146,8 +145,13 @@ public class DBCollection {
 	 */
 	public void addData(Timestamp start, Timestamp end, String user) {
 
-		setStart(start.toLocalDateTime());
-		setEnd(end.toLocalDateTime());
+		// Converting start_time
+		LocalDateTime start_time = LocalDateTime.parse(start.toLocalDateTime().toString());
+		setStart(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").format(start_time));
+
+		// Converting end_time
+		LocalDateTime end_time = LocalDateTime.parse(end.toLocalDateTime().toString());
+		setEnd(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").format(end_time));
 
 		try {
 			id = addNewCollection(user);
@@ -177,8 +181,8 @@ public class DBCollection {
 		try {
 			psmt = c.prepareStatement(addCollection);
 			psmt.setString(1, user);
-			psmt.setString(2, getStart().toString());
-			psmt.setString(3, getEnd().toString());
+			psmt.setString(2, getStart());
+			psmt.setString(3, getEnd());
 			psmt.setString(4, type);
 			psmt.setString(5, getQuery());
 
@@ -211,6 +215,7 @@ public class DBCollection {
 		boolean RT = false;
 
 		LocalDateTime createdAt = tweet.getCreatedAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+		String created_at = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").format(createdAt);
 
 		PreparedStatement psmt_tweet;
 
@@ -218,25 +223,24 @@ public class DBCollection {
 			retweet = 1;
 			RT = true;
 		}
-		
-		//TwitterTextParser tweetParser = new TwitterTextParser();
-		//TwitterTextConfiguration tweetParser = new TwitterTextConfiguration();
-		//tweetParser.getClass()
-		//String text = tweet.getText().replace("\n", "").replace("\r", "");
-		
-		
-/*
-		if(text.contains("\n")) {
-			System.out.println("Newline in tweet: "+tweet.getText());
-		}*/
-		
+
+		// TwitterTextParser tweetParser = new TwitterTextParser();
+		// TwitterTextConfiguration tweetParser = new TwitterTextConfiguration();
+		// tweetParser.getClass()
+		// String text = tweet.getText().replace("\n", "").replace("\r", "");
+
+		/*
+		 * if(text.contains("\n")) {
+		 * System.out.println("Newline in tweet: "+tweet.getText()); }
+		 */
+
 		try {
 			psmt_tweet = c.prepareStatement(addTweet);
 			psmt_tweet.setLong(1, tweet.getId());
 			psmt_tweet.setInt(2, id);
 			psmt_tweet.setString(3, json.toString());
 			psmt_tweet.setString(4, tweet.getUser().getScreenName());
-			psmt_tweet.setString(5, createdAt.toString());
+			psmt_tweet.setString(5, created_at);
 			psmt_tweet.setString(6, tweet.getText()); // FIXME PARSE TEXT !!
 			psmt_tweet.setInt(7, retweet);
 
@@ -245,8 +249,7 @@ public class DBCollection {
 			throw new DatabaseWriteException("There was an error saving the tweet info.", e);
 		}
 
-		// FIXME parse date in format yyyy-MM-dd HH:mm
-		DisplayableTweet t = new DisplayableTweet(createdAt, tweet.getUser().getScreenName(), tweet.getText(), RT);
+		DisplayableTweet t = new DisplayableTweet(created_at, tweet.getUser().getScreenName(), tweet.getText(), RT);
 		currentTweets.add(t);
 	}
 
@@ -269,7 +272,7 @@ public class DBCollection {
 		} catch (SQLException e) {
 			throw new DatabaseReadException("There was an error searching the collection id.", e);
 		}
-		throw new DataNotFoundException("This collection does not exist");
+		throw new DataNotFoundException("This collection does not exist"); // FIXME alert, not an exception
 	}
 
 	public boolean tweetExists(Status tweet) throws DatabaseReadException, DataNotFoundException {
@@ -294,8 +297,8 @@ public class DBCollection {
 		ResultSet rsc;
 		try {
 			rsc = c.createStatement().executeQuery(selectCollection);
-			setStart(LocalDateTime.parse(rsc.getString("time_start")));
-			setEnd(LocalDateTime.parse(rsc.getString("time_end")));
+			setStart(rsc.getString("time_start"));
+			setEnd(rsc.getString("time_end"));
 			type = rsc.getString("type");
 			setQuery(rsc.getString("query"));
 		} catch (SQLException e) {
@@ -324,9 +327,8 @@ public class DBCollection {
 					RT = true;
 				}
 
-				// FIXME parse date in format yyyy-MM-dd HH:mm
-				DisplayableTweet t = new DisplayableTweet(LocalDateTime.parse(rst.getString("created_at")),
-						rst.getString("author"), rst.getString("text_printable"), RT);
+				DisplayableTweet t = new DisplayableTweet(rst.getString("created_at"), rst.getString("author"),
+						rst.getString("text_printable"), RT);
 				currentTweets.add(t);
 			}
 		} catch (SQLException e) {
@@ -355,7 +357,7 @@ public class DBCollection {
 	public void deleteCollection() throws DatabaseWriteException {
 
 		try {
-			PreparedStatement psdt = c.prepareStatement(delTweets);// .executeQuery(delTweets);
+			PreparedStatement psdt = c.prepareStatement(delTweets);
 			psdt.setInt(1, id);
 			psdt.executeUpdate();
 		} catch (SQLException e) {
