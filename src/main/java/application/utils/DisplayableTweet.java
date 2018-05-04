@@ -5,17 +5,23 @@ import javafx.beans.property.StringProperty;
 
 public class DisplayableTweet {
 
-	private /*ObjectProperty<LocalDateTime>*/StringProperty createdAt;
+	private final long tweet_id;
+	private StringProperty createdAt;
 	private StringProperty author;
 	private StringProperty text;
 	private boolean retweet;
-	// TODO crear parámetro nuevo: link del tweet
+	// TODO crear parï¿½metro nuevo: link del tweet
 	
-	public DisplayableTweet(String c, String a, String t, boolean r) {
+	public DisplayableTweet(long tweet_id, String c, String a, String t, boolean r) {
+		this.tweet_id = tweet_id;
 		this.createdAt = new SimpleStringProperty(c);//new SimpleObjectProperty<LocalDateTime>(string);
 		this.author = new SimpleStringProperty(a);
 		this.text = new SimpleStringProperty(t);
 		this.retweet = r;
+	}
+	
+	public long getId() {
+		return tweet_id;
 	}
 	
 	public String getCreatedAt() {

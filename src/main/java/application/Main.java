@@ -85,8 +85,8 @@ public class Main extends Application {
 		login.createRequest(twitter, dbUserDAO);
 	}
 
-	// Probablemente se pueda retocar más, ya que nunca saltará al "else" que está
-	// puesto aquí
+	// Probablemente se pueda retocar mas, ya que nunca saltara al "else" que esta
+	// puesto aqui
 	public void manageFastLogin(String user) throws ConnectivityException { // FIXME throws DatabaseReadException
 		login.setMainApp(this);
 		setDBUserDAO(DBUserDAO.getInstance());
@@ -99,7 +99,7 @@ public class Main extends Application {
 		if (check) {
 			login.retrieveSession(twitter, user, dbUserDAO);
 		} else {
-			System.out.println("Lo siento, pero este usuario no está registrado en esta aplicación. Intenta de nuevo.");
+			System.out.println("Lo siento, pero este usuario no estï¿½ registrado en esta aplicaciï¿½n. Intenta de nuevo.");
 		}
 	}
 
@@ -159,7 +159,7 @@ public class Main extends Application {
 		}
 
 		Stage dialogStage = new Stage();
-		dialogStage.setTitle("Nueva búsqueda modo histórico");
+		dialogStage.setTitle("Nueva bï¿½squeda modo histï¿½rico");
 		dialogStage.initOwner(primaryStage);
 		Scene scene = new Scene(page);
 		dialogStage.setScene(scene);
