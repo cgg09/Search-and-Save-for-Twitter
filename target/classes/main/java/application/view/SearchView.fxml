@@ -14,6 +14,5 @@
          		<fx:include source="HistoricView.fxml" />
          </children>
       </AnchorPane>
-<!--       <fx:include source="HistoricView.fxml" />  -->
    </children>
 </AnchorPane>

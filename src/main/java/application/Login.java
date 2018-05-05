@@ -5,7 +5,7 @@ import java.net.URISyntaxException;
 import java.util.List;
 
 import org.apache.http.NameValuePair;
-//import org.apache.http.client.utils.URIBuilder; //me gustaría acabar utilizando esta en vez de com.box.restclientv2 ...
+//import org.apache.http.client.utils.URIBuilder; //me gustarï¿½a acabar utilizando esta en vez de com.box.restclientv2 ...
 
 import com.box.restclientv2.httpclientsupport.HttpClientURIBuilder;
 
@@ -22,8 +22,11 @@ import javafx.concurrent.Worker;
 import javafx.scene.web.WebEngine;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
+import twitter4j.TwitterFactory;
 import twitter4j.auth.AccessToken;
 import twitter4j.auth.RequestToken;
+import twitter4j.conf.Configuration;
+import twitter4j.conf.ConfigurationBuilder;
 
 public class Login {
 
@@ -38,6 +41,30 @@ public class Login {
 	public Login() {
 
 	}
+	
+	/**
+	 * Sets consumer_key and consumer_secret credentials at the start of the connection
+	 * @return
+	 */
+	public Twitter setTwitterInstance() {
+				
+		try {
+			appProps.loadFile("client.properties");
+		} catch (IOException e) {
+			// saltar error al cargar datos
+			System.out.println("archivo cargado incorrectamente");
+			e.printStackTrace();
+		}
+
+		ConfigurationBuilder builder = new ConfigurationBuilder();
+		builder.setOAuthConsumerKey(appProps.getValue("consumer_key"));
+		builder.setOAuthConsumerSecret(appProps.getValue("consumer_secret"));
+		Configuration conf = builder.build();
+		TwitterFactory factory = new TwitterFactory(conf); 
+		Twitter twitter = factory.getInstance();
+		
+		return twitter;
+	}
 
 	/**
 	 * New login process 1st step: Request an authorization to Twitter
@@ -49,19 +76,6 @@ public class Login {
 
 		this.dbu = dbu;
 		this.twitter = twitter;
-		// read client properties file
-
-		try {
-			appProps.loadFile("client.properties");
-		} catch (IOException e) {
-			// saltar error al cargar datos
-			System.out.println("archivo cargado incorrectamente");
-			e.printStackTrace();
-		}
-
-		// create Twitter request
-
-		twitter.setOAuthConsumer(appProps.getValue("consumer_key"), appProps.getValue("consumer_secret"));
 
 		try {
 			requestToken = twitter.getOAuthRequestToken(appProps.getValue("base_callback_url"));
@@ -174,17 +188,8 @@ public class Login {
 		
 		this.dbu = dbu;
 
-		try {
-			appProps.loadFile("client.properties");
-		} catch (IOException e) {
-			// saltar error al cargar datos
-			System.out.println("archivo cargado incorrectamente");
-			e.printStackTrace();
-		}
-		
-		twitter.setOAuthConsumer(appProps.getValue("consumer_key"), appProps.getValue("consumer_secret"));
-
 		String token = null;
+		
 		try {
 			token = dbu.getUserData("access_token", user);
 		} catch (DatabaseReadException e) {
@@ -204,8 +209,7 @@ public class Login {
 
 		try {
 			twitter.verifyCredentials().getId();
-		} catch (TwitterException e1) { // FIXME connectivity exception / Access Exceptions (tokens expirados, acceso
-										// revocado..., etc) ?
+		} catch (TwitterException e1) { // FIXME connectivity exception / Access Exceptions (acceso revocado..., etc) ?
 			throw new ConnectivityException();
 		}
 

@@ -176,6 +176,16 @@ public class HistoricViewController extends AnchorPane {
 		filterMenu.getItems().set(2, "All tweets ("+listSize+")");
 	}
 
+	@FXML
+	private void manageExport() {
+		if(!data.isEmpty()) {
+			DBCollection c = historySearch.getSelectionModel().getSelectedItem();
+			if(c.getCurrentTweets().get(0) == data.get(0)) { // FIXME search a better solution :(
+				handleExport(c);
+			}	
+		}
+	}
+	
 	private void handleExport(DBCollection c) {
 		String date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("uuuuMMdd"));
 		String filename = date + "_" + c.getQuery() + ".csv";

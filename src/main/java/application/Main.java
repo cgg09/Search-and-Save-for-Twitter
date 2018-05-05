@@ -20,7 +20,6 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.stage.Stage;
 import twitter4j.Twitter;
-import twitter4j.TwitterFactory;
 import javafx.scene.Scene;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
@@ -32,7 +31,7 @@ public class Main extends Application {
 
 	Login login = new Login();
 	TwitterUser u = new TwitterUser();
-	Twitter twitter = TwitterFactory.getSingleton();
+	Twitter twitter;
 
 	private static Stage primaryStage;
 
@@ -82,6 +81,7 @@ public class Main extends Application {
 	public void manageNewLogin() throws ConnectivityException, AccessException {
 		login.setMainApp(this);
 		setDBUserDAO(DBUserDAO.getInstance());
+		this.twitter = login.setTwitterInstance();
 		login.createRequest(twitter, dbUserDAO);
 	}
 
@@ -97,6 +97,7 @@ public class Main extends Application {
 			e.printStackTrace();
 		}
 		if (check) {
+			this.twitter = login.setTwitterInstance();
 			login.retrieveSession(twitter, user, dbUserDAO);
 		} else {
 			System.out.println("Lo siento, pero este usuario no est� registrado en esta aplicaci�n. Intenta de nuevo.");

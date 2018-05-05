@@ -30,7 +30,7 @@ public class NewHistoricDialogController {
 	@FXML
 	private TextField userQuery;
 	@FXML
-	private Button searchButton;// = new Button("Search");
+	private Button searchButton;
 	private DBCollection collection;
 	private Stage dialogStage;
 	private boolean okClicked;
@@ -118,6 +118,7 @@ public class NewHistoricDialogController {
 
 			try {
 				queryResult = twitter.search(query);
+				//twitter.search(query).getSinceId();
 			} catch (TwitterException e) {
 				throw new ConnectivityException();
 			}
