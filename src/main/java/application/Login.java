@@ -43,16 +43,14 @@ public class Login {
 	}
 	
 	/**
-	 * Sets consumer_key and consumer_secret credentials at the start of the connection
-	 * @return
+	 * Set consumer_key and consumer_secret credentials at the start of the connection
+	 * @return twitter instance
 	 */
 	public Twitter setTwitterInstance() {
 				
 		try {
 			appProps.loadFile("client.properties");
 		} catch (IOException e) {
-			// saltar error al cargar datos
-			System.out.println("archivo cargado incorrectamente");
 			e.printStackTrace();
 		}
 
@@ -67,7 +65,7 @@ public class Login {
 	}
 
 	/**
-	 * New login process 1st step: Request an authorization to Twitter
+	 * Request an authorization to Twitter
 	 * 
 	 * @throws ConnectivityException
 	 * @throws AccessException
@@ -161,15 +159,8 @@ public class Login {
 		}
 
 		try {
-			main.getUser().setUsername(twitter.verifyCredentials().getScreenName());
-		} catch (TwitterException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		try {
-			dbu.saveLogin(main.getUser().getUsername(), accessToken.getToken().toString(),
-					accessToken.getTokenSecret().toString());
-		} catch (DatabaseWriteException e) {
+			dbu.saveLogin(twitter.verifyCredentials().getScreenName(), accessToken.getToken().toString(), accessToken.getTokenSecret().toString());
+		} catch (DatabaseWriteException | TwitterException e) {
 			e.printStackTrace();
 		}
 		main.showSearch();
@@ -193,14 +184,12 @@ public class Login {
 		try {
 			token = dbu.getUserData("access_token", user);
 		} catch (DatabaseReadException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		String secret = null;
 		try {
 			secret = dbu.getUserData("access_secret", user);
 		} catch (DatabaseReadException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -214,7 +203,7 @@ public class Login {
 		}
 
 		try {
-			main.getUser().setUsername(twitter.verifyCredentials().getScreenName());
+			twitter.verifyCredentials().getScreenName();
 		} catch (TwitterException e2) { // FIXME connectivity exception
 			throw new ConnectivityException();
 		}

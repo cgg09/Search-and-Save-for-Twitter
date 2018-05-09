@@ -3,6 +3,7 @@ package application.view;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
@@ -11,14 +12,18 @@ import java.util.logging.Logger;
 
 import application.Main;
 import application.database.DBCollection;
+import application.exceptions.ConnectivityException;
 import application.exceptions.DatabaseReadException;
 import application.exceptions.DatabaseWriteException;
 import application.utils.DisplayableTweet;
 import javafx.application.HostServices;
+import javafx.application.Platform;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
+import javafx.scene.Cursor;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ContextMenu;
@@ -32,9 +37,15 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.FileChooser;
+import twitter4j.Query;
+import twitter4j.QueryResult;
+import twitter4j.Twitter;
+import twitter4j.TwitterException;
 
 public class HistoricViewController extends AnchorPane {
 
+	Twitter twitter;
+	
 	@FXML
 	private ChoiceBox<String> filterMenu = new ChoiceBox<String>();
 
@@ -62,12 +73,16 @@ public class HistoricViewController extends AnchorPane {
 
 	private DBCollection collection;
 
+	int total;
+	
+	
 	public HistoricViewController() {
 
 	}
 
 	@FXML
 	public void initialize() {
+
 		// initialize historySearch
 		dateColumn.setCellValueFactory(cellData -> cellData.getValue().startProperty());
 		keywordColumn.setCellValueFactory(cellData -> cellData.getValue().queryProperty());
@@ -91,10 +106,12 @@ public class HistoricViewController extends AnchorPane {
 		historySearch.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
 		// initialize historicSearch options for each collection //FIXME add repeat search
-		MenuItem m1 = new MenuItem("Export collection");
-		MenuItem m2 = new MenuItem("Delete collection");
+		MenuItem m1 = new MenuItem("Repeat search");
+		MenuItem m2 = new MenuItem("Export collection");
+		MenuItem m3 = new MenuItem("Delete collection");
 		historyOptions.getItems().add(m1);
 		historyOptions.getItems().add(m2);
+		historyOptions.getItems().add(m3);
 
 		// initialize filter button to "last 200 tweets"
 		filterMenu.getItems().addAll("Last 200 tweets", "All tweets (except RTs)", "All tweets");
@@ -116,8 +133,28 @@ public class HistoricViewController extends AnchorPane {
 				} 
 				else if (event.getButton() == MouseButton.SECONDARY && (!row.isEmpty())) {
 					DBCollection col = historySearch.getSelectionModel().getSelectedItem();
-					m1.setOnAction(e -> handleExport(col));
-					m2.setOnAction(e -> handleDelete(col));
+					m1.setOnAction(
+							e -> { searchController.getMain().getPrimaryStage().getScene().setCursor(Cursor.WAIT);
+							Task<Void> task1 = new Task<Void>() {
+								@Override
+								public Void call() {
+									Platform.runLater(new Runnable() {
+										@Override
+										public void run() {
+											try {
+												handleRepeatSearch(col);
+											} catch (ConnectivityException e) {
+												e.printStackTrace();
+											}
+										}
+									});
+									return null;
+								}
+							};
+							new Thread(task1).start();
+							});	
+					m2.setOnAction(e -> handleExport(col));
+					m3.setOnAction(e -> handleDelete(col));
 					historySearch.setContextMenu(historyOptions);
 				}
 			});
@@ -146,6 +183,7 @@ public class HistoricViewController extends AnchorPane {
 
 	@FXML
 	private void handleNew() {
+
 		collection = new DBCollection("Historic");
 
 		boolean okClicked = searchController.newSearch(collection);
@@ -175,12 +213,54 @@ public class HistoricViewController extends AnchorPane {
 		int listSize = collection.getCurrentTweets().size();
 		filterMenu.getItems().set(2, "All tweets ("+listSize+")");
 	}
+	
+	private void handleRepeatSearch(DBCollection c) throws ConnectivityException {
+		
+		total = 0;
+
+		Query query = new Query();
+		QueryResult queryResult = null;
+
+		query.setQuery(c.getQuery());
+		//query.setSinceId(query.getSinceId()); //TODO since_id parameter !!
+
+		System.out.println("Searching...");
+
+		Timestamp ts_start = new Timestamp(System.currentTimeMillis());
+
+		do {
+
+			try {
+				queryResult = twitter.search(query);
+				//twitter.search(query).getSinceId();
+			} catch (TwitterException e) {
+				throw new ConnectivityException();
+			}
+			c.saveTweetStatus(queryResult);
+			total += queryResult.getCount();
+			// TODO twitter.addRateLimitStatusListener(e -> throw new RateLimitException());
+			// queryResult.getRateLimitStatus(); -> muy interesante
+		} while ((query = queryResult.nextQuery()) != null && total <= 430);
+
+		Timestamp ts_end = new Timestamp(System.currentTimeMillis());
+
+		System.out.println("Total: " + total);
+
+		c.addData(ts_start, ts_end, Main.getDBUserDAO());
+		
+		Alert alert = new Alert(AlertType.INFORMATION);
+		alert.setTitle("NEW SEARCH FINISHED");
+		alert.setHeaderText("Tweets downloaded");
+		alert.setContentText("Well done! You have downloaded succesfully "+total+" tweets");
+		alert.showAndWait();
+
+	}
 
 	@FXML
 	private void manageExport() {
 		if(!data.isEmpty()) {
 			DBCollection c = historySearch.getSelectionModel().getSelectedItem();
-			if(c.getCurrentTweets().get(0) == data.get(0)) { // FIXME search a better solution :(
+			if(c.getCurrentTweets().get(0) == data.get(0)) { // FIXME look for a better solution :-/
 				handleExport(c);
 			}	
 		}
@@ -265,35 +345,5 @@ public class HistoricViewController extends AnchorPane {
 	public static void init(SearchViewController controller) {
 		searchController = controller;
 	}
-
-	/*
-	 * @FXML private void nextTweets() {
-	 * 
-	 * if (to == listSize) { System.out.println("Has llegado al final de la lista");
-	 * return; }
-	 * 
-	 * data.clear();
-	 * 
-	 * from = Math.min(from + 50, listSize); to = Math.min(from + 50, listSize);
-	 * 
-	 * for(DisplayableTweet t : collection.getCurrentTweets().subList(from, to)) {
-	 * data.add(t); }
-	 * 
-	 * currentSearch.setItems(data); }
-	 * 
-	 * @FXML private void previousTweets() {
-	 * 
-	 * if (from == 0) { // INICIO DE LISTA: ensombrecer el bot�n para impedir el
-	 * click !! System.out.println("Has llegado al inicio de la lista"); return; }
-	 * 
-	 * data.clear();
-	 * 
-	 * to = Math.min(from, listSize ); from = Math.max(to - 50, 0);
-	 * 
-	 * for(DisplayableTweet t : collection.getCurrentTweets().subList(from, to)) {
-	 * data.add(t); }
-	 * 
-	 * currentSearch.setItems(data); }
-	 */
-
+	
 }

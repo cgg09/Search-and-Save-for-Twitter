@@ -12,7 +12,6 @@ import application.exceptions.DataNotFoundException;
 import application.exceptions.DatabaseReadException;
 import application.exceptions.DatabaseWriteException;
 import application.utils.Browser;
-import application.utils.TwitterUser;
 import application.view.LoginViewController;
 import application.view.NewHistoricDialogController;
 import application.view.SearchViewController;
@@ -30,17 +29,12 @@ public class Main extends Application {
 	private static DBUserDAO dbUserDAO;
 
 	Login login = new Login();
-	TwitterUser u = new TwitterUser();
 	Twitter twitter;
 
 	private static Stage primaryStage;
 
 	public Twitter getTwitterInstance() {
 		return twitter;
-	}
-
-	public TwitterUser getUser() {
-		return u;
 	}
 
 	// @Override
@@ -143,7 +137,7 @@ public class Main extends Application {
 		// Give the controller access to the main app
 		SearchViewController controller = loader.getController();
 		controller.setMainApp(this);
-		controller.setUsername(getUser().getUsername());
+		controller.setUsername(getDBUserDAO().getUser());
 
 	}
 
@@ -160,7 +154,7 @@ public class Main extends Application {
 		}
 
 		Stage dialogStage = new Stage();
-		dialogStage.setTitle("Nueva b�squeda modo hist�rico");
+		dialogStage.setTitle("New historic search");
 		dialogStage.initOwner(primaryStage);
 		Scene scene = new Scene(page);
 		dialogStage.setScene(scene);
@@ -168,7 +162,7 @@ public class Main extends Application {
 		NewHistoricDialogController controller = loader.getController();
 		controller.setDialogStage(dialogStage);
 		controller.setTwitter(twitter);
-		controller.setUser(u.getUsername());
+		controller.setUser(getDBUserDAO().getUser());
 		controller.setCollection(c);
 
 		dialogStage.showAndWait();
@@ -196,6 +190,8 @@ public class Main extends Application {
 	public static void setDBUserDAO(DBUserDAO dbUserDAO) {
 		Main.dbUserDAO = dbUserDAO;
 	}
+	
+	
 
 	public static void main(String[] args) {
 

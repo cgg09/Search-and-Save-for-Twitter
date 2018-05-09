@@ -2,8 +2,10 @@ package application.view;
 
 import java.sql.Timestamp;
 
+import application.Main;
 import application.database.DBCollection;
 import application.exceptions.ConnectivityException;
+import application.exceptions.DatabaseReadException;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
@@ -104,11 +106,13 @@ public class NewHistoricDialogController {
 			collection.getTweetStatus().clear();
 		}
 
+		collection.setQuery(userQuery.getText());
+		
 		Query query = new Query();
 		QueryResult queryResult = null;
 
-		collection.setQuery(userQuery.getText());
 		query.setQuery(collection.getQuery());
+		//query.setSinceId(query.getSinceId()); //TODO since_id parameter !!
 
 		System.out.println("Searching...");
 
@@ -132,11 +136,10 @@ public class NewHistoricDialogController {
 
 		System.out.println("Total: " + total);
 
-		collection.addData(ts_start, ts_end, user);
+		collection.addData(ts_start, ts_end, Main.getDBUserDAO());
 
 		okClicked = true;
 
-		System.out.println("Data saved...");
 		dialogStage.close();
 		
 		Alert alert = new Alert(AlertType.INFORMATION);

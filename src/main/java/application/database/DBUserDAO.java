@@ -13,7 +13,7 @@ import application.exceptions.DatabaseReadException;
 import application.exceptions.DatabaseWriteException;
 
 /**
- * @author María Cristina, cgg09
+ * @author Marï¿½a Cristina, cgg09
  *
  */
 public class DBUserDAO {
@@ -37,10 +37,18 @@ public class DBUserDAO {
 		}
 		return instance;
 	}
+	
+	public String getUser() {
+		return user;
+	}
+	
+	public void setUser(String user) {
+		this.user = user;
+	}
 
 	public void saveLogin(String username, String token, String tokenSecret) throws DatabaseWriteException {
 
-		user = username;
+		setUser(username);
 
 		PreparedStatement psmt;
 		try {
@@ -78,7 +86,7 @@ public class DBUserDAO {
 		if (rs != null) {
 			return true;
 		} else {
-			throw new DataNotFoundException("The user was not found in the database."); // Debería ser un error ¿?
+			throw new DataNotFoundException("The user was not found in the database."); // Deberï¿½a ser un error ï¿½?
 		}
 
 	}
@@ -93,7 +101,7 @@ public class DBUserDAO {
 	 */
 	public String getUserData(String query, String username) throws DatabaseReadException {
 
-		user = username;
+		setUser(username);
 
 		ResultSet rsu;
 
@@ -115,7 +123,7 @@ public class DBUserDAO {
 		ResultSet rsu = null;
 
 		try {
-			if (c.createStatement().executeQuery(count).getInt(1) < 1) { // FIXME no es una "EXCEPTION", qué poner aquí ?
+			if (c.createStatement().executeQuery(count).getInt(1) < 1) { // FIXME no es una "EXCEPTION", quï¿½ poner aquï¿½ ?
 				return null; // FIXME throw new DataNotFoundException();
 			}
 			rsu = c.createStatement().executeQuery(users);

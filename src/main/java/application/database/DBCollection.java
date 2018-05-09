@@ -47,7 +47,7 @@ public class DBCollection {
 	private String addTweet = "INSERT INTO tweet (TWEET_ID, COLLECTION_ID, RAW_TWEET, AUTHOR, CREATED_AT, TEXT_PRINTABLE, RETWEET) "
 			+ "VALUES (?,?,?,?,?,?,?);";
 
-	private String selectId = "SELECT collection_id FROM collection WHERE query= ?"; // "time_start" tambi�n !!
+	private String queryExists = "SELECT collection_id FROM collection WHERE query= ?";// AND time_start= ?";
 
 	private String checkTweet = "SELECT * FROM tweet WHERE collection_id= ? AND tweet_id= ?";
 
@@ -136,10 +136,10 @@ public class DBCollection {
 	 * 
 	 * @param start
 	 * @param end
-	 * @param user
+	 * @param dbUserDAO
 	 * @throws ParseException
 	 */
-	public void addData(Timestamp start, Timestamp end, String user) {
+	public void addData(Timestamp start, Timestamp end, DBUserDAO dbUserDAO) {
 
 		// Converting start_time
 		LocalDateTime start_time = LocalDateTime.parse(start.toLocalDateTime().toString());
@@ -150,7 +150,7 @@ public class DBCollection {
 		setEnd(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").format(end_time));
 
 		try {
-			id = addNewCollection(user);
+			id = addNewCollection(dbUserDAO);
 		} catch (DatabaseWriteException e) {
 			e.printStackTrace();
 		}
@@ -170,13 +170,13 @@ public class DBCollection {
 	 * @param user
 	 * @throws DatabaseWriteException
 	 */
-	public Integer addNewCollection(String user) throws DatabaseWriteException {
+	public Integer addNewCollection(DBUserDAO user) throws DatabaseWriteException {
 
 		PreparedStatement psmt = null;
 		ResultSet rsk = null;
 		try {
 			psmt = c.prepareStatement(addCollection);
-			psmt.setString(1, user);
+			psmt.setString(1, user.getUser());
 			psmt.setString(2, getStart());
 			psmt.setString(3, getEnd());
 			psmt.setString(4, type);
@@ -250,18 +250,19 @@ public class DBCollection {
 	}
 
 	/**
-	 * Get the id of a specific collection
+	 * Get the id of a specific collection to check if it exists
 	 * 
 	 * @throws DatabaseReadException
 	 * @throws DataNotFoundException
 	 */
-	public Integer getIdCollection() throws DatabaseReadException, DataNotFoundException { // TODO collection_id + start
+/*	public Integer collectionExists() throws DatabaseReadException, DataNotFoundException {
 
 		PreparedStatement psid = null;
 		ResultSet rs = null;
 		try {
-			psid = c.prepareStatement(selectId);
+			psid = c.prepareStatement(queryExists);
 			psid.setString(1, query.getValue());
+			psid.setString(2, getStart());
 			rs = psid.executeQuery();
 			while (rs.next()) {
 				return rs.getInt("collection_id");
@@ -269,9 +270,27 @@ public class DBCollection {
 		} catch (SQLException e) {
 			throw new DatabaseReadException("There was an error searching the collection id.", e);
 		}
+		//return null;
 		throw new DataNotFoundException("This collection does not exist"); // FIXME alert, not an exception
 	}
-
+*/
+	public boolean collectionExists() throws DatabaseReadException {
+		PreparedStatement psid = null;
+		ResultSet rs = null;
+		try {
+			psid = c.prepareStatement(queryExists);
+			psid.setString(1, query.getValue());
+			psid.setString(2, getStart());
+			rs = psid.executeQuery();
+			if (rs.next()) {
+				return true;
+			}
+		} catch (SQLException e) {
+			throw new DatabaseReadException("There was an error searching the collection id.", e);
+		}
+		return false;
+	}
+	
 	public boolean tweetExists(Status tweet) throws DatabaseReadException, DataNotFoundException {
 
 		PreparedStatement psct = null;
