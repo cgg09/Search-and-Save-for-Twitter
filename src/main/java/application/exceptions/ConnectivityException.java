@@ -1,5 +1,7 @@
 package application.exceptions;
 
+import twitter4j.TwitterException;
+
 public class ConnectivityException extends Exception {
 
 	/**
@@ -7,8 +9,9 @@ public class ConnectivityException extends Exception {
 	 */
 	private static final long serialVersionUID = 1L;
 
-	public ConnectivityException() {
-		super("You do not have internet connection. Please check it out before continue.");
+	public ConnectivityException(String message, TwitterException e) {
+		super(message);//"You do not have internet connection. Please check it out before continue.");
+		e.printStackTrace();
 	}
 
 	/*

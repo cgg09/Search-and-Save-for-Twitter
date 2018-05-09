@@ -81,7 +81,7 @@ public class Login {
 			if (401 == e.getStatusCode()) {
 				throw new AccessException("401: Unable to get the access token. Please check your credentials.");
 			} else {
-				throw new ConnectivityException();
+				throw new ConnectivityException("You do not have internet connection. Please check it out before continue",e);
 			}
 		}
 
@@ -144,7 +144,7 @@ public class Login {
 				if (401 == e.getStatusCode()) {
 					throw new AccessException("401: Unable to get the access token. Please check your credentials.");
 				} else {
-					throw new ConnectivityException();
+					throw new ConnectivityException("You do not have internet connection. Please check it out before continue",e);
 				}
 			}
 		}
@@ -199,13 +199,13 @@ public class Login {
 		try {
 			twitter.verifyCredentials().getId();
 		} catch (TwitterException e1) { // FIXME connectivity exception / Access Exceptions (acceso revocado..., etc) ?
-			throw new ConnectivityException();
+			throw new ConnectivityException("You do not have internet connection. Please check it out before continue",e1);
 		}
 
 		try {
 			twitter.verifyCredentials().getScreenName();
 		} catch (TwitterException e2) { // FIXME connectivity exception
-			throw new ConnectivityException();
+			throw new ConnectivityException("You do not have internet connection. Please check it out before continue",e2);
 		}
 		main.showSearch();
 	}

@@ -40,6 +40,7 @@ public class DBCollection {
 	private StringProperty query;
 	private List<Status> tweets;
 	private List<DisplayableTweet> currentTweets;
+	private boolean repeated = false;
 
 	// Queries
 	private String addCollection = "INSERT INTO collection (USERNAME, TIME_START, TIME_END, TYPE, QUERY) "
@@ -47,9 +48,9 @@ public class DBCollection {
 	private String addTweet = "INSERT INTO tweet (TWEET_ID, COLLECTION_ID, RAW_TWEET, AUTHOR, CREATED_AT, TEXT_PRINTABLE, RETWEET) "
 			+ "VALUES (?,?,?,?,?,?,?);";
 
-	private String queryExists = "SELECT collection_id FROM collection WHERE query= ?";// AND time_start= ?";
+	private String queryExists = "SELECT * FROM collection WHERE query= ? and username= ?";
 
-	private String checkTweet = "SELECT * FROM tweet WHERE collection_id= ? AND tweet_id= ?";
+	private String checkTweet = "SELECT * FROM tweet WHERE tweet_id= ?";
 
 	private String updateCollection = "SELECT * FROM collection WHERE collection_id= ?";
 
@@ -129,6 +130,14 @@ public class DBCollection {
 
 	public List<DisplayableTweet> getCurrentTweets() {
 		return currentTweets;
+	}
+
+	public boolean getRepeated() {
+		return repeated;
+	}
+
+	public void setRepeated(boolean r) {
+		this.repeated = r;
 	}
 
 	/**
@@ -218,16 +227,6 @@ public class DBCollection {
 			RT = true;
 		}
 
-		// TwitterTextParser tweetParser = new TwitterTextParser();
-		// TwitterTextConfiguration tweetParser = new TwitterTextConfiguration();
-		// tweetParser.getClass()
-		// String text = tweet.getText().replace("\n", "").replace("\r", "");
-
-		/*
-		 * if(text.contains("\n")) {
-		 * System.out.println("Newline in tweet: "+tweet.getText()); }
-		 */
-
 		PreparedStatement psmt_tweet = null;
 
 		try {
@@ -245,60 +244,43 @@ public class DBCollection {
 			throw new DatabaseWriteException("There was an error saving the tweet info.", e);
 		}
 
-		DisplayableTweet t = new DisplayableTweet(tweet.getId(), created_at, tweet.getUser().getScreenName(), tweet.getText(), RT);
+		DisplayableTweet t = new DisplayableTweet(tweet.getId(), created_at, tweet.getUser().getScreenName(),
+				tweet.getText(), RT);
 		currentTweets.add(t);
 	}
 
 	/**
-	 * Get the id of a specific collection to check if it exists
+	 * Check if a query has been searched previously or not for a specific users and
+	 * returns its id
 	 * 
+	 * @param query
+	 * @return
 	 * @throws DatabaseReadException
-	 * @throws DataNotFoundException
 	 */
-/*	public Integer collectionExists() throws DatabaseReadException, DataNotFoundException {
-
+	public Integer checkQuery(String query) throws DatabaseReadException {
 		PreparedStatement psid = null;
 		ResultSet rs = null;
 		try {
 			psid = c.prepareStatement(queryExists);
-			psid.setString(1, query.getValue());
-			psid.setString(2, getStart());
+			psid.setString(1, query);
+			psid.setString(2, Main.getDBUserDAO().getUser());
 			rs = psid.executeQuery();
-			while (rs.next()) {
+			if (rs.next()) {
 				return rs.getInt("collection_id");
 			}
 		} catch (SQLException e) {
-			throw new DatabaseReadException("There was an error searching the collection id.", e);
+			throw new DatabaseReadException("There was an error searching the collection info.", e);
 		}
-		//return null;
-		throw new DataNotFoundException("This collection does not exist"); // FIXME alert, not an exception
+		return null;
 	}
-*/
-	public boolean collectionExists() throws DatabaseReadException {
-		PreparedStatement psid = null;
-		ResultSet rs = null;
-		try {
-			psid = c.prepareStatement(queryExists);
-			psid.setString(1, query.getValue());
-			psid.setString(2, getStart());
-			rs = psid.executeQuery();
-			if (rs.next()) {
-				return true;
-			}
-		} catch (SQLException e) {
-			throw new DatabaseReadException("There was an error searching the collection id.", e);
-		}
-		return false;
-	}
-	
+
 	public boolean tweetExists(Status tweet) throws DatabaseReadException, DataNotFoundException {
 
 		PreparedStatement psct = null;
 		ResultSet rsct = null;
 		try {
 			psct = c.prepareStatement(checkTweet);
-			psct.setInt(1, id);
-			psct.setLong(2, tweet.getId());
+			psct.setLong(1, tweet.getId());
 			rsct = psct.executeQuery();
 			if (rsct != null) {
 				return true;
@@ -347,8 +329,8 @@ public class DBCollection {
 					RT = true;
 				}
 
-				DisplayableTweet t = new DisplayableTweet(rst.getLong("tweet_id"), rst.getString("created_at"), rst.getString("author"),
-						rst.getString("text_printable"), RT);
+				DisplayableTweet t = new DisplayableTweet(rst.getLong("tweet_id"), rst.getString("created_at"),
+						rst.getString("author"), rst.getString("text_printable"), RT);
 				currentTweets.add(t);
 			}
 		} catch (SQLException e) {

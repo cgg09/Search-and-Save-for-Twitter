@@ -27,24 +27,24 @@ public class DatabaseDAO {
 			" PRIMARY KEY ( username ))";
 	
 	private String collectionTable = "CREATE TABLE collection " +
-			"(collection_id		INTEGER			PRIMARY KEY		AUTOINCREMENT, " +
-			" username			TEXT			NOT NULL, " +
-			" time_start		TEXT			NOT NULL, " + 
-			" time_end			TEXT			NOT NULL, " +
-			" type				VARCHAR(50)		NOT NULL, " +
-			" query				VARCHAR(50)		NOT NULL, " +
-			" FOREIGN KEY 		(USERNAME)	REFERENCES	USER(USERNAME))";
+			"(collection_id INTEGER PRIMARY KEY AUTOINCREMENT not NULL, " +
+			" username TEXT	not NULL, " +
+			" time_start TEXT not NULL, " + 
+			" time_end TEXT not NULL, " +
+			" type VARCHAR(50) not NULL, " +
+			" query	VARCHAR(50) not NULL, " +
+			" FOREIGN KEY (username) REFERENCES	user(username))";
 	
 	private String tweetTable = "CREATE TABLE tweet " +
-			"(tweet_id			INTEGER			NOT NULL, " +
-			" collection_id		INTEGER			NOT NULL, " + 
-			" raw_tweet			TEXT			NOT NULL, " + 
-			" author			VARCHAR(50)		NOT NULL, " +
-			" created_at		TEXT			NOT NULL, " +
-			" text_printable	VARCHAR(200)	NOT NULL, " +	// FIXME pendiente de parsear texto !!
-			" retweet			INTEGER			NOT NULL, " +
-			" PRIMARY KEY		(TWEET_ID), "+
-			" FOREIGN KEY 		(COLLECTION_ID)	REFERENCES COLLECTION(COLLECTION_ID))";
+			"(tweet_id INTEGER not NULL, " +
+			" collection_id INTEGER not NULL, " + 
+			" raw_tweet	TEXT not NULL, " + 
+			" author VARCHAR(50) not NULL, " +
+			" created_at TEXT not NULL, " +
+			" text_printable VARCHAR(200) not NULL, " +	// FIXME pendiente de parsear texto !!
+			" retweet INTEGER	not NULL, " +
+			" PRIMARY KEY (tweet_id, collection_id), "+
+			" FOREIGN KEY (collection_id) REFERENCES collection(collection_id))";
 	
 	
 	private DatabaseDAO(String path) {

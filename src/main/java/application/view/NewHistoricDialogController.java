@@ -1,11 +1,13 @@
 package application.view;
 
 import java.sql.Timestamp;
+import java.util.Optional;
 
 import application.Main;
 import application.database.DBCollection;
 import application.exceptions.ConnectivityException;
 import application.exceptions.DatabaseReadException;
+import application.exceptions.DatabaseWriteException;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
@@ -14,12 +16,14 @@ import javafx.fxml.FXML;
 import javafx.scene.Cursor;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Alert.AlertType;
 import javafx.stage.Stage;
 import twitter4j.Query;
 import twitter4j.QueryResult;
+import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 
@@ -36,8 +40,8 @@ public class NewHistoricDialogController {
 	private DBCollection collection;
 	private Stage dialogStage;
 	private boolean okClicked;
-	private String user;
 	int total;
+	boolean repeat = false;
 
 	public NewHistoricDialogController() {
 
@@ -60,7 +64,7 @@ public class NewHistoricDialogController {
 							public void run() {
 								try {
 									handleSearch();
-								} catch (ConnectivityException e) {
+								} catch (ConnectivityException | DatabaseReadException e) {
 									e.printStackTrace();
 								}
 							}
@@ -98,25 +102,52 @@ public class NewHistoricDialogController {
 	}
 
 	@FXML
-	public void handleSearch() throws ConnectivityException { // FIXME throws RateLimitException, DatabaseReadException
+	public void handleSearch() throws ConnectivityException, DatabaseReadException { // FIXME throws RateLimitException, DatabaseReadException
 
 		total = 0;
 
 		if (!collection.getTweetStatus().isEmpty()) {
 			collection.getTweetStatus().clear();
 		}
-
-		collection.setQuery(userQuery.getText());
 		
 		Query query = new Query();
 		QueryResult queryResult = null;
+		Integer col = collection.checkQuery(userQuery.getText());
+		if(col!=null){
+			
+			Alert alert = new Alert(AlertType.CONFIRMATION);
+			alert.setTitle("REPEAT SEARCH");
+			alert.setHeaderText("Repeating search");
+			alert.setContentText("Wait! This query is for a previous search. Do you want to add the tweets downloaded to the old search ?");
+
+			Optional<ButtonType> result = alert.showAndWait();
+			if (result.get() == ButtonType.OK) {
+				repeat = true;
+				collection.setId(col);
+
+				try {
+					collection.updateCollection();
+				} catch (DatabaseReadException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			} else {
+				collection.setQuery(userQuery.getText());
+			}
+		} else {
+			collection.setQuery(userQuery.getText());
+		}
 
 		query.setQuery(collection.getQuery());
 		//query.setSinceId(query.getSinceId()); //TODO since_id parameter !!
 
 		System.out.println("Searching...");
 
-		Timestamp ts_start = new Timestamp(System.currentTimeMillis());
+		Timestamp ts_start = null;
+		
+		if(!repeat) {
+			 ts_start = new Timestamp(System.currentTimeMillis());
+		}
 
 		do {
 
@@ -124,7 +155,11 @@ public class NewHistoricDialogController {
 				queryResult = twitter.search(query);
 				//twitter.search(query).getSinceId();
 			} catch (TwitterException e) {
-				throw new ConnectivityException();
+				if(400 == e.getStatusCode()) {
+					e.printStackTrace(); // The request was invalid: query parameters are missing
+				} else {
+					throw new ConnectivityException("You do not have internet connection. Please check it out before continue",e);
+				}
 			}
 			collection.saveTweetStatus(queryResult);
 			total += queryResult.getCount();
@@ -132,11 +167,24 @@ public class NewHistoricDialogController {
 			// queryResult.getRateLimitStatus(); -> muy interesante
 		} while ((query = queryResult.nextQuery()) != null && total <= 430);
 
-		Timestamp ts_end = new Timestamp(System.currentTimeMillis());
-
-		System.out.println("Total: " + total);
-
-		collection.addData(ts_start, ts_end, Main.getDBUserDAO());
+		
+		if(!repeat) {
+			Timestamp ts_end = new Timestamp(System.currentTimeMillis());
+			collection.addData(ts_start, ts_end, Main.getDBUserDAO());
+		} else {
+			try {
+				collection.updateTweets();
+			} catch (DatabaseReadException e1) {
+				e1.printStackTrace();
+			}
+			for (Status tweet : collection.getTweetStatus()) {
+				try {
+					collection.addTweet(tweet);
+				} catch (DatabaseWriteException e) {
+					e.printStackTrace();
+				}
+			}System.out.println(collection.getCurrentTweets().size());
+		}
 
 		okClicked = true;
 
@@ -158,11 +206,11 @@ public class NewHistoricDialogController {
 		dialogStage.close();
 	}
 
-	public void setUser(String user) {
-		this.user = user;
-	}
-
 	public void closeStage() {
 		dialogStage.close();
+	}
+	
+	public boolean repeatSearch() {
+		return repeat;
 	}
 }

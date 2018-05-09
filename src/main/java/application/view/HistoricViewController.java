@@ -3,7 +3,6 @@ package application.view;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
@@ -39,6 +38,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.stage.FileChooser;
 import twitter4j.Query;
 import twitter4j.QueryResult;
+import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 
@@ -134,7 +134,7 @@ public class HistoricViewController extends AnchorPane {
 				else if (event.getButton() == MouseButton.SECONDARY && (!row.isEmpty())) {
 					DBCollection col = historySearch.getSelectionModel().getSelectedItem();
 					m1.setOnAction(
-							e -> { searchController.getMain().getPrimaryStage().getScene().setCursor(Cursor.WAIT);
+							e -> { Main.getPrimaryStage().getScene().setCursor(Cursor.WAIT);
 							Task<Void> task1 = new Task<Void>() {
 								@Override
 								public Void call() {
@@ -188,7 +188,9 @@ public class HistoricViewController extends AnchorPane {
 
 		boolean okClicked = searchController.newSearch(collection);
 		if (okClicked && collection.getTweetStatus() != null) {
-			addCollection();
+			if(!collection.getRepeated()) {
+				addCollection();
+			}
 			addSearch(collection);
 		}
 	}
@@ -217,6 +219,10 @@ public class HistoricViewController extends AnchorPane {
 	private void handleRepeatSearch(DBCollection c) throws ConnectivityException {
 		
 		total = 0;
+		
+		if (!c.getTweetStatus().isEmpty()) {
+			c.getTweetStatus().clear();
+		}
 
 		Query query = new Query();
 		QueryResult queryResult = null;
@@ -226,15 +232,13 @@ public class HistoricViewController extends AnchorPane {
 
 		System.out.println("Searching...");
 
-		Timestamp ts_start = new Timestamp(System.currentTimeMillis());
-
 		do {
 
 			try {
 				queryResult = twitter.search(query);
 				//twitter.search(query).getSinceId();
 			} catch (TwitterException e) {
-				throw new ConnectivityException();
+				throw new ConnectivityException("You do not have internet connection. Please check it out before continue",e);
 			}
 			c.saveTweetStatus(queryResult);
 			total += queryResult.getCount();
@@ -242,17 +246,28 @@ public class HistoricViewController extends AnchorPane {
 			// queryResult.getRateLimitStatus(); -> muy interesante
 		} while ((query = queryResult.nextQuery()) != null && total <= 430);
 
-		Timestamp ts_end = new Timestamp(System.currentTimeMillis());
-
 		System.out.println("Total: " + total);
-
-		c.addData(ts_start, ts_end, Main.getDBUserDAO());
+		
+		try {
+			c.updateTweets();
+		} catch (DatabaseReadException e1) {
+			e1.printStackTrace();
+		}
+		
+		for (Status tweet : c.getTweetStatus()) {
+			try {
+				c.addTweet(tweet);
+			} catch (DatabaseWriteException e) {
+				e.printStackTrace();
+			}
+		}
 		
 		Alert alert = new Alert(AlertType.INFORMATION);
 		alert.setTitle("NEW SEARCH FINISHED");
 		alert.setHeaderText("Tweets downloaded");
 		alert.setContentText("Well done! You have downloaded succesfully "+total+" tweets");
 		alert.showAndWait();
+		addSearch(c);
 
 	}
 

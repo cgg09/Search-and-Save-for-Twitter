@@ -162,11 +162,12 @@ public class Main extends Application {
 		NewHistoricDialogController controller = loader.getController();
 		controller.setDialogStage(dialogStage);
 		controller.setTwitter(twitter);
-		controller.setUser(getDBUserDAO().getUser());
 		controller.setCollection(c);
-
+		
 		dialogStage.showAndWait();
-
+		
+		
+		c.setRepeated(controller.repeatSearch());
 		return controller.isOkClicked();
 
 	}
