@@ -24,8 +24,11 @@ public class DBUserDAO {
 
 	// Queries
 	private String login = "INSERT INTO user (USERNAME, ACCESS_TOKEN, ACCESS_SECRET) " + "VALUES (?,?,?)";
-	private String count = "SELECT count() FROM user";
-	private String users = "SELECT * FROM user";
+	
+	private String checkUser = "SELECT username FROM user WHERE username= ?";
+	private String countUsers = "SELECT count() FROM user";
+	private String getUsers = "SELECT * FROM user";
+	private String colections = "SELECT * FROM collection WHERE username= ? ORDER BY time_start DESC";
 
 	private DBUserDAO() {
 		c = Main.getDatabaseDAO().getConnection();
@@ -46,6 +49,13 @@ public class DBUserDAO {
 		this.user = user;
 	}
 
+	/**
+	 * Saves user information in the database
+	 * @param username
+	 * @param token
+	 * @param tokenSecret
+	 * @throws DatabaseWriteException
+	 */
 	public void saveLogin(String username, String token, String tokenSecret) throws DatabaseWriteException {
 
 		setUser(username);
@@ -74,11 +84,13 @@ public class DBUserDAO {
 	 */
 	public boolean checkUser(String username) throws DatabaseReadException, DataNotFoundException {
 
+		PreparedStatement psck = null;
 		ResultSet rs = null;
-
-		String s = "SELECT username FROM user WHERE username=\"" + username + "\" ";
+		
 		try {
-			rs = c.createStatement().executeQuery(s);
+			psck = c.prepareStatement(checkUser);
+			psck.setString(1, username);
+			rs = psck.executeQuery();
 		} catch (SQLException e) {
 			throw new DatabaseReadException("An error occurred while reading the data.",e);
 		}
@@ -94,22 +106,24 @@ public class DBUserDAO {
 	/**
 	 * Get user data
 	 * 
-	 * @param query
+	 * @param data
 	 * @param user
 	 * @return
 	 * @throws DatabaseReadException 
 	 */
-	public String getUserData(String query, String username) throws DatabaseReadException {
+	public String getUserData(String data, String username) throws DatabaseReadException {
 
 		setUser(username);
+		String getUserData = "SELECT "+data+" FROM user WHERE username= ?";
 
-		ResultSet rsu;
-
-		String select = "SELECT " + query + " FROM user WHERE username=\"" + user + "\" ";
+		PreparedStatement psu = null;
+		ResultSet rsu = null;
 
 		try {
-			rsu = c.prepareStatement(select).executeQuery();
-			return rsu.getString(query);
+			psu = c.prepareStatement(getUserData);
+			psu.setString(1, username);
+			rsu = psu.executeQuery();
+			return rsu.getString(data);
 		} catch (SQLException e) {
 			throw new DatabaseReadException("An error occurred while reading the data.",e);
 		}
@@ -123,10 +137,10 @@ public class DBUserDAO {
 		ResultSet rsu = null;
 
 		try {
-			if (c.createStatement().executeQuery(count).getInt(1) < 1) { // FIXME no es una "EXCEPTION", qu� poner aqu� ?
+			if (c.createStatement().executeQuery(countUsers).getInt(1) < 1) { // FIXME no es una "EXCEPTION", qu� poner aqu� ?
 				return null; // FIXME throw new DataNotFoundException();
 			}
-			rsu = c.createStatement().executeQuery(users);
+			rsu = c.createStatement().executeQuery(getUsers);
 			while (rsu.next()) {
 				u.add(rsu.getString("username"));
 			}
@@ -146,18 +160,22 @@ public class DBUserDAO {
 	public List<DBCollection> retrieveCollections() throws DatabaseReadException {
 		List<DBCollection> cols = new Vector<DBCollection>();
 
+		PreparedStatement pscls = null;
+		
 		ResultSet rsc = null;
-		String col = "SELECT * FROM collection WHERE username=\"" + user + "\"";
+		
 
 		try {
-			rsc = c.createStatement().executeQuery(col);
+			pscls = c.prepareStatement(colections);
+			pscls.setString(1, user);
+			rsc = pscls.executeQuery();
 			while (rsc.next()) {
 				DBCollection dbc = new DBCollection(rsc.getString("type"));
 				dbc.setId(rsc.getInt("collection_id"));
 				dbc.setStart(rsc.getString("time_start"));
 				dbc.setEnd(rsc.getString("time_start"));
 				dbc.setQuery(rsc.getString("query"));
-				dbc.updateTweets();
+				dbc.retrieveTweets();
 				cols.add(dbc);
 			}
 		} catch (SQLException e) {

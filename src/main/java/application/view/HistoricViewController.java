@@ -5,6 +5,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -190,13 +191,16 @@ public class HistoricViewController extends AnchorPane {
 		if (okClicked && collection.getTweetStatus() != null) {
 			if(!collection.getRepeated()) {
 				addCollection();
-			}
+			}		
 			addSearch(collection);
 		}
 	}
 
 	private void addCollection() {
+		
 		history.add(collection);
+		Comparator<DBCollection> comparator = Comparator.comparing(DBCollection::getStart);	
+		FXCollections.sort(history, comparator.reversed());
 		historySearch.setItems(history);
 	}
 
@@ -211,12 +215,17 @@ public class HistoricViewController extends AnchorPane {
 
 		data.addAll(collection.getCurrentTweets().subList(0, to));
 
+		Comparator<DisplayableTweet> comparator = Comparator.comparing(DisplayableTweet::getCreatedAt);	
+		FXCollections.sort(data,comparator.reversed());
+		
 		currentSearch.setItems(data);
 		int listSize = collection.getCurrentTweets().size();
 		filterMenu.getItems().set(2, "All tweets ("+listSize+")");
 	}
 	
 	private void handleRepeatSearch(DBCollection c) throws ConnectivityException {
+		
+		this.twitter = Main.getTwitterSessionDAO().getTwitter();
 		
 		total = 0;
 		
@@ -249,7 +258,7 @@ public class HistoricViewController extends AnchorPane {
 		System.out.println("Total: " + total);
 		
 		try {
-			c.updateTweets();
+			c.retrieveTweets();
 		} catch (DatabaseReadException e1) {
 			e1.printStackTrace();
 		}
@@ -354,6 +363,11 @@ public class HistoricViewController extends AnchorPane {
 		} else if (number == 2) { // all tweets
 			data.addAll(collection.getCurrentTweets());
 		}
+		
+		Comparator<DisplayableTweet> comparator = Comparator.comparing(DisplayableTweet::getCreatedAt);	
+		FXCollections.sort(data, comparator.reversed());
+		
+		
 		currentSearch.setItems(data);
 	}
 

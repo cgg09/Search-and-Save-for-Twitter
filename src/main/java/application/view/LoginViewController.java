@@ -40,7 +40,7 @@ public class LoginViewController {
 	 * @throws DatabaseReadException 
 	 */
 	@FXML
-	public void initialize() { //FIXME throws DatabaseReadException
+	public void initialize() {
 		
 		// get user list
 		Main.setDBUserDAO(DBUserDAO.getInstance());
@@ -81,7 +81,7 @@ public class LoginViewController {
 				loginButton.getItems().add(m);
 			}
 		} else {
-			//TODO mostrar botón "opacado", o difuminado ... :|
+			//TODO mostrar botï¿½n "opacado", o difuminado ... :|
 		}		
 	}
 

@@ -143,12 +143,7 @@ public class NewHistoricDialogController {
 
 		System.out.println("Searching...");
 
-		Timestamp ts_start = null;
-		
-		if(!repeat) {
-			 ts_start = new Timestamp(System.currentTimeMillis());
-		}
-
+		Timestamp ts_start = new Timestamp(System.currentTimeMillis());
 		do {
 
 			try {
@@ -167,13 +162,12 @@ public class NewHistoricDialogController {
 			// queryResult.getRateLimitStatus(); -> muy interesante
 		} while ((query = queryResult.nextQuery()) != null && total <= 430);
 
-		
+		Timestamp ts_end = new Timestamp(System.currentTimeMillis());		
 		if(!repeat) {
-			Timestamp ts_end = new Timestamp(System.currentTimeMillis());
 			collection.addData(ts_start, ts_end, Main.getDBUserDAO());
 		} else {
 			try {
-				collection.updateTweets();
+				collection.retrieveTweets();
 			} catch (DatabaseReadException e1) {
 				e1.printStackTrace();
 			}
@@ -183,7 +177,16 @@ public class NewHistoricDialogController {
 				} catch (DatabaseWriteException e) {
 					e.printStackTrace();
 				}
-			}System.out.println(collection.getCurrentTweets().size());
+			}
+			
+			collection.getCurrentTweets().clear();
+			try {
+				collection.retrieveTweets();
+			} catch (DatabaseReadException e) {
+				e.printStackTrace();
+			}
+			
+			System.out.println(collection.getCurrentTweets().size());
 		}
 
 		okClicked = true;

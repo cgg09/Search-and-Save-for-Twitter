@@ -1,6 +1,5 @@
 package application;
 
-import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.List;
 
@@ -22,11 +21,8 @@ import javafx.concurrent.Worker;
 import javafx.scene.web.WebEngine;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
-import twitter4j.TwitterFactory;
 import twitter4j.auth.AccessToken;
 import twitter4j.auth.RequestToken;
-import twitter4j.conf.Configuration;
-import twitter4j.conf.ConfigurationBuilder;
 
 public class Login {
 
@@ -41,28 +37,6 @@ public class Login {
 	public Login() {
 
 	}
-	
-	/**
-	 * Set consumer_key and consumer_secret credentials at the start of the connection
-	 * @return twitter instance
-	 */
-	public Twitter setTwitterInstance() {
-				
-		try {
-			appProps.loadFile("client.properties");
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-		ConfigurationBuilder builder = new ConfigurationBuilder();
-		builder.setOAuthConsumerKey(appProps.getValue("consumer_key"));
-		builder.setOAuthConsumerSecret(appProps.getValue("consumer_secret"));
-		Configuration conf = builder.build();
-		TwitterFactory factory = new TwitterFactory(conf); 
-		Twitter twitter = factory.getInstance();
-		
-		return twitter;
-	}
 
 	/**
 	 * Request an authorization to Twitter
@@ -72,6 +46,8 @@ public class Login {
 	 */
 	public void createRequest(Twitter twitter, DBUserDAO dbu) throws ConnectivityException, AccessException {
 
+		appProps = new AppProperties();
+		
 		this.dbu = dbu;
 		this.twitter = twitter;
 

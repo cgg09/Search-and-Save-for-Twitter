@@ -5,7 +5,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -40,6 +39,8 @@ public class DBCollection {
 	private StringProperty query;
 	private List<Status> tweets;
 	private List<DisplayableTweet> currentTweets;
+	// private Stack<List<DisplayableTweet>> currentTweets = new
+	// Stack<List<DisplayableTweet>>();
 	private boolean repeated = false;
 
 	// Queries
@@ -54,7 +55,7 @@ public class DBCollection {
 
 	private String updateCollection = "SELECT * FROM collection WHERE collection_id= ?";
 
-	private String updateTweets = "SELECT tweet_id, created_at, author, text_printable, retweet FROM tweet WHERE collection_id= ?";
+	private String retrieveTweets = "SELECT tweet_id, created_at, author, text_printable, retweet FROM tweet WHERE collection_id= ? ORDER BY created_at DESC";
 
 	private String delTweets = "DELETE FROM tweet WHERE collection_id = ?";
 
@@ -132,6 +133,10 @@ public class DBCollection {
 		return currentTweets;
 	}
 
+	/*
+	 * public Stack<List<DisplayableTweet>> getCurrentTweets(){ return
+	 * currentTweets; }
+	 */
 	public boolean getRepeated() {
 		return repeated;
 	}
@@ -178,6 +183,7 @@ public class DBCollection {
 	 * 
 	 * @param user
 	 * @throws DatabaseWriteException
+	 * @throws ParseException
 	 */
 	public Integer addNewCollection(DBUserDAO user) throws DatabaseWriteException {
 
@@ -243,9 +249,8 @@ public class DBCollection {
 		} catch (SQLException e) {
 			throw new DatabaseWriteException("There was an error saving the tweet info.", e);
 		}
-
-		DisplayableTweet t = new DisplayableTweet(tweet.getId(), created_at, tweet.getUser().getScreenName(),
-				tweet.getText(), RT);
+		
+		DisplayableTweet t = new DisplayableTweet(tweet.getId(), created_at, tweet.getUser().getScreenName(), tweet.getText(), RT);
 		currentTweets.add(t);
 	}
 
@@ -307,10 +312,11 @@ public class DBCollection {
 			throw new DatabaseReadException("There was an error reading the collection info.", e);
 		}
 
-		updateTweets();
+		retrieveTweets();
+		// currentTweets.push(cTs);
 	}
 
-	public void updateTweets() throws DatabaseReadException {
+	public void retrieveTweets() throws DatabaseReadException {
 
 		if (!currentTweets.isEmpty()) {
 			return;
@@ -321,7 +327,7 @@ public class DBCollection {
 		PreparedStatement psut = null;
 		ResultSet rst = null;
 		try {
-			psut = c.prepareStatement(updateTweets);
+			psut = c.prepareStatement(retrieveTweets);
 			psut.setInt(1, id);
 			rst = psut.executeQuery();
 			while (rst.next()) {
@@ -338,10 +344,6 @@ public class DBCollection {
 
 		}
 
-	}
-
-	public void sortTweets() { // TODO sort tweet list descending by date
-		// currentTweets ...
 	}
 
 	public void deleteCollection() throws DatabaseWriteException {
