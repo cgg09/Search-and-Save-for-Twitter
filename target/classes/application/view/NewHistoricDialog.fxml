@@ -7,7 +7,7 @@
 
 <AnchorPane prefHeight="250.0" prefWidth="400.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.view.NewHistoricDialogController">
    <children>
-      <GridPane layoutX="35.0" layoutY="84.0" prefHeight="60.0" prefWidth="330.0">
+      <GridPane layoutX="59.0" layoutY="82.0" prefHeight="60.0" prefWidth="282.0">
         <columnConstraints>
           <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
           <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
@@ -22,8 +22,8 @@
             <Label fx:id="downloadedTweets" prefHeight="17.0" prefWidth="162.0" GridPane.rowIndex="1" />
          </children>
       </GridPane>
-      <Button fx:id="searchButton" layoutX="334.0" layoutY="211.0" mnemonicParsing="false" onAction="#handleSearch" text="Search" AnchorPane.bottomAnchor="15.0" AnchorPane.rightAnchor="15.0" />
-      <Button layoutX="14.0" layoutY="211.0" mnemonicParsing="false" onAction="#handleCancel" text="Cancel" AnchorPane.bottomAnchor="15.0" AnchorPane.leftAnchor="15.0" />
-      <Label layoutX="155.0" layoutY="42.0" text="Nueva búsqueda" />
+      <Button fx:id="searchButton" layoutX="334.0" layoutY="211.0" mnemonicParsing="false" onAction="#handleSearch" text="Search..." AnchorPane.bottomAnchor="15.0" AnchorPane.leftAnchor="315.0" AnchorPane.rightAnchor="15.0" />
+      <Button layoutX="14.0" layoutY="211.0" mnemonicParsing="false" onAction="#handleCancel" text="Cancel" AnchorPane.bottomAnchor="15.0" AnchorPane.leftAnchor="15.0" AnchorPane.rightAnchor="315.0" />
+      <Label layoutX="153.0" layoutY="42.0" text="New search menu" />
    </children>
 </AnchorPane>

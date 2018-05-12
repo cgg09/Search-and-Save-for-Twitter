@@ -24,6 +24,7 @@ import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
@@ -94,11 +95,13 @@ public class HistoricViewController extends AnchorPane {
 		historySearch.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
 		// initialize historicSearch options for each collection
-		MenuItem m1 = new MenuItem("Repeat search");
-		MenuItem m2 = new MenuItem("Export collection");
+		MenuItem m1 = new MenuItem("Repeat search...");
+		MenuItem m2 = new MenuItem("Save as...");
+		SeparatorMenuItem sp = new SeparatorMenuItem();
 		MenuItem m3 = new MenuItem("Delete collection");
 		historyOptions.getItems().add(m1);
 		historyOptions.getItems().add(m2);
+		historyOptions.getItems().add(sp);
 		historyOptions.getItems().add(m3);
 
 		// initialize filter button options
@@ -127,7 +130,7 @@ public class HistoricViewController extends AnchorPane {
 						} catch (IOException e1) {
 							e1.printStackTrace();
 						}
-					});
+					});					
 					m3.setOnAction(e -> handleDelete(col));
 					historySearch.setContextMenu(historyOptions);
 				}

@@ -34,12 +34,11 @@ public class SearchViewController extends AnchorPane {
 
 		boolean okClicked = false;
 		if (c.getType().equals("Historic")) {
-			okClicked = main.showNewHistoricSearch(c);
+			okClicked = main.showNewHistoricSearch(c);			
 			
-			
-		} else if (c.getType().equals("Live")) {
+		} /*else if (c.getType().equals("Live")) {
 			// okClicked = main.showNewLiveSearch(c);
-		}
+		}*/
 		return okClicked;
 
 	}
