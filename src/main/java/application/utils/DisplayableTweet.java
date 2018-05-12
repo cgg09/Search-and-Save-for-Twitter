@@ -10,12 +10,12 @@ public class DisplayableTweet {
 	private StringProperty author;
 	private StringProperty text;
 	private boolean retweet;
-	// TODO crear par�metro nuevo: link del tweet
 	
 	public DisplayableTweet(long tweet_id, String c, String a, String t, boolean r) {
 		this.tweet_id = tweet_id;
-		this.createdAt = new SimpleStringProperty(c);//new SimpleObjectProperty<LocalDateTime>(string);
+		this.createdAt = new SimpleStringProperty(c);
 		this.author = new SimpleStringProperty(a);
+		//FIXME saltos de línea en el texto
 		this.text = new SimpleStringProperty(t);
 		this.retweet = r;
 	}

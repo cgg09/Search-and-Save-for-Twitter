@@ -12,6 +12,7 @@ public class TwitterSessionDAO {
 	private static TwitterSessionDAO instance;
 	private AppProperties appProps;
 	private Twitter twitter;
+	private String callback_url;
 	
 	private TwitterSessionDAO() {
 		
@@ -45,11 +46,16 @@ public class TwitterSessionDAO {
 		TwitterFactory factory = new TwitterFactory(conf); 
 		Twitter twitter = factory.getInstance();
 		this.twitter = twitter;
+		callback_url = appProps.getValue("base_callback_url");
 		return twitter;
 	}
 	
 	public Twitter getTwitter() {
 		return twitter;
+	}
+	
+	public String getCallbackUrl() {
+		return callback_url;
 	}
 	
 	

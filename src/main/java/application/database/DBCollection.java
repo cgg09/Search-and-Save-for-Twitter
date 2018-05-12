@@ -1,5 +1,8 @@
 package application.database;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -10,6 +13,11 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Vector;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
 
 //import com.twitter.twittertext.TwitterTextConfiguration;
 //import com.twitter.twittertext.TwitterTextParser;
@@ -19,6 +27,7 @@ import application.exceptions.DataNotFoundException;
 import application.exceptions.DatabaseReadException;
 import application.exceptions.DatabaseWriteException;
 import application.utils.DisplayableTweet;
+import application.view.HistoricViewController;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import twitter4j.JSONObject;
@@ -26,9 +35,6 @@ import twitter4j.QueryResult;
 import twitter4j.Status;
 
 public class DBCollection {
-
-	int T = 0;
-	int F = 0;
 
 	private int id = 0;
 
@@ -39,14 +45,12 @@ public class DBCollection {
 	private StringProperty query;
 	private List<Status> tweets;
 	private List<DisplayableTweet> currentTweets;
-	// private Stack<List<DisplayableTweet>> currentTweets = new
-	// Stack<List<DisplayableTweet>>();
 	private boolean repeated = false;
 
 	// Queries
-	private String addCollection = "INSERT INTO collection (USERNAME, TIME_START, TIME_END, TYPE, QUERY) "
+	private String addCollection = "INSERT INTO collection (username, time_start, time_end, type, query) "
 			+ "VALUES (?,?,?,?,?);";
-	private String addTweet = "INSERT INTO tweet (TWEET_ID, COLLECTION_ID, RAW_TWEET, AUTHOR, CREATED_AT, TEXT_PRINTABLE, RETWEET) "
+	private String addTweet = "INSERT INTO tweet (tweet_id, collection_id, author, created_at, text_printable, retweet, raw_tweet) "
 			+ "VALUES (?,?,?,?,?,?,?);";
 
 	private String queryExists = "SELECT * FROM collection WHERE query= ? and username= ?";
@@ -57,11 +61,13 @@ public class DBCollection {
 
 	private String retrieveTweets = "SELECT tweet_id, created_at, author, text_printable, retweet FROM tweet WHERE collection_id= ? ORDER BY created_at DESC";
 
+	private String getNewestTweet = "SELECT MAX(tweet_id) AS max_tweet_id FROM tweet WHERE collection_id = ?";
+	
 	private String delTweets = "DELETE FROM tweet WHERE collection_id = ?";
 
 	private String delCol = "DELETE FROM collection where collection_id = ?";
 
-	private String exportCol = "SELECT * FROM tweet WHERE collection_id= ?";
+	private String exportCol = "SELECT tweet_id, created_at, author, text_printable, raw_tweet FROM tweet WHERE collection_id= ?";
 
 	public DBCollection(String type) {
 		c = Main.getDatabaseDAO().getConnection();
@@ -239,12 +245,13 @@ public class DBCollection {
 			psmt_tweet = c.prepareStatement(addTweet);
 			psmt_tweet.setLong(1, tweet.getId());
 			psmt_tweet.setInt(2, id);
-			psmt_tweet.setString(3, json.toString());
-			psmt_tweet.setString(4, tweet.getUser().getScreenName());
-			psmt_tweet.setString(5, created_at);
-			psmt_tweet.setString(6, tweet.getText()); // FIXME PARSE TEXT !!
-			psmt_tweet.setInt(7, retweet);
-
+			
+			psmt_tweet.setString(3, tweet.getUser().getScreenName());
+			psmt_tweet.setString(4, created_at);
+			psmt_tweet.setString(5, tweet.getText()); // FIXME PARSE TEXT !!
+			psmt_tweet.setInt(6, retweet);
+			psmt_tweet.setString(7, json.toString());
+			
 			psmt_tweet.executeUpdate();
 		} catch (SQLException e) {
 			throw new DatabaseWriteException("There was an error saving the tweet info.", e);
@@ -313,7 +320,6 @@ public class DBCollection {
 		}
 
 		retrieveTweets();
-		// currentTweets.push(cTs);
 	}
 
 	public void retrieveTweets() throws DatabaseReadException {
@@ -346,6 +352,22 @@ public class DBCollection {
 
 	}
 
+	public long getNewestTweet() throws DatabaseReadException {
+		PreparedStatement psnt = null;
+		ResultSet rsnt = null;
+		long tid = 0;
+		try {
+			psnt = c.prepareStatement(getNewestTweet);
+			psnt.setInt(1, id);
+			rsnt = psnt.executeQuery();
+			tid  =  rsnt.getLong("max_tweet_id");
+		} catch (SQLException e) {
+			throw new DatabaseReadException("There was an error reading the tweets info.", e);
+		}
+		return tid;
+	}
+	
+	
 	public void deleteCollection() throws DatabaseWriteException {
 
 		PreparedStatement psdt = null;
@@ -368,28 +390,51 @@ public class DBCollection {
 
 	}
 
-	public String exportTweets() throws DatabaseReadException {
+	public ResultSet exportTweets() throws DatabaseReadException {
 		PreparedStatement pstmt = null;
 		ResultSet rsExp = null;
-		String tweetsExported = "tweet_id,collection_id,raw_tweet,author,created_at,text_printable,retweet\n";
 		try {
 			pstmt = c.prepareStatement(exportCol);
-
 			pstmt.setInt(1, id);
-
+			
 			rsExp = pstmt.executeQuery();
 
-			while (rsExp.next()) {
-				tweetsExported += rsExp.getInt("tweet_id") + "," + rsExp.getInt("collection_id") + ","
-						+ rsExp.getString("raw_tweet") + "," + rsExp.getString("author") + ","
-						+ rsExp.getString("created_at") + "," + rsExp.getString("text_printable") + ","
-						+ rsExp.getInt("retweet") + "\n";
-			}
-
+			return rsExp;
 		} catch (SQLException e) {
 			throw new DatabaseReadException("There was an error while exporting the tweets from the database.", e);
 		}
-		return tweetsExported;
+	}
+	
+	public void printCSV(File file, ResultSet tweetsExp) throws DatabaseReadException {
+		try {
+			FileWriter fileWriter = null;
+			fileWriter = new FileWriter(file);
+			CSVPrinter csvPrinter = new CSVPrinter(fileWriter, CSVFormat.DEFAULT.withHeader("tweet_id",
+					"created_at", "author", "text_printable", "url", "raw_tweet"));
+
+			try {
+				while (tweetsExp.next()) {
+					String url = "https://twitter.com/" + tweetsExp.getString("author") + "/status/"
+							+ tweetsExp.getInt("tweet_id");
+
+					csvPrinter.printRecord(tweetsExp.getInt("tweet_id"), tweetsExp.getString("created_at"),
+							tweetsExp.getString("author"), tweetsExp.getString("text_printable"), url,
+							tweetsExp.getString("raw_tweet"));
+				}
+			} catch (SQLException e) {
+				csvPrinter.flush();
+				csvPrinter.close();
+				throw new DatabaseReadException("There was an error while exporting the tweets from the database.",
+						e);
+			}
+
+			csvPrinter.flush();
+			csvPrinter.close();
+
+		} catch (IOException ex) {
+			Logger.getLogger(HistoricViewController.class.getName()).log(Level.SEVERE, null, ex);
+		}
+
 	}
 
 }

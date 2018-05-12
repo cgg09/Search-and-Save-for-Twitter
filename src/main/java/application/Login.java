@@ -13,7 +13,6 @@ import application.exceptions.AccessException;
 import application.exceptions.ConnectivityException;
 import application.exceptions.DatabaseReadException;
 import application.exceptions.DatabaseWriteException;
-import application.utils.AppProperties;
 import application.utils.Browser;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -26,7 +25,6 @@ import twitter4j.auth.RequestToken;
 
 public class Login {
 
-	private AppProperties appProps = new AppProperties();
 	private Twitter twitter;
 	private AccessToken accessToken = null;
 	private RequestToken requestToken = null;
@@ -45,14 +43,12 @@ public class Login {
 	 * @throws AccessException
 	 */
 	public void createRequest(Twitter twitter, DBUserDAO dbu) throws ConnectivityException, AccessException {
-
-		appProps = new AppProperties();
 		
 		this.dbu = dbu;
 		this.twitter = twitter;
 
 		try {
-			requestToken = twitter.getOAuthRequestToken(appProps.getValue("base_callback_url"));
+			requestToken = twitter.getOAuthRequestToken(Main.getTwitterSessionDAO().getCallbackUrl());
 		} catch (TwitterException e) {
 			if (401 == e.getStatusCode()) {
 				throw new AccessException("401: Unable to get the access token. Please check your credentials.");
@@ -81,7 +77,7 @@ public class Login {
 
 				if (newState.equals(javafx.concurrent.Worker.State.FAILED)) {
 					String location = webEngine.getLocation();
-					if (location.startsWith(appProps.getValue("base_callback_url"))) {
+					if (location.startsWith(Main.getTwitterSessionDAO().getCallbackUrl())) {
 						String callbackURLWithTokens = location;
 						browser.closeBrowser();
 						try {

@@ -37,12 +37,12 @@ public class DatabaseDAO {
 	
 	private String tweetTable = "CREATE TABLE tweet " +
 			"(tweet_id INTEGER not NULL, " +
-			" collection_id INTEGER not NULL, " + 
-			" raw_tweet	TEXT not NULL, " + 
+			" collection_id INTEGER not NULL, " +  
 			" author VARCHAR(50) not NULL, " +
 			" created_at TEXT not NULL, " +
 			" text_printable VARCHAR(200) not NULL, " +	// FIXME pendiente de parsear texto !!
 			" retweet INTEGER	not NULL, " +
+			" raw_tweet	TEXT not NULL, " +
 			" PRIMARY KEY (tweet_id, collection_id), "+
 			" FOREIGN KEY (collection_id) REFERENCES collection(collection_id))";
 	

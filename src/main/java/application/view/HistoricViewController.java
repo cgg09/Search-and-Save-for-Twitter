@@ -1,29 +1,24 @@
 package application.view;
 
+import java.awt.Desktop;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.sql.ResultSet;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.Optional;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import application.Main;
 import application.database.DBCollection;
-import application.exceptions.ConnectivityException;
 import application.exceptions.DatabaseReadException;
 import application.exceptions.DatabaseWriteException;
 import application.utils.DisplayableTweet;
 import javafx.application.HostServices;
-import javafx.application.Platform;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.concurrent.Task;
 import javafx.fxml.FXML;
-import javafx.scene.Cursor;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ContextMenu;
@@ -33,23 +28,16 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.FileChooser;
-import twitter4j.Query;
-import twitter4j.QueryResult;
-import twitter4j.Status;
-import twitter4j.Twitter;
-import twitter4j.TwitterException;
 
 public class HistoricViewController extends AnchorPane {
 
-	Twitter twitter;
-	
 	@FXML
 	private ChoiceBox<String> filterMenu = new ChoiceBox<String>();
-
 	@FXML
 	private TableView<DBCollection> historySearch;
 	@FXML
@@ -75,8 +63,7 @@ public class HistoricViewController extends AnchorPane {
 	private DBCollection collection;
 
 	int total;
-	
-	
+
 	public HistoricViewController() {
 
 	}
@@ -106,7 +93,7 @@ public class HistoricViewController extends AnchorPane {
 
 		historySearch.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
-		// initialize historicSearch options for each collection //FIXME add repeat search
+		// initialize historicSearch options for each collection
 		MenuItem m1 = new MenuItem("Repeat search");
 		MenuItem m2 = new MenuItem("Export collection");
 		MenuItem m3 = new MenuItem("Delete collection");
@@ -114,11 +101,11 @@ public class HistoricViewController extends AnchorPane {
 		historyOptions.getItems().add(m2);
 		historyOptions.getItems().add(m3);
 
-		// initialize filter button to "last 200 tweets"
+		// initialize filter button options
 		filterMenu.getItems().addAll("Last 200 tweets", "All tweets (except RTs)", "All tweets");
 
-		
-		// update currentSearch from historySearch && select options for each collection of the historySearch view
+		// update currentSearch && select options for each collection of the
+		// historySearch view
 		historySearch.setRowFactory(tv -> {
 			TableRow<DBCollection> row = new TableRow<>();
 			row.setOnMouseClicked(event -> {
@@ -131,43 +118,29 @@ public class HistoricViewController extends AnchorPane {
 					}
 					filterMenu.setValue("Last 200 tweets");
 					addSearch(rowData);
-				} 
-				else if (event.getButton() == MouseButton.SECONDARY && (!row.isEmpty())) {
+				} else if (event.getButton() == MouseButton.SECONDARY && (!row.isEmpty())) {
 					DBCollection col = historySearch.getSelectionModel().getSelectedItem();
-					m1.setOnAction(
-							e -> { Main.getPrimaryStage().getScene().setCursor(Cursor.WAIT);
-							Task<Void> task1 = new Task<Void>() {
-								@Override
-								public Void call() {
-									Platform.runLater(new Runnable() {
-										@Override
-										public void run() {
-											try {
-												handleRepeatSearch(col);
-											} catch (ConnectivityException e) {
-												e.printStackTrace();
-											}
-										}
-									});
-									return null;
-								}
-							};
-							new Thread(task1).start();
-							});	
-					m2.setOnAction(e -> handleExport(col));
+					m1.setOnAction(e -> handleRepeatSearch(col));
+					m2.setOnAction(e -> {
+						try {
+							handleExport(col);
+						} catch (IOException e1) {
+							e1.printStackTrace();
+						}
+					});
 					m3.setOnAction(e -> handleDelete(col));
 					historySearch.setContextMenu(historyOptions);
 				}
 			});
 			return row;
 		});
-		
+
 		// change of selection in filter button "show"
 		filterMenu.getSelectionModel().selectedIndexProperty()
 				.addListener((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
 					filterFunction((Integer) newValue);
 				});
-		
+
 		// show a selected tweet in a browser
 		currentSearch.setRowFactory(cRow -> {
 			TableRow<DisplayableTweet> currentRow = new TableRow<>();
@@ -175,7 +148,7 @@ public class HistoricViewController extends AnchorPane {
 				if (event.getClickCount() == 2 && !currentRow.isEmpty()) {
 					DisplayableTweet rowTweet = currentRow.getItem();
 					HostServices host = searchController.getMain().getHostServices();
-					host.showDocument("https://twitter.com/"+rowTweet.getAuthor()+"/status/"+rowTweet.getId());
+					host.showDocument("https://twitter.com/" + rowTweet.getAuthor() + "/status/" + rowTweet.getId());
 				}
 			});
 			return currentRow;
@@ -189,17 +162,17 @@ public class HistoricViewController extends AnchorPane {
 
 		boolean okClicked = searchController.newSearch(collection);
 		if (okClicked && collection.getTweetStatus() != null) {
-			if(!collection.getRepeated()) {
+			if (!collection.getRepeated()) {
 				addCollection();
-			}		
+			}
 			addSearch(collection);
 		}
 	}
 
 	private void addCollection() {
-		
+
 		history.add(collection);
-		Comparator<DBCollection> comparator = Comparator.comparing(DBCollection::getStart);	
+		Comparator<DBCollection> comparator = Comparator.comparing(DBCollection::getStart);
 		FXCollections.sort(history, comparator.reversed());
 		historySearch.setItems(history);
 	}
@@ -215,88 +188,50 @@ public class HistoricViewController extends AnchorPane {
 
 		data.addAll(collection.getCurrentTweets().subList(0, to));
 
-		Comparator<DisplayableTweet> comparator = Comparator.comparing(DisplayableTweet::getCreatedAt);	
-		FXCollections.sort(data,comparator.reversed());
-		
+		Comparator<DisplayableTweet> comparator = Comparator.comparing(DisplayableTweet::getCreatedAt);
+		FXCollections.sort(data, comparator.reversed());
+
 		currentSearch.setItems(data);
 		int listSize = collection.getCurrentTweets().size();
-		filterMenu.getItems().set(2, "All tweets ("+listSize+")");
+		filterMenu.getItems().set(2, "All tweets (" + listSize + ")");
 	}
 	
-	private void handleRepeatSearch(DBCollection c) throws ConnectivityException {
-		
-		this.twitter = Main.getTwitterSessionDAO().getTwitter();
-		
-		total = 0;
-		
-		if (!c.getTweetStatus().isEmpty()) {
-			c.getTweetStatus().clear();
-		}
+	/*
+	 * Methods of the history options menu:
+	 */
 
-		Query query = new Query();
-		QueryResult queryResult = null;
+	private void handleRepeatSearch(DBCollection c) {
 
-		query.setQuery(c.getQuery());
-		//query.setSinceId(query.getSinceId()); //TODO since_id parameter !!
-
-		System.out.println("Searching...");
-
-		do {
-
-			try {
-				queryResult = twitter.search(query);
-				//twitter.search(query).getSinceId();
-			} catch (TwitterException e) {
-				throw new ConnectivityException("You do not have internet connection. Please check it out before continue",e);
+		boolean okClicked = searchController.newSearch(c);
+		if (okClicked && c.getTweetStatus() != null) {
+			if (!c.getRepeated()) {
+				addCollection();
 			}
-			c.saveTweetStatus(queryResult);
-			total += queryResult.getCount();
-			// TODO twitter.addRateLimitStatusListener(e -> throw new RateLimitException());
-			// queryResult.getRateLimitStatus(); -> muy interesante
-		} while ((query = queryResult.nextQuery()) != null && total <= 430);
-
-		System.out.println("Total: " + total);
-		
-		try {
-			c.retrieveTweets();
-		} catch (DatabaseReadException e1) {
-			e1.printStackTrace();
+			addSearch(c);
 		}
-		
-		for (Status tweet : c.getTweetStatus()) {
-			try {
-				c.addTweet(tweet);
-			} catch (DatabaseWriteException e) {
-				e.printStackTrace();
-			}
-		}
-		
-		Alert alert = new Alert(AlertType.INFORMATION);
-		alert.setTitle("NEW SEARCH FINISHED");
-		alert.setHeaderText("Tweets downloaded");
-		alert.setContentText("Well done! You have downloaded succesfully "+total+" tweets");
-		alert.showAndWait();
-		addSearch(c);
-
 	}
 
 	@FXML
 	private void manageExport() {
-		if(!data.isEmpty()) {
+		if (!data.isEmpty()) {
 			DBCollection c = historySearch.getSelectionModel().getSelectedItem();
-			if(c.getCurrentTweets().get(0) == data.get(0)) { // FIXME look for a better solution :-/
-				handleExport(c);
-			}	
+			if (c.getCurrentTweets().get(0) == data.get(0)) { // FIXME look for a better solution :-/
+				try {
+					handleExport(c);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
 		}
 	}
-	
-	private void handleExport(DBCollection c) {
+
+	private void handleExport(DBCollection c) throws IOException {
 		String date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("uuuuMMdd"));
 		String filename = date + "_" + c.getQuery() + ".csv";
 
-		String tweets = "";
+		ResultSet tweetsExp = null;
 		try {
-			tweets = c.exportTweets();	// FIXME iterador ; apache commons csv ; printRecords(ResultSet rs) !!!
+			tweetsExp = c.exportTweets();
 		} catch (DatabaseReadException e) {
 			e.printStackTrace();
 		}
@@ -307,33 +242,40 @@ public class HistoricViewController extends AnchorPane {
 		fileChooser.setInitialFileName(filename);
 		fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("CSV file", ".csv"));
 		File file = fileChooser.showSaveDialog(Main.getPrimaryStage());
+		
 		if (file != null) {
 			try {
-				FileWriter fileWriter = null;
-				fileWriter = new FileWriter(file);
-				fileWriter.write(tweets);
-				fileWriter.flush();
-				fileWriter.close();
-
-			} catch (IOException ex) {
-				Logger.getLogger(HistoricViewController.class.getName()).log(Level.SEVERE, null, ex);
+				c.printCSV(file, tweetsExp);
+			} catch (DatabaseReadException e) {
+				e.printStackTrace();
 			}
-			Alert alert = new Alert(AlertType.INFORMATION);
+		
+			Alert alert = new Alert(AlertType.CONFIRMATION);
 			alert.setTitle("COLLECTION EXPORTED");
 			alert.setHeaderText("Export Collection");
-			alert.setContentText("Well done! You have exported succesfully the collection \"" + c.getQuery() + "\". ");
-			alert.showAndWait();
+			alert.setContentText("Well done! You have exported succesfully the collection \"" + c.getQuery()
+					+ "\". Do you want to open the file?");
+
+			Optional<ButtonType> result = alert.showAndWait();
+			if (result.get() == ButtonType.OK) {
+				Desktop.getDesktop().open(file);
+			}
 		}
 	}
 
 	private void handleDelete(DBCollection c) {
-		Alert alert = new Alert(AlertType.CONFIRMATION);
+		Alert alert = new Alert(AlertType.WARNING);
 		alert.setTitle("DELETE COLLECTION");
 		alert.setHeaderText("Delete Collection");
 		alert.setContentText("Are you sure you want to delete the collection \"" + c.getQuery() + "\"?");
 
+		ButtonType buttonTypeOk = new ButtonType("OK", ButtonData.OK_DONE);
+		ButtonType buttonTypeCancel = new ButtonType("Cancel", ButtonData.CANCEL_CLOSE);
+		
+		alert.getButtonTypes().setAll(buttonTypeOk, buttonTypeCancel);
+		
 		Optional<ButtonType> result = alert.showAndWait();
-		if (result.get() == ButtonType.OK) {
+		if (result.get() == buttonTypeOk) {
 			try {
 				c.deleteCollection();
 			} catch (DatabaseWriteException e) {
@@ -349,30 +291,30 @@ public class HistoricViewController extends AnchorPane {
 		}
 	}
 
-	public void filterFunction(int number) { // FIXME filter works! I just need to check things on it :o
+	public void filterFunction(int number) {
+		//FIXME not by number !!!
 		data.clear();
-		if (number == 0) { // last 200 tweets (default)
+		if (number == 0) {
 			int to = Math.min(200, collection.getCurrentTweets().size());
 			data.addAll(collection.getCurrentTweets().subList(0, to));
-		} else if (number == 1) { // all non-RT tweets
+		} else if (number == 1) {
 			for (DisplayableTweet t : collection.getCurrentTweets()) {
 				if (!t.getRetweet()) {
 					data.add(t);
 				}
 			}
-		} else if (number == 2) { // all tweets
+		} else if (number == 2) {
 			data.addAll(collection.getCurrentTweets());
 		}
-		
-		Comparator<DisplayableTweet> comparator = Comparator.comparing(DisplayableTweet::getCreatedAt);	
+
+		Comparator<DisplayableTweet> comparator = Comparator.comparing(DisplayableTweet::getCreatedAt);
 		FXCollections.sort(data, comparator.reversed());
-		
-		
+
 		currentSearch.setItems(data);
 	}
 
 	public static void init(SearchViewController controller) {
 		searchController = controller;
 	}
-	
+
 }

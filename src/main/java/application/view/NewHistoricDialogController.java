@@ -56,6 +56,7 @@ public class NewHistoricDialogController {
 				dialogStage.getScene().setCursor(Cursor.WAIT);
 				//searchButton.setText("Searching...");	// FIXME la 1a vez cambia, pero la segunda no...
 				// downloadedTweets.setText("Downloaded tweets: "+total); // FIXME de momento no hace caso... :(
+				
 				Task<Void> task1 = new Task<Void>() {
 					@Override
 					public Void call() {
@@ -90,6 +91,10 @@ public class NewHistoricDialogController {
 
 	public void setCollection(DBCollection c) {
 		this.collection = c;
+		if(!collection.getQuery().isEmpty()) {
+			System.out.println("Not empty: "+collection.getQuery());
+			userQuery.setText(collection.getQuery());
+		}
 	}
 
 	/**
@@ -109,12 +114,12 @@ public class NewHistoricDialogController {
 		if (!collection.getTweetStatus().isEmpty()) {
 			collection.getTweetStatus().clear();
 		}
-		
+
 		Query query = new Query();
 		QueryResult queryResult = null;
+		
 		Integer col = collection.checkQuery(userQuery.getText());
-		if(col!=null){
-			
+		if(col!=null){		
 			Alert alert = new Alert(AlertType.CONFIRMATION);
 			alert.setTitle("REPEAT SEARCH");
 			alert.setHeaderText("Repeating search");
@@ -135,11 +140,15 @@ public class NewHistoricDialogController {
 				collection.setQuery(userQuery.getText());
 			}
 		} else {
+			//DBCollection c = new DBCollection("Historic");
+			//collection = c;
 			collection.setQuery(userQuery.getText());
 		}
 
 		query.setQuery(collection.getQuery());
-		//query.setSinceId(query.getSinceId()); //TODO since_id parameter !!
+		long tid = collection.getNewestTweet();
+		
+		query.sinceId(tid);
 
 		System.out.println("Searching...");
 
@@ -151,7 +160,7 @@ public class NewHistoricDialogController {
 				//twitter.search(query).getSinceId();
 			} catch (TwitterException e) {
 				if(400 == e.getStatusCode()) {
-					e.printStackTrace(); // The request was invalid: query parameters are missing
+					e.printStackTrace(); // TODO The request was invalid: query parameters are missing
 				} else {
 					throw new ConnectivityException("You do not have internet connection. Please check it out before continue",e);
 				}
@@ -159,8 +168,7 @@ public class NewHistoricDialogController {
 			collection.saveTweetStatus(queryResult);
 			total += queryResult.getCount();
 			// TODO twitter.addRateLimitStatusListener(e -> throw new RateLimitException());
-			// queryResult.getRateLimitStatus(); -> muy interesante
-		} while ((query = queryResult.nextQuery()) != null && total <= 430);
+		} while ((query = queryResult.nextQuery()) != null && total <= 430); // FIXME 
 
 		Timestamp ts_end = new Timestamp(System.currentTimeMillis());		
 		if(!repeat) {

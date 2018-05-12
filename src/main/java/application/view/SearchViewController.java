@@ -18,7 +18,7 @@ public class SearchViewController extends AnchorPane {
 
 	@FXML
 	public void initialize() {
-		HistoricViewController.init(this); // necesario para poder hacer las búsquedas
+		HistoricViewController.init(this); // necesario para poder hacer las bï¿½squedas
 		//System.out.println("Hi Search");
 	}
 
@@ -33,11 +33,11 @@ public class SearchViewController extends AnchorPane {
 	public boolean newSearch(DBCollection c) {
 
 		boolean okClicked = false;
-
-		if (c.getType() == "Historic") {
+		if (c.getType().equals("Historic")) {
 			okClicked = main.showNewHistoricSearch(c);
-
-		} else if (c.getType() == "Live") {
+			
+			
+		} else if (c.getType().equals("Live")) {
 			// okClicked = main.showNewLiveSearch(c);
 		}
 		return okClicked;
