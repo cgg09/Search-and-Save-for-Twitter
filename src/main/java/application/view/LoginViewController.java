@@ -6,12 +6,11 @@ import java.util.Vector;
 import application.Main;
 import application.database.DBUserDAO;
 import application.exceptions.AccessException;
-import application.exceptions.ConnectivityException;
+import application.exceptions.NetworkException;
 import application.exceptions.DataNotFoundException;
 import application.exceptions.DatabaseReadException;
-import javafx.application.Platform;
 import javafx.concurrent.Task;
-import javafx.event.ActionEvent;
+import javafx.concurrent.WorkerStateEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Cursor;
@@ -25,23 +24,23 @@ public class LoginViewController {
 	private MenuButton loginButton;
 	private Stage currentStage;
 	private Main main;
-	
-	
+
 	/**
 	 * The constructor, called before the initialize() method
 	 */
-	public LoginViewController() {		
-		
+	public LoginViewController() {
+
 	}
 
 	/**
-	 * Initializes the controller class
-	 * This method is automatically called after the fxml file has been loaded
-	 * @throws DatabaseReadException 
+	 * Initializes the controller class This method is automatically called after
+	 * the fxml file has been loaded
+	 * 
+	 * @throws DatabaseReadException
 	 */
 	@FXML
 	public void initialize() {
-		
+
 		// get user list
 		Main.setDBUserDAO(DBUserDAO.getInstance());
 		List<String> users = new Vector<String>();
@@ -51,44 +50,92 @@ public class LoginViewController {
 			e2.printStackTrace();
 		}
 		// show users' list to login
-		if(users!=null) {
-			for(String u : users) {
+		if (users != null) {
+			for (String u : users) {
 				MenuItem m = new MenuItem(u);
-				m.setOnAction(new EventHandler<ActionEvent>() {
-					@Override
-					public void handle(ActionEvent e) {
-						currentStage.getScene().setCursor(Cursor.WAIT);
-						Task<Void> task = new Task<Void>() {
-							@Override
-							protected Void call() throws Exception {
-								Platform.runLater(new Runnable() {
-									@Override
-									public void run() {
-										MenuItem source = (MenuItem) e.getSource();
-										try {
-											main.manageFastLogin(source.getText());
-										} catch (ConnectivityException e1) {
-											e1.printStackTrace();
-										}
-									}
-								});
-								return null;
+				m.setOnAction(e -> {
+					MenuItem source = (MenuItem) e.getSource();
+					currentStage.hide();
+					ProgressController progress = Main.showProgressBar("Login");
+					progress.getStage().getScene().setCursor(Cursor.WAIT);
+					Task<Boolean> login = new Task<Boolean>() {
+
+						@Override
+						protected Boolean call() throws Exception {
+							boolean log = false;
+							//updateProgress(0,100);
+							//updateMessage(progress.getProcessStatus().getText());
+							try {
+								log = Main.manageFastLogin(source.getText());
+							} catch (NetworkException e1) {
+								e1.printStackTrace();
 							}
-						};
-						new Thread(task).start();
-					}
+							//updateProgress(50,100);
+							//updateMessage(progress.getProcessStatus().getText());
+							System.out.println("Sucess?: "+log);
+							return log;
+						}
+
+					};
+					progress.getProcessStatus().textProperty().set("Login user");
+					progress.getProcessStatus().textProperty().bind(login.messageProperty());
+					progress.getProgressBar().progressProperty().bind(login.progressProperty());
+					progress.getProcessStatus().textProperty().bind(login.messageProperty());
+					
+					login.addEventHandler(WorkerStateEvent.WORKER_STATE_RUNNING, new EventHandler<WorkerStateEvent>() {
+						@Override
+						public void handle(WorkerStateEvent event) {
+							/**
+							 *  TODO: show progress messages:
+							 *  Creating twitter session
+							 *  		|
+							 *  		v
+							 *  Retrieving user session (getting db info/connecting to twitter/verifying credentials)
+							 *  -------------------------------------------------------------------------------------
+							 *  Loading view
+							 *  Loading info user (collections)
+							 */
+						}
+
+					});
+					
+					login.addEventHandler(WorkerStateEvent.WORKER_STATE_FAILED, new EventHandler<WorkerStateEvent>() {
+
+						@Override
+						public void handle(WorkerStateEvent event) {
+							System.out.println(event.getSource().getException());
+							//System.out.println(event.getTarget().toString());
+						}
+						
+					});
+
+					login.addEventHandler(WorkerStateEvent.WORKER_STATE_SUCCEEDED,
+							new EventHandler<WorkerStateEvent>() {
+								@Override
+								public void handle(WorkerStateEvent event) {
+									System.out.println("Great!!");
+									
+									Main.showSearch();
+									//updateProgress(100,100);
+									progress.getStage().getScene().setCursor(Cursor.DEFAULT);
+									progress.getStage().close();
+									
+								}
+							});
+					new Thread(login).start();
+
 				});
 				loginButton.getItems().add(m);
 			}
 		} else {
-			//TODO mostrar bot�n "opacado", o difuminado ... :|
-		}		
+			loginButton.setDisable(true);
+		}
 	}
 
 	public void setStage(Stage stage) {
 		currentStage = stage;
 	}
-	
+
 	/**
 	 * Is called by the main application to give a reference back to itself
 	 * 
@@ -97,17 +144,18 @@ public class LoginViewController {
 	public void setMainApp(Main main) {
 		this.main = main;
 	}
-	
+
 	/**
 	 * When the user clicks the login button
-	 * @throws ConnectivityException 
-	 * @throws AccessException 
+	 * 
+	 * @throws ConnectivityException
+	 * @throws AccessException
 	 * @throws Exception
 	 */
 	@FXML
-	private void handleSignUp() throws ConnectivityException, AccessException {
+	private void handleSignUp() throws NetworkException, AccessException {
 		main.manageNewLogin();
 		currentStage.close();
-	}	
-	
+	}
+
 }

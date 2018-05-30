@@ -32,8 +32,9 @@
             </AnchorPane>
         </items>
       </SplitPane>
-      <Button layoutX="14.0" layoutY="365.0" mnemonicParsing="false" onAction="#handleNew" text="New Search..." AnchorPane.bottomAnchor="15.0" AnchorPane.leftAnchor="15.0" />
+      <Button layoutX="14.0" layoutY="365.0" mnemonicParsing="false" onAction="#handleNew" text="New search..." AnchorPane.bottomAnchor="15.0" AnchorPane.leftAnchor="15.0" />
       <ChoiceBox fx:id="filterMenu" layoutX="436.0" layoutY="41.0" prefWidth="150.0" value="Last 200 tweets" AnchorPane.rightAnchor="15.0" AnchorPane.topAnchor="25.0" />
-      <Button layoutX="533.0" layoutY="360.0" mnemonicParsing="false" onAction="#manageExport" text="Saves as..." AnchorPane.bottomAnchor="15.0" AnchorPane.rightAnchor="15.0" />
+      <Button layoutX="500.0" layoutY="360.0" mnemonicParsing="false" onAction="#manageExport" prefHeight="25.0" prefWidth="85.0" text="Save as..." AnchorPane.bottomAnchor="15.0" AnchorPane.rightAnchor="15.0" />
+      <Label layoutX="397.0" layoutY="29.0" text="Show:" AnchorPane.rightAnchor="171.0" />
    </children>
 </AnchorPane>

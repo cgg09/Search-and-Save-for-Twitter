@@ -1,55 +1,116 @@
 package application.view;
 
+import java.util.Optional;
+
 import application.Main;
 import application.database.DBCollection;
+import application.exceptions.DatabaseWriteException;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
+import javafx.scene.control.SplitMenuButton;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.layout.AnchorPane;
+import javafx.stage.Stage;
 
 public class SearchViewController extends AnchorPane {
 
 	@FXML
+	private SplitMenuButton settingsButton;
+	@FXML
 	private Label username;
+	@FXML
+	private MenuItem logOut;
+	@FXML
+	private MenuItem deleteUser;
+	
+	private Stage currentStage;
 	private Main main;
 
 	public SearchViewController() {
-
+		
 	}
 
 	@FXML
 	public void initialize() {
-		HistoricViewController.init(this); // necesario para poder hacer las b�squedas
-		//System.out.println("Hi Search");
+				
+		//initialize username menu
+		username.setText(Main.getDBUserDAO().getUser());
+
+		HistoricViewController.init(this);
 	}
 
 	public String getUsername() {
 		return username.getText();
 	}
-
-	public void setUsername(String u) {
-		username.setText(u);
+	
+	@FXML
+	private void highlightUser() {
+		username.setUnderline(true);
 	}
+	
+	@FXML
+	private void disguiseUser() {
+		username.setUnderline(false);
+	}
+	
+	public void newSearch(DBCollection c, HistoricViewController historicViewController) {
 
-	public boolean newSearch(DBCollection c) {
-
-		boolean okClicked = false;
+		//boolean okClicked = false;
 		if (c.getType().equals("Historic")) {
-			okClicked = main.showNewHistoricSearch(c);			
-			
-		} /*else if (c.getType().equals("Live")) {
-			// okClicked = main.showNewLiveSearch(c);
-		}*/
-		return okClicked;
+			/*okClicked = */Main.showNewHistoricSearch(c,historicViewController);
+		}
+		//return okClicked;
 
 	}
-
+/*
 	public void setMainApp(Main main) {
 		this.main = main;
-		//main.getPrimaryStage().getScene().setRoot(filterMenu);
 	}
-
+*/
 	public Main getMain() {
 		return main;
+	}
+	
+	@FXML
+	private void signOut() {
+		currentStage.close();
+		Main.showLogin();
+	}
+	
+	@FXML
+	private void deleteUser() {
+		Alert alert = new Alert(AlertType.WARNING);
+		alert.setTitle("DELETE USER");
+		alert.setHeaderText("Delete User");
+		alert.setContentText("Are you sure you want to delete the user \"" + username.getText() + "\"?");
+
+		ButtonType buttonTypeOk = new ButtonType("OK", ButtonData.OK_DONE);
+		ButtonType buttonTypeCancel = new ButtonType("Cancel", ButtonData.CANCEL_CLOSE);
+
+		alert.getButtonTypes().setAll(buttonTypeOk, buttonTypeCancel);
+
+		Optional<ButtonType> result = alert.showAndWait();
+		if (result.get() == buttonTypeOk) {
+			try {
+				Main.getDBUserDAO().deleteUser();
+			} catch (DatabaseWriteException e) {
+				e.printStackTrace();
+			}
+
+			username.setText("");
+
+		currentStage.close();
+		Main.showLogin();
+		}
+	}
+
+	public void setStage(Stage primaryStage) {
+		currentStage = primaryStage;
+		
 	}
 
 }

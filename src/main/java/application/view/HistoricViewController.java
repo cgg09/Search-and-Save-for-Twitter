@@ -11,17 +11,25 @@ import java.util.Optional;
 
 import application.Main;
 import application.database.DBCollection;
+import application.exceptions.AccessException;
 import application.exceptions.DatabaseReadException;
 import application.exceptions.DatabaseWriteException;
+import application.exceptions.NetworkException;
+import application.exceptions.RateLimitException;
 import application.utils.DisplayableTweet;
 import javafx.application.HostServices;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
+import javafx.concurrent.WorkerStateEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.scene.Cursor;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.SeparatorMenuItem;
@@ -37,6 +45,8 @@ import javafx.stage.FileChooser;
 
 public class HistoricViewController extends AnchorPane {
 
+	@FXML
+	private Label username;
 	@FXML
 	private ChoiceBox<String> filterMenu = new ChoiceBox<String>();
 	@FXML
@@ -62,8 +72,15 @@ public class HistoricViewController extends AnchorPane {
 	private static SearchViewController searchController;
 
 	private DBCollection collection;
-
-	int total;
+	private String fm1 = "Last 200 tweets";
+	private String fm2 = "All tweets (except RTs)";
+	private String fm3 = "All tweets";
+	
+	private MenuItem h1 = new MenuItem("Repeat search...");
+	private MenuItem h2 = new MenuItem("Save as...");
+	private SeparatorMenuItem sp = new SeparatorMenuItem();
+	private MenuItem h3 = new MenuItem("Delete search");
+	
 
 	public HistoricViewController() {
 
@@ -75,11 +92,13 @@ public class HistoricViewController extends AnchorPane {
 		// initialize historySearch
 		dateColumn.setCellValueFactory(cellData -> cellData.getValue().startProperty());
 		keywordColumn.setCellValueFactory(cellData -> cellData.getValue().queryProperty());
+		historySearch.setPlaceholder(new Label("No searches to display"));
 
 		// initialize currentSearch
 		createdAt.setCellValueFactory(cellData -> cellData.getValue().createdAtProperty());
 		author.setCellValueFactory(cellData -> cellData.getValue().authorProperty());
 		text.setCellValueFactory(cellData -> cellData.getValue().tweetTextProperty());
+		currentSearch.setPlaceholder(new Label("No tweets to display"));
 
 		// initialize user historySearch
 		try {
@@ -95,43 +114,89 @@ public class HistoricViewController extends AnchorPane {
 		historySearch.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
 		// initialize historicSearch options for each collection
-		MenuItem m1 = new MenuItem("Repeat search...");
-		MenuItem m2 = new MenuItem("Save as...");
-		SeparatorMenuItem sp = new SeparatorMenuItem();
-		MenuItem m3 = new MenuItem("Delete collection");
-		historyOptions.getItems().add(m1);
-		historyOptions.getItems().add(m2);
+		historyOptions.getItems().add(h1);
+		historyOptions.getItems().add(h2);
 		historyOptions.getItems().add(sp);
-		historyOptions.getItems().add(m3);
+		historyOptions.getItems().add(h3);
 
 		// initialize filter button options
-		filterMenu.getItems().addAll("Last 200 tweets", "All tweets (except RTs)", "All tweets");
+		filterMenu.getItems().addAll(fm1, fm2, fm3);
 
-		// update currentSearch && select options for each collection of the
-		// historySearch view
+		// update currentSearch from historySearch
+		historySearch.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+			try {
+				newValue.updateCollection();
+			} catch (DatabaseReadException e) {
+				e.printStackTrace();
+			}
+			filterMenu.setValue(fm1);
+			addSearch(newValue);
+		});
+
+		// select options for each collection of the historySearch view
 		historySearch.setRowFactory(tv -> {
 			TableRow<DBCollection> row = new TableRow<>();
+			row.setOnMouseEntered(e -> Main.getPrimaryStage().getScene().setCursor(Cursor.HAND));
+			row.setOnMouseExited(e -> Main.getPrimaryStage().getScene().setCursor(Cursor.DEFAULT));
 			row.setOnMouseClicked(event -> {
-				if (event.getButton() == MouseButton.PRIMARY && (!row.isEmpty())) {
-					DBCollection rowData = row.getItem();
-					try {
-						rowData.updateCollection();
-					} catch (DatabaseReadException e) {
-						e.printStackTrace();
-					}
-					filterMenu.setValue("Last 200 tweets");
-					addSearch(rowData);
-				} else if (event.getButton() == MouseButton.SECONDARY && (!row.isEmpty())) {
+				if (event.getButton() == MouseButton.SECONDARY && (!row.isEmpty())) {
 					DBCollection col = historySearch.getSelectionModel().getSelectedItem();
-					m1.setOnAction(e -> handleRepeatSearch(col));
-					m2.setOnAction(e -> {
+					h1.setOnAction(e -> {
+						ProgressController progress = Main.showProgressBar("Downloading tweets");
+						Task<Boolean> repeatSearch = new Task<Boolean>() {
+
+							@Override
+							protected Boolean call() throws Exception {
+								boolean d = handleRepeatSearch(col);
+								// this.updateMessage("Downloaded tweets: "+col.getDownloaded());
+								return d;
+							}
+
+						};
+						// progress.getProcessStatus().textProperty().set("Repeating search");
+						progress.getProcessStatus().textProperty().bind(repeatSearch.messageProperty());
+						progress.getProgressBar().progressProperty().bind(repeatSearch.progressProperty());
+						progress.getProcessStatus().textProperty().bind(repeatSearch.messageProperty());
+						repeatSearch.addEventHandler(WorkerStateEvent.WORKER_STATE_RUNNING,
+								new EventHandler<WorkerStateEvent>() {
+									@Override
+									public void handle(WorkerStateEvent event) {
+										int downloaded = col.getDownloaded();
+										// System.out.println(downloaded);
+										progress.getTextArea().textProperty().bind(repeatSearch.messageProperty());
+										progress.getProcessStatus().textProperty().unbind();
+										progress.getProcessStatus().setText("Downloaded tweets: " + downloaded);
+
+									}
+								});
+						repeatSearch.addEventHandler(WorkerStateEvent.WORKER_STATE_SUCCEEDED,
+								new EventHandler<WorkerStateEvent>() {
+									@Override
+									public void handle(WorkerStateEvent event) {
+										progress.getStage().close();
+										Alert alert = new Alert(AlertType.INFORMATION);
+										alert.setTitle("NEW SEARCH FINISHED");
+										alert.setHeaderText("Tweets downloaded");
+										if (col.getDownloaded() != 0) {
+											alert.setContentText(
+													"Success! You have downloaded " + col.getDownloaded() + " tweets");
+										} else {
+											alert.setContentText("You haven't downloaded any tweet, try next time!");
+										}
+										alert.showAndWait();
+										
+									}
+								});
+						new Thread(repeatSearch).start();
+					});
+					h2.setOnAction(e -> {
 						try {
 							handleExport(col);
 						} catch (IOException e1) {
 							e1.printStackTrace();
 						}
-					});					
-					m3.setOnAction(e -> handleDelete(col));
+					});
+					h3.setOnAction(e -> handleDelete(col));
 					historySearch.setContextMenu(historyOptions);
 				}
 			});
@@ -141,16 +206,18 @@ public class HistoricViewController extends AnchorPane {
 		// change of selection in filter button "show"
 		filterMenu.getSelectionModel().selectedIndexProperty()
 				.addListener((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
-					filterFunction((Integer) newValue);
+					filterFunction(filterMenu.getItems().get((Integer) newValue));
 				});
-
+		
 		// show a selected tweet in a browser
 		currentSearch.setRowFactory(cRow -> {
 			TableRow<DisplayableTweet> currentRow = new TableRow<>();
+			currentRow.setOnMouseEntered(e -> Main.getPrimaryStage().getScene().setCursor(Cursor.HAND));
+			currentRow.setOnMouseExited(e -> Main.getPrimaryStage().getScene().setCursor(Cursor.DEFAULT));
 			currentRow.setOnMouseClicked(event -> {
 				if (event.getClickCount() == 2 && !currentRow.isEmpty()) {
 					DisplayableTweet rowTweet = currentRow.getItem();
-					HostServices host = searchController.getMain().getHostServices();
+					HostServices host = Main.getInstance().getHostServices();
 					host.showDocument("https://twitter.com/" + rowTweet.getAuthor() + "/status/" + rowTweet.getId());
 				}
 			});
@@ -163,22 +230,29 @@ public class HistoricViewController extends AnchorPane {
 
 		collection = new DBCollection("Historic");
 
-		boolean okClicked = searchController.newSearch(collection);
-		if (okClicked && collection.getTweetStatus() != null) {
+		/*boolean okClicked = */searchController.newSearch(collection,this);
+		
+	}
+
+	public void updateViews() {
+		if (collection.getCurrentTweets() != null) {
 			if (!collection.getRepeated()) {
-				addCollection();
+				System.out.println("Hey");
+				history.add(collection);
 			}
+			Comparator<DBCollection> collectionComparator = Comparator.comparing(DBCollection::getStart);
+			FXCollections.sort(history, collectionComparator.reversed());
+			historySearch.setItems(history);
 			addSearch(collection);
 		}
 	}
-
-	private void addCollection() {
-
-		history.add(collection);
-		Comparator<DBCollection> comparator = Comparator.comparing(DBCollection::getStart);
-		FXCollections.sort(history, comparator.reversed());
-		historySearch.setItems(history);
-	}
+	
+	/*
+	 * private void addCollection() { //System.out.println(collection.getQuery());
+	 * history.add(collection); Comparator<DBCollection> comparator =
+	 * Comparator.comparing(DBCollection::getStart); FXCollections.sort(history,
+	 * comparator.reversed()); historySearch.setItems(history); }
+	 */
 
 	private void addSearch(DBCollection c) {
 		collection = c;
@@ -191,27 +265,34 @@ public class HistoricViewController extends AnchorPane {
 
 		data.addAll(collection.getCurrentTweets().subList(0, to));
 
-		Comparator<DisplayableTweet> comparator = Comparator.comparing(DisplayableTweet::getCreatedAt);
-		FXCollections.sort(data, comparator.reversed());
+		Comparator<DisplayableTweet> tweetComparator = Comparator.comparing(DisplayableTweet::getCreatedAt);
+		FXCollections.sort(data, tweetComparator.reversed());
 
 		currentSearch.setItems(data);
 		int listSize = collection.getCurrentTweets().size();
 		filterMenu.getItems().set(2, "All tweets (" + listSize + ")");
 	}
-	
+
 	/*
 	 * Methods of the history options menu:
 	 */
 
-	private void handleRepeatSearch(DBCollection c) {
-
-		boolean okClicked = searchController.newSearch(c);
-		if (okClicked && c.getTweetStatus() != null) {
-			if (!c.getRepeated()) {
-				addCollection();
-			}
-			addSearch(c);
+	private boolean handleRepeatSearch(DBCollection c) {
+		boolean d = false;
+		try {
+			c.setRepeated(true);
+			d = c.manageSearch(c.getQuery());
+		} catch (AccessException | RateLimitException | NetworkException e) {
+			e.printStackTrace();
 		}
+		System.out.println("Sorting collections by reverse date");
+		Comparator<DBCollection> collectionComparator = Comparator.comparing(DBCollection::getStart);
+		FXCollections.sort(history, collectionComparator.reversed());
+
+		System.out.println("Re-drawing historySearch");
+		historySearch.setItems(history);
+		addSearch(c);
+		return d;
 	}
 
 	@FXML
@@ -245,18 +326,18 @@ public class HistoricViewController extends AnchorPane {
 		fileChooser.setInitialFileName(filename);
 		fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("CSV file", ".csv"));
 		File file = fileChooser.showSaveDialog(Main.getPrimaryStage());
-		
+
 		if (file != null) {
 			try {
 				c.printCSV(file, tweetsExp);
 			} catch (DatabaseReadException e) {
 				e.printStackTrace();
 			}
-		
+
 			Alert alert = new Alert(AlertType.CONFIRMATION);
 			alert.setTitle("COLLECTION EXPORTED");
 			alert.setHeaderText("Export Collection");
-			alert.setContentText("Well done! You have exported succesfully the collection \"" + c.getQuery()
+			alert.setContentText("Congratulations! You have exported succesfully the collection \"" + c.getQuery()
 					+ "\". Do you want to open the file?");
 
 			Optional<ButtonType> result = alert.showAndWait();
@@ -274,9 +355,9 @@ public class HistoricViewController extends AnchorPane {
 
 		ButtonType buttonTypeOk = new ButtonType("OK", ButtonData.OK_DONE);
 		ButtonType buttonTypeCancel = new ButtonType("Cancel", ButtonData.CANCEL_CLOSE);
-		
+
 		alert.getButtonTypes().setAll(buttonTypeOk, buttonTypeCancel);
-		
+
 		Optional<ButtonType> result = alert.showAndWait();
 		if (result.get() == buttonTypeOk) {
 			try {
@@ -294,19 +375,21 @@ public class HistoricViewController extends AnchorPane {
 		}
 	}
 
-	public void filterFunction(int number) {
-		//FIXME not by number !!!
+	public void filterFunction(String option) {
 		data.clear();
-		if (number == 0) {
+		if (option == fm1) {
+			System.out.println("Option: "+option+". Menu: "+fm1);
 			int to = Math.min(200, collection.getCurrentTweets().size());
 			data.addAll(collection.getCurrentTweets().subList(0, to));
-		} else if (number == 1) {
+		} else if (option == fm2) {
+			System.out.println("Option: "+option+". Menu: "+fm2);
 			for (DisplayableTweet t : collection.getCurrentTweets()) {
 				if (!t.getRetweet()) {
 					data.add(t);
 				}
 			}
-		} else if (number == 2) {
+		} else {
+			System.out.println("Option: "+option+". Menu: "+fm3);
 			data.addAll(collection.getCurrentTweets());
 		}
 
