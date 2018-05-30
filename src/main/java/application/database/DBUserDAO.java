@@ -13,7 +13,7 @@ import application.exceptions.DatabaseReadException;
 import application.exceptions.DatabaseWriteException;
 
 /**
- * @author Mar�a Cristina, cgg09
+ * @author María Cristina, cgg09
  *
  */
 public class DBUserDAO {
@@ -23,12 +23,13 @@ public class DBUserDAO {
 	private Connection c;
 
 	// Queries
-	private String login = "INSERT INTO user (USERNAME, ACCESS_TOKEN, ACCESS_SECRET) " + "VALUES (?,?,?)";
+	private String login = "INSERT INTO user (username, access_token, access_secret) VALUES (?,?,?)";
 	
-	private String checkUser = "SELECT username FROM user WHERE username= ?";
+	//private String checkUser = "SELECT username FROM user WHERE username= ?";
 	private String countUsers = "SELECT count() FROM user";
 	private String getUsers = "SELECT * FROM user";
 	private String colections = "SELECT * FROM collection WHERE username= ? ORDER BY time_start DESC";
+	private String delUser = "DELETE FROM user WHERE username = ?";
 
 	private DBUserDAO() {
 		c = Main.getDatabaseDAO().getConnection();
@@ -82,7 +83,7 @@ public class DBUserDAO {
 	 * @throws DatabaseReadException
 	 * @throws DataNotFoundException
 	 */
-	public boolean checkUser(String username) throws DatabaseReadException, DataNotFoundException {
+	/*public boolean checkUser(String username) throws DatabaseReadException, DataNotFoundException {
 
 		PreparedStatement psck = null;
 		ResultSet rs = null;
@@ -101,8 +102,29 @@ public class DBUserDAO {
 			throw new DataNotFoundException("The user was not found in the database."); // Deber�a ser un error �?
 		}
 
-	}
+	}*/
 
+	public List<String> getUsers() throws DatabaseReadException, DataNotFoundException {
+
+		List<String> u = new Vector<String>();
+
+		ResultSet rsu = null;
+
+		try {
+			if (c.createStatement().executeQuery(countUsers).getInt(1) < 1) { // FIXME no es una "EXCEPTION", qu� poner aqu� ?
+				return null; // FIXME throw new DataNotFoundException();
+			}
+			rsu = c.createStatement().executeQuery(getUsers);
+			while (rsu.next()) {
+				u.add(rsu.getString("username"));
+			}
+
+		} catch (SQLException e) {
+			throw new DatabaseReadException("An error occurred while reading the data.",e);
+		}
+		return u;
+	}
+	
 	/**
 	 * Get user data
 	 * 
@@ -128,28 +150,6 @@ public class DBUserDAO {
 			throw new DatabaseReadException("An error occurred while reading the data.",e);
 		}
 
-	}
-
-	public List<String> getUsers() throws DatabaseReadException, DataNotFoundException {
-
-		List<String> u = new Vector<String>();
-
-		ResultSet rsu = null;
-
-		try {
-			if (c.createStatement().executeQuery(countUsers).getInt(1) < 1) { // FIXME no es una "EXCEPTION", qu� poner aqu� ?
-				return null; // FIXME throw new DataNotFoundException();
-			}
-			rsu = c.createStatement().executeQuery(getUsers);
-			while (rsu.next()) {
-				u.add(rsu.getString("username"));
-			}
-
-		} catch (SQLException e) {
-			throw new DatabaseReadException("An error occurred while reading the data.",e);
-		}
-
-		return u;
 	}
 	
 	/**
@@ -183,6 +183,30 @@ public class DBUserDAO {
 		}
 
 		return cols;
+	}
+	
+	public void deleteUser() throws DatabaseWriteException {
+		
+		
+		List<DBCollection> dbcols = new Vector<DBCollection>();
+		try {
+			dbcols = retrieveCollections();
+		} catch (DatabaseReadException e1) {
+			e1.printStackTrace();
+		}
+		
+		for(DBCollection c : dbcols) {
+			c.deleteCollection();
+		}
+		
+		PreparedStatement psdt = null;
+		try {
+			psdt = c.prepareStatement(delUser);
+			psdt.setString(1, user);
+			psdt.executeUpdate();
+		} catch (SQLException e) {
+			throw new DatabaseWriteException("There was an error deleting the user.", e);
+		}
 	}
 
 }

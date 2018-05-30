@@ -30,21 +30,21 @@ public class DatabaseDAO {
 			"(collection_id INTEGER PRIMARY KEY AUTOINCREMENT not NULL, " +
 			" username TEXT	not NULL, " +
 			" time_start TEXT not NULL, " + 
-			" time_end TEXT not NULL, " +
+			" time_end TEXT, " +
 			" type VARCHAR(50) not NULL, " +
 			" query	VARCHAR(50) not NULL, " +
-			" FOREIGN KEY (username) REFERENCES	user(username))";
+			" FOREIGN KEY (username) REFERENCES	user(username) ON DELETE CASCADE)";
 	
 	private String tweetTable = "CREATE TABLE tweet " +
 			"(tweet_id INTEGER not NULL, " +
 			" collection_id INTEGER not NULL, " +  
 			" author VARCHAR(50) not NULL, " +
 			" created_at TEXT not NULL, " +
-			" text_printable VARCHAR(200) not NULL, " +	// FIXME pendiente de parsear texto !!
-			" retweet INTEGER	not NULL, " +
+			" text_printable VARCHAR(200) not NULL, " +
+			" retweet INTEGER not NULL, " +
 			" raw_tweet	TEXT not NULL, " +
 			" PRIMARY KEY (tweet_id, collection_id), "+
-			" FOREIGN KEY (collection_id) REFERENCES collection(collection_id))";
+			" FOREIGN KEY (collection_id) REFERENCES collection(collection_id) ON DELETE CASADE)";
 	
 	
 	private DatabaseDAO(String path) {
@@ -64,6 +64,7 @@ public class DatabaseDAO {
 	
 	public void connect() {
 		try {
+			Class.forName("org.sqlite.JDBC");
 			c = DriverManager.getConnection("jdbc:sqlite:"+databasePath);
 		} catch ( Exception e ) {
 			System.err.println( e.getClass().getName() + ": " + e.getMessage() );

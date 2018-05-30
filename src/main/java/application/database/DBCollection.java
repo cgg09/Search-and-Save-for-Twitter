@@ -19,20 +19,24 @@ import java.util.logging.Logger;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 
-//import com.twitter.twittertext.TwitterTextConfiguration;
-//import com.twitter.twittertext.TwitterTextParser;
-
 import application.Main;
+import application.exceptions.AccessException;
 import application.exceptions.DataNotFoundException;
 import application.exceptions.DatabaseReadException;
 import application.exceptions.DatabaseWriteException;
+import application.exceptions.NetworkException;
+import application.exceptions.RateLimitException;
 import application.utils.DisplayableTweet;
 import application.view.HistoricViewController;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import twitter4j.JSONObject;
+import twitter4j.Query;
 import twitter4j.QueryResult;
 import twitter4j.Status;
+import twitter4j.TwitterException;
 
 public class DBCollection {
 
@@ -43,26 +47,33 @@ public class DBCollection {
 	private StringProperty end_t;
 	private String type;
 	private StringProperty query;
-	private List<Status> tweets;
 	private List<DisplayableTweet> currentTweets;
+	private int download = 0;
+	private boolean done = false;
+
 	private boolean repeated = false;
+	private int UNAUTHORIZED = 401;
 
 	// Queries
-	private String addCollection = "INSERT INTO collection (username, time_start, time_end, type, query) "
-			+ "VALUES (?,?,?,?,?);";
+	private String addCollection = "INSERT INTO collection (username, time_start, type, query) VALUES (?,?,?,?);";
 	private String addTweet = "INSERT INTO tweet (tweet_id, collection_id, author, created_at, text_printable, retweet, raw_tweet) "
 			+ "VALUES (?,?,?,?,?,?,?);";
 
-	private String queryExists = "SELECT * FROM collection WHERE query= ? and username= ?";
+	private String addTimeData = "UPDATE collection SET time_end = ? WHERE collection_id IN (?);";
 
-	private String checkTweet = "SELECT * FROM tweet WHERE tweet_id= ?";
+	private String updateStartTime = "UPDATE collection SET time_start = ? WHERE collection_id IN (?);";
+	
+	private String queryExists = "SELECT collection_id FROM collection WHERE collection_id = ? AND query = ? AND username = ?";
 
-	private String updateCollection = "SELECT * FROM collection WHERE collection_id= ?";
+	private String checkTweet = "SELECT * FROM tweet WHERE tweet_id = ?";
 
-	private String retrieveTweets = "SELECT tweet_id, created_at, author, text_printable, retweet FROM tweet WHERE collection_id= ? ORDER BY created_at DESC";
+	private String updateCollection = "SELECT * FROM collection WHERE collection_id = ?";
+
+	private String retrieveTweets = "SELECT tweet_id, created_at, author, text_printable, retweet FROM tweet "
+			+ "WHERE collection_id = ? ORDER BY created_at DESC";
 
 	private String getNewestTweet = "SELECT MAX(tweet_id) AS max_tweet_id FROM tweet WHERE collection_id = ?";
-	
+
 	private String delTweets = "DELETE FROM tweet WHERE collection_id = ?";
 
 	private String delCol = "DELETE FROM collection where collection_id = ?";
@@ -75,7 +86,6 @@ public class DBCollection {
 		this.query = new SimpleStringProperty("");
 		this.start_t = new SimpleStringProperty("");
 		this.end_t = new SimpleStringProperty("");
-		this.tweets = new Vector<Status>();
 		this.currentTweets = new Vector<DisplayableTweet>();
 	}
 
@@ -127,22 +137,10 @@ public class DBCollection {
 		return end_t;
 	}
 
-	public List<Status> getTweetStatus() {
-		return tweets;
-	}
-
-	public void saveTweetStatus(QueryResult queryResult) {
-		this.tweets.addAll(queryResult.getTweets());
-	}
-
 	public List<DisplayableTweet> getCurrentTweets() {
 		return currentTweets;
 	}
 
-	/*
-	 * public Stack<List<DisplayableTweet>> getCurrentTweets(){ return
-	 * currentTweets; }
-	 */
 	public boolean getRepeated() {
 		return repeated;
 	}
@@ -150,6 +148,147 @@ public class DBCollection {
 	public void setRepeated(boolean r) {
 		this.repeated = r;
 	}
+	
+	public int getDownloaded() {
+		return download;
+	}
+	
+	public void incrementDownloaded(int download) {
+		this.download += download;
+	}
+	
+	public boolean getDone() {
+		return done;
+	}
+
+	public Boolean manageSearch(String userQuery) throws AccessException, RateLimitException, NetworkException {
+
+		done = false;
+		// Preparing the query for the twitter searcher
+		setQuery(userQuery);
+		//int list = getCurrentTweets().size();
+		Query query = new Query();
+		//String q = '"'+getQuery()+'"';
+		//query.setQuery(q);
+		query.setQuery(getQuery());
+		
+		
+		long tid = 0;
+		try {
+			tid = getNewestTweet();
+			System.out.println("Newest tweet-id:" + tid);
+		} catch (DatabaseReadException e2) {
+			e2.printStackTrace();
+		}
+
+		query.sinceId(tid);
+
+		System.out.println("Searching...");
+		
+
+		QueryResult queryResult = null;
+
+		Timestamp ts_start = new Timestamp(System.currentTimeMillis());
+		
+		if (!getRepeated()) {
+			try {
+				id = addNewCollection(Main.getDBUserDAO().getUser(), ts_start);
+			} catch (DatabaseWriteException e) {
+				e.printStackTrace();
+			}
+		} else {
+			try {
+				updateStartTime(ts_start);
+			} catch (DatabaseWriteException e) {
+				e.printStackTrace();
+			}
+		}
+
+		do {
+
+			System.out.println("Issuing Twitter search");
+			try {
+				queryResult = Main.getTwitterSessionDAO().getTwitter().search(query);
+			} catch (TwitterException e) {
+				if (e.getStatusCode() == UNAUTHORIZED) {
+					throw new AccessException(e.getErrorMessage(), e);
+				} else if (e.getRateLimitStatus().getRemaining() == 0) {
+					Integer time = e.getRateLimitStatus().getSecondsUntilReset();
+					time = time / 60;
+
+					Alert alert = new Alert(AlertType.WARNING);
+					alert.setTitle("RATE LIMIT FAILURE");
+					alert.setHeaderText("Rate Limit searching tweets");
+					alert.setContentText("You have exceeded rate limit. You have to wait " + time.toString()
+							+ " seconds before continue searching.\n Please note that your current search will not be saved on the system.");
+					alert.showAndWait();
+
+					// throw new RateLimitException("You have exceeded rate limit",e);
+				} else {
+					throw new NetworkException(
+							"You do not have internet connection. Please check it out before continue", e);
+				}
+			}
+			int down = 0;
+			boolean ds = false;
+			System.out.println("Iterating through resulting tweets");
+			for (Status tweet : queryResult.getTweets()) {
+				try {
+					ds = addTweet(tweet);
+					
+				} catch (DatabaseWriteException e) {
+					e.printStackTrace();
+				}
+				if(ds) {
+					down++;
+				}
+			}
+
+			incrementDownloaded(down);
+			System.out.println("Downloaded so far: " + getDownloaded());
+		} while ((query = queryResult.nextQuery()) != null);
+
+		Timestamp ts_end = new Timestamp(System.currentTimeMillis());
+
+		try {
+			addEndTime(ts_end);
+		} catch (DatabaseWriteException e) {
+			e.printStackTrace();
+		}
+
+		//int current = getCurrentTweets().size();
+		//int downloaded = Math.abs(current - list);
+		//setDownloaded(downloaded);
+		
+		System.out.println("Exiting manageSearch");
+		//done = true; // FIXME --> quizás no importe si devolver true o false en el call()...
+		return done;
+
+	}
+	
+	
+	public void updateStartTime(Timestamp start) throws DatabaseWriteException {
+
+		// Converting start_time
+		LocalDateTime start_time = LocalDateTime.parse(start.toLocalDateTime().toString());
+		setStart(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").format(start_time));
+
+		PreparedStatement psmt = null;
+		try {
+			psmt = c.prepareStatement(updateStartTime);
+			psmt.setString(1, getStart());
+			psmt.setInt(2, id);
+
+			psmt.executeUpdate();
+
+			psmt.close();
+
+		} catch (SQLException e) {
+			throw new DatabaseWriteException("There was an error saving the collection info.", e);
+		}
+
+	}
+
 
 	/**
 	 * Add info about the search in the Database
@@ -157,31 +296,29 @@ public class DBCollection {
 	 * @param start
 	 * @param end
 	 * @param dbUserDAO
+	 * @throws DatabaseWriteException
 	 * @throws ParseException
 	 */
-	public void addData(Timestamp start, Timestamp end, DBUserDAO dbUserDAO) {
-
-		// Converting start_time
-		LocalDateTime start_time = LocalDateTime.parse(start.toLocalDateTime().toString());
-		setStart(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").format(start_time));
+	public void addEndTime(Timestamp end) throws DatabaseWriteException {
 
 		// Converting end_time
 		LocalDateTime end_time = LocalDateTime.parse(end.toLocalDateTime().toString());
 		setEnd(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").format(end_time));
 
+		PreparedStatement psmt = null;
 		try {
-			id = addNewCollection(dbUserDAO);
-		} catch (DatabaseWriteException e) {
-			e.printStackTrace();
+			psmt = c.prepareStatement(addTimeData);
+			psmt.setString(1, getEnd());
+			psmt.setInt(2, id);
+
+			psmt.executeUpdate();
+
+			psmt.close();
+
+		} catch (SQLException e) {
+			throw new DatabaseWriteException("There was an error saving the collection info.", e);
 		}
 
-		for (Status tweet : tweets) {
-			try {
-				addTweet(tweet);
-			} catch (DatabaseWriteException e) {
-				e.printStackTrace();
-			}
-		}
 	}
 
 	/**
@@ -191,17 +328,20 @@ public class DBCollection {
 	 * @throws DatabaseWriteException
 	 * @throws ParseException
 	 */
-	public Integer addNewCollection(DBUserDAO user) throws DatabaseWriteException {
+	public Integer addNewCollection(String user, Timestamp start) throws DatabaseWriteException {
 
+		// Converting start_time
+		LocalDateTime start_time = LocalDateTime.parse(start.toLocalDateTime().toString());
+		setStart(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").format(start_time));		
+		
 		PreparedStatement psmt = null;
 		ResultSet rsk = null;
 		try {
 			psmt = c.prepareStatement(addCollection);
-			psmt.setString(1, user.getUser());
+			psmt.setString(1, user);
 			psmt.setString(2, getStart());
-			psmt.setString(3, getEnd());
-			psmt.setString(4, type);
-			psmt.setString(5, getQuery());
+			psmt.setString(3, type);
+			psmt.setString(4, getQuery());
 
 			psmt.executeUpdate();
 
@@ -222,10 +362,11 @@ public class DBCollection {
 	 * Add a tweet from a search in the database
 	 * 
 	 * @param tweet
+	 * @return 
 	 * @throws DatabaseWriteException
 	 * @throws DatabaseReadException
 	 */
-	public void addTweet(Status tweet) throws DatabaseWriteException {
+	public boolean addTweet(Status tweet) throws DatabaseWriteException {
 
 		JSONObject json = new JSONObject(tweet);
 		int retweet = 0;
@@ -234,6 +375,8 @@ public class DBCollection {
 		LocalDateTime createdAt = tweet.getCreatedAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
 		String created_at = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").format(createdAt);
 
+		String text = tweet.getText().replaceAll("\r", " ").replaceAll("\n", " ");
+		
 		if (tweet.getRetweetedStatus() != null) {
 			retweet = 1;
 			RT = true;
@@ -245,20 +388,24 @@ public class DBCollection {
 			psmt_tweet = c.prepareStatement(addTweet);
 			psmt_tweet.setLong(1, tweet.getId());
 			psmt_tweet.setInt(2, id);
-			
+
 			psmt_tweet.setString(3, tweet.getUser().getScreenName());
 			psmt_tweet.setString(4, created_at);
-			psmt_tweet.setString(5, tweet.getText()); // FIXME PARSE TEXT !!
+			psmt_tweet.setString(5, text);
 			psmt_tweet.setInt(6, retweet);
 			psmt_tweet.setString(7, json.toString());
-			
+
 			psmt_tweet.executeUpdate();
 		} catch (SQLException e) {
-			throw new DatabaseWriteException("There was an error saving the tweet info.", e);
+			throw new DatabaseWriteException("There was an error saving tweet " + tweet.getId(), e);
 		}
 		
-		DisplayableTweet t = new DisplayableTweet(tweet.getId(), created_at, tweet.getUser().getScreenName(), tweet.getText(), RT);
+		String textt = tweet.getText().replaceAll("\r", " ").replaceAll("\n", " ");
+
+		DisplayableTweet t = new DisplayableTweet(tweet.getId(), created_at, tweet.getUser().getScreenName(),
+				textt, RT);
 		currentTweets.add(t);
+		return true;
 	}
 
 	/**
@@ -274,8 +421,9 @@ public class DBCollection {
 		ResultSet rs = null;
 		try {
 			psid = c.prepareStatement(queryExists);
-			psid.setString(1, query);
-			psid.setString(2, Main.getDBUserDAO().getUser());
+			psid.setInt(1, id);
+			psid.setString(2, query);
+			psid.setString(3, Main.getDBUserDAO().getUser());
 			rs = psid.executeQuery();
 			if (rs.next()) {
 				return rs.getInt("collection_id");
@@ -341,8 +489,10 @@ public class DBCollection {
 					RT = true;
 				}
 
+				String text = rst.getString("text_printable").replaceAll("\r", " ").replaceAll("\n", " ");
+				
 				DisplayableTweet t = new DisplayableTweet(rst.getLong("tweet_id"), rst.getString("created_at"),
-						rst.getString("author"), rst.getString("text_printable"), RT);
+						rst.getString("author"), text, RT);
 				currentTweets.add(t);
 			}
 		} catch (SQLException e) {
@@ -360,14 +510,13 @@ public class DBCollection {
 			psnt = c.prepareStatement(getNewestTweet);
 			psnt.setInt(1, id);
 			rsnt = psnt.executeQuery();
-			tid  =  rsnt.getLong("max_tweet_id");
+			tid = rsnt.getLong("max_tweet_id");
 		} catch (SQLException e) {
 			throw new DatabaseReadException("There was an error reading the tweets info.", e);
 		}
 		return tid;
 	}
-	
-	
+
 	public void deleteCollection() throws DatabaseWriteException {
 
 		PreparedStatement psdt = null;
@@ -396,7 +545,7 @@ public class DBCollection {
 		try {
 			pstmt = c.prepareStatement(exportCol);
 			pstmt.setInt(1, id);
-			
+
 			rsExp = pstmt.executeQuery();
 
 			return rsExp;
@@ -404,28 +553,29 @@ public class DBCollection {
 			throw new DatabaseReadException("There was an error while exporting the tweets from the database.", e);
 		}
 	}
-	
+
 	public void printCSV(File file, ResultSet tweetsExp) throws DatabaseReadException {
 		try {
 			FileWriter fileWriter = null;
 			fileWriter = new FileWriter(file);
-			CSVPrinter csvPrinter = new CSVPrinter(fileWriter, CSVFormat.DEFAULT.withHeader("tweet_id",
-					"created_at", "author", "text_printable", "url", "raw_tweet"));
+			CSVPrinter csvPrinter = new CSVPrinter(fileWriter, CSVFormat.EXCEL.withHeader("tweet_id", "created_at",
+					"author", "text_printable", "url", "raw_tweet"));
 
 			try {
 				while (tweetsExp.next()) {
 					String url = "https://twitter.com/" + tweetsExp.getString("author") + "/status/"
 							+ tweetsExp.getInt("tweet_id");
-
-					csvPrinter.printRecord(tweetsExp.getInt("tweet_id"), tweetsExp.getString("created_at"),
-							tweetsExp.getString("author"), tweetsExp.getString("text_printable"), url,
+					
+					String text = tweetsExp.getString("text_printable").replaceAll("\r", " ").replaceAll("\n", " ");
+					
+					csvPrinter.printRecord(tweetsExp.getLong("tweet_id"), tweetsExp.getString("created_at"),
+							tweetsExp.getString("author"), text, url,
 							tweetsExp.getString("raw_tweet"));
 				}
 			} catch (SQLException e) {
 				csvPrinter.flush();
 				csvPrinter.close();
-				throw new DatabaseReadException("There was an error while exporting the tweets from the database.",
-						e);
+				throw new DatabaseReadException("There was an error while exporting the tweets from the database.", e);
 			}
 
 			csvPrinter.flush();
