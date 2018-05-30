@@ -1,16 +1,11 @@
 package application;
 
-import java.net.URISyntaxException;
-import java.util.List;
-
-import org.apache.http.NameValuePair;
-//import org.apache.http.client.utils.URIBuilder; //me gustar�a acabar utilizando esta en vez de com.box.restclientv2 ...
-
-import com.box.restclientv2.httpclientsupport.HttpClientURIBuilder;
+import java.util.HashMap;
+import java.util.Map;
 
 import application.database.DBUserDAO;
 import application.exceptions.AccessException;
-import application.exceptions.ConnectivityException;
+import application.exceptions.NetworkException;
 import application.exceptions.DatabaseReadException;
 import application.exceptions.DatabaseWriteException;
 import application.utils.Browser;
@@ -29,8 +24,9 @@ public class Login {
 	private AccessToken accessToken = null;
 	private RequestToken requestToken = null;
 	private WebEngine webEngine;
-	private Main main;
+	// private Main main;
 	private DBUserDAO dbu;
+	private int UNAUTHORIZED = 401;
 
 	public Login() {
 
@@ -42,23 +38,24 @@ public class Login {
 	 * @throws ConnectivityException
 	 * @throws AccessException
 	 */
-	public void createRequest(Twitter twitter, DBUserDAO dbu) throws ConnectivityException, AccessException {
-		
+	public void createRequest(Twitter twitter, DBUserDAO dbu) throws NetworkException, AccessException {
+
 		this.dbu = dbu;
 		this.twitter = twitter;
 
 		try {
 			requestToken = twitter.getOAuthRequestToken(Main.getTwitterSessionDAO().getCallbackUrl());
 		} catch (TwitterException e) {
-			if (401 == e.getStatusCode()) {
-				throw new AccessException("401: Unable to get the access token. Please check your credentials.");
+			if (e.getStatusCode() == UNAUTHORIZED) {
+				throw new AccessException("401: Unable to get the access token. Please check your credentials.", e);
 			} else {
-				throw new ConnectivityException("You do not have internet connection. Please check it out before continue",e);
+				throw new NetworkException("You do not have internet connection. Please check it out before continue",
+						e);
 			}
 		}
 
 		if (null == accessToken) {
-			main.showWebView(requestToken.getAuthorizationURL());
+			Main.showWebView(requestToken.getAuthorizationURL());
 		}
 	}
 
@@ -82,7 +79,7 @@ public class Login {
 						browser.closeBrowser();
 						try {
 							verifyTokens(callbackURLWithTokens);
-						} catch (AccessException | ConnectivityException e) {
+						} catch (AccessException | NetworkException e) {
 							e.printStackTrace();
 						}
 
@@ -98,25 +95,29 @@ public class Login {
 
 	/**
 	 * New login process 3rd step: Verify identity and sign in
-	 * @throws AccessException 
-	 * @throws ConnectivityException 
+	 * 
+	 * @throws AccessException
+	 * @throws ConnectivityException
 	 */
-	public void verifyTokens(String callbackURL) throws AccessException, ConnectivityException {
+	public void verifyTokens(String callbackURL) throws AccessException, NetworkException {
 
 		String oauthToken;
 		String oauthVerifier;
 
-		oauthToken = getParameter(callbackURL, "oauth_token");
-		oauthVerifier = getParameter(callbackURL, "oauth_verifier");
+		Map<String, String> urlMap = getQueryMap(callbackURL);
+		oauthToken = urlMap.get("oauth_token");
+		oauthVerifier = urlMap.get("oauth_token_secret");
+
 		if (oauthVerifier != null && ((requestToken.getToken().toString().equalsIgnoreCase(oauthToken)))) {
 			webEngine.getLoadWorker().cancel();
 			try {
 				accessToken = twitter.getOAuthAccessToken(requestToken, oauthVerifier);
 			} catch (TwitterException e) {
-				if (401 == e.getStatusCode()) {
-					throw new AccessException("401: Unable to get the access token. Please check your credentials.");
+				if (e.getStatusCode() == UNAUTHORIZED) {
+					throw new AccessException("401: Unable to get the access token. Please check your credentials.", e);
 				} else {
-					throw new ConnectivityException("You do not have internet connection. Please check it out before continue",e);
+					throw new NetworkException(
+							"You do not have internet connection. Please check it out before continue", e);
 				}
 			}
 		}
@@ -131,11 +132,12 @@ public class Login {
 		}
 
 		try {
-			dbu.saveLogin(twitter.verifyCredentials().getScreenName(), accessToken.getToken().toString(), accessToken.getTokenSecret().toString());
+			dbu.saveLogin(twitter.verifyCredentials().getScreenName(), accessToken.getToken().toString(),
+					accessToken.getTokenSecret().toString());
 		} catch (DatabaseWriteException | TwitterException e) {
 			e.printStackTrace();
 		}
-		main.showSearch();
+		Main.showSearch();
 
 	}
 
@@ -144,15 +146,18 @@ public class Login {
 	 * 
 	 * @param twitter
 	 * @param user
+	 * @return
+	 * @throws AccessException
 	 * @throws ConnectivityException
 	 * @throws DatabaseReadException
 	 */
-	public void retrieveSession(Twitter twitter, String user, DBUserDAO dbu) throws ConnectivityException {
-		
+	public boolean retrieveSession(Twitter twitter, String user, DBUserDAO dbu)
+			throws NetworkException, AccessException {
+
 		this.dbu = dbu;
 
 		String token = null;
-		
+
 		try {
 			token = dbu.getUserData("access_token", user);
 		} catch (DatabaseReadException e) {
@@ -170,45 +175,39 @@ public class Login {
 
 		try {
 			twitter.verifyCredentials().getId();
-		} catch (TwitterException e1) { // FIXME connectivity exception / Access Exceptions (acceso revocado..., etc) ?
-			throw new ConnectivityException("You do not have internet connection. Please check it out before continue",e1);
+		} catch (TwitterException e1) {
+			if (e1.getStatusCode() == UNAUTHORIZED) {
+				throw new AccessException(e1.getErrorMessage(), e1);
+			}
+			throw new NetworkException("You do not have internet connection. Please check it out before continue", e1);
 		}
 
 		try {
 			twitter.verifyCredentials().getScreenName();
-		} catch (TwitterException e2) { // FIXME connectivity exception
-			throw new ConnectivityException("You do not have internet connection. Please check it out before continue",e2);
+		} catch (TwitterException e2) {
+			throw new NetworkException("You do not have internet connection. Please check it out before continue", e2);
 		}
-		main.showSearch();
+		System.out.println("Showing search menu...");
+		// main.showSearch();
+		return true;
 	}
 
 	/**
-	 * Retrieve parameters from a URL
+	 * Retrieve parameters of a url (to obtain access tokens)
+	 * 
+	 * @param query
+	 * @return
 	 */
+	public static Map<String, String> getQueryMap(String query) {
+		String url = query.substring(query.indexOf("?") + 1);
+		String[] params = url.split("&");
+		Map<String, String> map = new HashMap<String, String>();
 
-	private String getParameter(final String url, final String p) {
-
-		HttpClientURIBuilder uri;
-		try {
-			uri = new HttpClientURIBuilder(url);
-		} catch (URISyntaxException e) {
-			return null;
+		for (String param : params) {
+			String name = param.split("=")[0];
+			String value = param.split("=")[1];
+			map.put(name, value);
 		}
-
-		List<NameValuePair> query = uri.getQueryParams();
-		for (NameValuePair param : query) {
-			if (param.getName().equalsIgnoreCase(p)) {
-				if (param.getValue() != null) {
-					return param.getValue();
-				}
-				return null;
-			}
-		}
-		return null;
+		return map;
 	}
-
-	public void setMainApp(Main main) {
-		this.main = main;
-	}
-
 }

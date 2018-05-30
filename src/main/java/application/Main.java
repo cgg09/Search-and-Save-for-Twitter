@@ -7,14 +7,16 @@ import application.database.DBCollection;
 import application.database.DBUserDAO;
 import application.database.DatabaseDAO;
 import application.exceptions.AccessException;
-import application.exceptions.ConnectivityException;
-import application.exceptions.DataNotFoundException;
+import application.exceptions.NetworkException;
+//import application.exceptions.DataNotFoundException;
 import application.exceptions.DatabaseReadException;
 import application.exceptions.DatabaseWriteException;
 import application.utils.Browser;
 import application.utils.TwitterSessionDAO;
+import application.view.HistoricViewController;
 import application.view.LoginViewController;
 import application.view.NewHistoricDialogController;
+import application.view.ProgressController;
 import application.view.SearchViewController;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -25,13 +27,19 @@ import javafx.scene.paint.Color;
 
 public class Main extends Application {
 
+	private static Main instance;
 	private static DatabaseDAO databaseDAO;
 	private static DBUserDAO dbUserDAO;
 	private static TwitterSessionDAO twitterSessionDAO;
 	private static Stage primaryStage;
 	
-	Login login;
+	private static Login login;
 
+	
+	public static Main getInstance() {
+		return instance;
+	}
+	
 	public static DatabaseDAO getDatabaseDAO() {
 		return databaseDAO;
 	}
@@ -61,8 +69,10 @@ public class Main extends Application {
 		return primaryStage;
 	}
 	
-	// @Override
+	@Override
 	public void start(Stage primaryStage) {
+		instance = this;
+		Main.getInstance();
 		Main.primaryStage = primaryStage;
 		Main.primaryStage.setTitle("Twitter Searcher");
 
@@ -72,7 +82,7 @@ public class Main extends Application {
 	/**
 	 * Initializes the login view
 	 */
-	public void showLogin() {
+	public static void showLogin() {
 
 		FXMLLoader loader = new FXMLLoader();
 		loader.setLocation(Main.class.getResource("view/LoginView.fxml"));
@@ -88,46 +98,48 @@ public class Main extends Application {
 		primaryStage.show();
 
 		LoginViewController controller = loader.getController();
-		controller.setMainApp(this);
+		//controller.setMainApp(this);
 		controller.setStage(primaryStage);
 		login = new Login();
 	}
 
-	public void manageNewLogin() throws ConnectivityException, AccessException {
-		login.setMainApp(this);
+	public void manageNewLogin() throws NetworkException, AccessException {
+		//login.setMainApp(this);
 		setDBUserDAO(DBUserDAO.getInstance());
 		setTwitterSessionDAO(TwitterSessionDAO.getInstance());
 		twitterSessionDAO.setTwitterInstance();
-		//this.twitter = login.setTwitterInstance();
 		login.createRequest(twitterSessionDAO.getTwitter(), dbUserDAO);
 	}
 
-	// Probablemente se pueda retocar mas, ya que nunca saltara al "else" que esta
-	// puesto aqui
-	public void manageFastLogin(String user) throws ConnectivityException { // FIXME throws DatabaseReadException
-		login.setMainApp(this);
+	public static boolean manageFastLogin(String user) throws NetworkException {
+		//login.setMainApp(this);
 		setDBUserDAO(DBUserDAO.getInstance());
-		boolean check = false;
-		try {
+		//boolean check = false;
+		boolean done = false;
+		/*try {
 			check = dbUserDAO.checkUser(user);
 		} catch (DatabaseReadException | DataNotFoundException e) {
 			e.printStackTrace();
-		}
-		if (check) {
+		} System.out.println("User checked");
+		if (check) {*/
 			setTwitterSessionDAO(TwitterSessionDAO.getInstance());
 			twitterSessionDAO.setTwitterInstance();
-			
-			//this.twitter = login.setTwitterInstance();
-			login.retrieveSession(twitterSessionDAO.getTwitter(), user, dbUserDAO);
-		} else {
+			System.out.println("Twitter instance setted");
+			try {
+				done = login.retrieveSession(twitterSessionDAO.getTwitter(), user, dbUserDAO);
+			} catch (AccessException e) {
+				e.printStackTrace();
+			} System.out.println("Session retrieved");
+		/*} else {
 			System.out.println("Lo siento, pero este usuario no est� registrado en esta aplicaci�n. Intenta de nuevo.");
-		}
+		}*/
+		return done;
 	}
 
 	/**
 	 * Initializes the webView for the first login
 	 */
-	public void showWebView(String URL) {
+	public static void showWebView(String URL) {
 
 		// create the scene
 		Browser browser = new Browser(URL);
@@ -142,10 +154,12 @@ public class Main extends Application {
 
 	/**
 	 * Initializes the search view inside the root layout
+	 * @return 
 	 */
-	public void showSearch() {
+	public static boolean showSearch() {
 
 		// Load login from fxml file
+		System.out.println("Loading window ..?");
 		FXMLLoader loader = new FXMLLoader();
 		loader.setLocation(Main.class.getResource("view/SearchView.fxml"));
 		AnchorPane searchView = new AnchorPane();
@@ -154,20 +168,21 @@ public class Main extends Application {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
+		System.out.println("Search window loaded");
 		// Show the scene containing the search view
 		Scene scene = new Scene(searchView);
 		primaryStage.setScene(scene);
 		primaryStage.show();
-
+		System.out.println("Search window created");
 		// Give the controller access to the main app
 		SearchViewController controller = loader.getController();
-		controller.setMainApp(this);
-		controller.setUsername(getDBUserDAO().getUser());
+		//controller.setMainApp(this);
+		controller.setStage(primaryStage);
+		return true;
 
 	}
 
-	public boolean showNewHistoricSearch(DBCollection c) {
+	public static void showNewHistoricSearch(DBCollection c, HistoricViewController historicViewController) {
 
 		FXMLLoader loader = new FXMLLoader();
 		loader.setLocation(Main.class.getResource("view/NewHistoricDialog.fxml"));
@@ -175,7 +190,6 @@ public class Main extends Application {
 		try {
 			page = (AnchorPane) loader.load();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -189,23 +203,43 @@ public class Main extends Application {
 		controller.setDialogStage(dialogStage);
 		controller.setTwitter(twitterSessionDAO.getTwitter());
 		controller.setCollection(c);
-		
+		controller.setHistoricView(historicViewController);
 		dialogStage.showAndWait();
-		
-		
-		c.setRepeated(controller.repeatSearch());
-		return controller.isOkClicked();
-
+		//return;
+		//return controller.isOkClicked();
 	}
-
-		
 	
+	public static ProgressController showProgressBar(String title) {
+		FXMLLoader loader = new FXMLLoader(Main.class.getResource("view/ProgressLayout.fxml"));
+        AnchorPane page = null;
+		try {
+			page = (AnchorPane) loader.load();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+        
+		Stage progressStage = new Stage();
+		progressStage.setTitle("Progress");
+		progressStage.initOwner(primaryStage);
+		Scene scene = new Scene(page);
+		progressStage.setScene(scene);
+		progressStage.show();
+		
+        ProgressController controller = loader.getController();
+        controller.setStage(progressStage);
+        controller.setProcessTitle(title);
+        return controller;
+	}
 
 	public static void main(String[] args) {
 
 		String path = "src/main/resources/twitter.db";
+			//Eclipse path: "src/main/resources/twitter.db";
+			//Ant build path: "resources/twitter.db";
+		System.out.println("Starting...");
 		File file = new File(path);
-		setDatabaseDAO(DatabaseDAO.getInstance(path));
+		getInstance();
+		Main.setDatabaseDAO(DatabaseDAO.getInstance(path));
 
 		if (!file.exists()) {
 			System.out.println("Database does not exist. Create a new one");
