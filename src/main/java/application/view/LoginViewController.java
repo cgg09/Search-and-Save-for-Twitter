@@ -23,7 +23,6 @@ public class LoginViewController {
 	@FXML
 	private MenuButton loginButton;
 	private Stage currentStage;
-	private Main main;
 
 	/**
 	 * The constructor, called before the initialize() method
@@ -50,7 +49,7 @@ public class LoginViewController {
 			e2.printStackTrace();
 		}
 		// show users' list to login
-		if (users != null) {
+		if (!users.isEmpty()) {
 			for (String u : users) {
 				MenuItem m = new MenuItem(u);
 				m.setOnAction(e -> {
@@ -137,15 +136,6 @@ public class LoginViewController {
 	}
 
 	/**
-	 * Is called by the main application to give a reference back to itself
-	 * 
-	 * @param main
-	 */
-	public void setMainApp(Main main) {
-		this.main = main;
-	}
-
-	/**
 	 * When the user clicks the login button
 	 * 
 	 * @throws ConnectivityException
@@ -154,8 +144,89 @@ public class LoginViewController {
 	 */
 	@FXML
 	private void handleSignUp() throws NetworkException, AccessException {
-		main.manageNewLogin();
-		currentStage.close();
+		
+		
+		//currentStage.close();
+
+		currentStage.hide();
+		ProgressController progress = Main.showProgressBar("New login");
+		progress.getStage().getScene().setCursor(Cursor.WAIT);
+		Task<Boolean> newLogin = new Task<Boolean>() {
+
+			@Override
+			protected Boolean call() throws Exception {
+				boolean log = false;
+				//updateProgress(0,100);
+				//updateMessage(progress.getProcessStatus().getText());
+				try {
+					log = Main.manageNewLogin();
+					//Main.getLogin().getSuccess();
+				} catch (NetworkException e1) {
+					e1.printStackTrace();
+				}
+				//updateProgress(50,100);
+				//updateMessage(progress.getProcessStatus().getText());
+				System.out.println("Sucess?: "+log);
+				return log;
+			}
+
+		};
+		progress.getProcessStatus().textProperty().set("Login user");
+		progress.getProcessStatus().textProperty().bind(newLogin.messageProperty());
+		progress.getProgressBar().progressProperty().bind(newLogin.progressProperty());
+		progress.getProcessStatus().textProperty().bind(newLogin.messageProperty());
+		
+		newLogin.addEventHandler(WorkerStateEvent.WORKER_STATE_RUNNING, new EventHandler<WorkerStateEvent>() {
+			@Override
+			public void handle(WorkerStateEvent event) {
+				/**
+				 *  TODO: show progress messages:
+				 *  Creating twitter session
+				 *  		|
+				 *  		v
+				 *  Retrieving user session (getting db info/connecting to twitter/verifying credentials)
+				 *  -------------------------------------------------------------------------------------
+				 *  Loading view
+				 *  Loading info user (collections)
+				 */
+			}
+
+		});
+		
+		newLogin.addEventHandler(WorkerStateEvent.WORKER_STATE_FAILED, new EventHandler<WorkerStateEvent>() {
+
+			@Override
+			public void handle(WorkerStateEvent event) {
+				System.out.println(event.getSource().getException());
+				//System.out.println(event.getTarget().toString());
+			}
+			
+		});
+
+		newLogin.addEventHandler(WorkerStateEvent.WORKER_STATE_SUCCEEDED,
+				new EventHandler<WorkerStateEvent>() {
+					@Override
+					public void handle(WorkerStateEvent event) {
+						System.out.println("Great!!");
+						
+						//Main.showSearch();
+						Main.showWebView(Main.getLogin().getRequestToken().getAuthorizationURL());
+						//updateProgress(100,100);
+						progress.getStage().getScene().setCursor(Cursor.DEFAULT);
+						progress.getStage().close();
+						
+					}
+				});
+		new Thread(newLogin).start();
+		
+		
+		
+		
+		
+		
+		
+	
+		
 	}
 
 }

@@ -24,8 +24,6 @@ public class DBUserDAO {
 
 	// Queries
 	private String login = "INSERT INTO user (username, access_token, access_secret) VALUES (?,?,?)";
-	
-	//private String checkUser = "SELECT username FROM user WHERE username= ?";
 	private String countUsers = "SELECT count() FROM user";
 	private String getUsers = "SELECT * FROM user";
 	private String colections = "SELECT * FROM collection WHERE username= ? ORDER BY time_start DESC";
@@ -75,35 +73,6 @@ public class DBUserDAO {
 
 	}
 
-	/**
-	 * Check if the user exists in the database to do the fast login
-	 * 
-	 * @param user
-	 * @return
-	 * @throws DatabaseReadException
-	 * @throws DataNotFoundException
-	 */
-	/*public boolean checkUser(String username) throws DatabaseReadException, DataNotFoundException {
-
-		PreparedStatement psck = null;
-		ResultSet rs = null;
-		
-		try {
-			psck = c.prepareStatement(checkUser);
-			psck.setString(1, username);
-			rs = psck.executeQuery();
-		} catch (SQLException e) {
-			throw new DatabaseReadException("An error occurred while reading the data.",e);
-		}
-
-		if (rs != null) {
-			return true;
-		} else {
-			throw new DataNotFoundException("The user was not found in the database."); // Deber�a ser un error �?
-		}
-
-	}*/
-
 	public List<String> getUsers() throws DatabaseReadException, DataNotFoundException {
 
 		List<String> u = new Vector<String>();
@@ -111,12 +80,11 @@ public class DBUserDAO {
 		ResultSet rsu = null;
 
 		try {
-			if (c.createStatement().executeQuery(countUsers).getInt(1) < 1) { // FIXME no es una "EXCEPTION", qu� poner aqu� ?
-				return null; // FIXME throw new DataNotFoundException();
-			}
-			rsu = c.createStatement().executeQuery(getUsers);
-			while (rsu.next()) {
-				u.add(rsu.getString("username"));
+			if (!(c.createStatement().executeQuery(countUsers).getInt(1) < 1)) {
+				rsu = c.createStatement().executeQuery(getUsers);
+				while (rsu.next()) {
+					u.add(rsu.getString("username"));
+				}
 			}
 
 		} catch (SQLException e) {

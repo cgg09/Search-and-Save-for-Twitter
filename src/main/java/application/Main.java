@@ -32,14 +32,17 @@ public class Main extends Application {
 	private static DBUserDAO dbUserDAO;
 	private static TwitterSessionDAO twitterSessionDAO;
 	private static Stage primaryStage;
-	
+
 	private static Login login;
 
-	
 	public static Main getInstance() {
 		return instance;
 	}
 	
+	public static Login getLogin() {
+		return login;
+	}
+
 	public static DatabaseDAO getDatabaseDAO() {
 		return databaseDAO;
 	}
@@ -59,16 +62,15 @@ public class Main extends Application {
 	public static TwitterSessionDAO getTwitterSessionDAO() {
 		return twitterSessionDAO;
 	}
-	
+
 	public static void setTwitterSessionDAO(TwitterSessionDAO twitterSessionDAO) {
 		Main.twitterSessionDAO = twitterSessionDAO;
 	}
-	
 
 	public static Stage getPrimaryStage() {
 		return primaryStage;
 	}
-	
+
 	@Override
 	public void start(Stage primaryStage) {
 		instance = this;
@@ -83,7 +85,6 @@ public class Main extends Application {
 	 * Initializes the login view
 	 */
 	public static void showLogin() {
-
 		FXMLLoader loader = new FXMLLoader();
 		loader.setLocation(Main.class.getResource("view/LoginView.fxml"));
 		AnchorPane loginView = null;
@@ -98,46 +99,37 @@ public class Main extends Application {
 		primaryStage.show();
 
 		LoginViewController controller = loader.getController();
-		//controller.setMainApp(this);
 		controller.setStage(primaryStage);
 		login = new Login();
 	}
 
-	public void manageNewLogin() throws NetworkException, AccessException {
-		//login.setMainApp(this);
+	public static boolean manageNewLogin() throws NetworkException, AccessException {
+		boolean d = false;
 		setDBUserDAO(DBUserDAO.getInstance());
 		setTwitterSessionDAO(TwitterSessionDAO.getInstance());
 		twitterSessionDAO.setTwitterInstance();
-		login.createRequest(twitterSessionDAO.getTwitter(), dbUserDAO);
+		d = login.createRequest(twitterSessionDAO.getTwitter(), dbUserDAO);
+		return d;
 	}
 
 	public static boolean manageFastLogin(String user) throws NetworkException {
-		//login.setMainApp(this);
 		setDBUserDAO(DBUserDAO.getInstance());
-		//boolean check = false;
 		boolean done = false;
-		/*try {
-			check = dbUserDAO.checkUser(user);
-		} catch (DatabaseReadException | DataNotFoundException e) {
+		setTwitterSessionDAO(TwitterSessionDAO.getInstance());
+		twitterSessionDAO.setTwitterInstance();
+		System.out.println("Twitter instance setted");
+		try {
+			done = login.retrieveSession(twitterSessionDAO.getTwitter(), user, dbUserDAO);
+		} catch (AccessException e) {
 			e.printStackTrace();
-		} System.out.println("User checked");
-		if (check) {*/
-			setTwitterSessionDAO(TwitterSessionDAO.getInstance());
-			twitterSessionDAO.setTwitterInstance();
-			System.out.println("Twitter instance setted");
-			try {
-				done = login.retrieveSession(twitterSessionDAO.getTwitter(), user, dbUserDAO);
-			} catch (AccessException e) {
-				e.printStackTrace();
-			} System.out.println("Session retrieved");
-		/*} else {
-			System.out.println("Lo siento, pero este usuario no est� registrado en esta aplicaci�n. Intenta de nuevo.");
-		}*/
+		}
+		System.out.println("Session retrieved");
 		return done;
 	}
 
 	/**
 	 * Initializes the webView for the first login
+	 * @return 
 	 */
 	public static void showWebView(String URL) {
 
@@ -154,10 +146,10 @@ public class Main extends Application {
 
 	/**
 	 * Initializes the search view inside the root layout
-	 * @return 
+	 * 
+	 * @return
 	 */
 	public static boolean showSearch() {
-
 		// Load login from fxml file
 		System.out.println("Loading window ..?");
 		FXMLLoader loader = new FXMLLoader();
@@ -168,22 +160,18 @@ public class Main extends Application {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		System.out.println("Search window loaded");
 		// Show the scene containing the search view
 		Scene scene = new Scene(searchView);
 		primaryStage.setScene(scene);
 		primaryStage.show();
-		System.out.println("Search window created");
 		// Give the controller access to the main app
 		SearchViewController controller = loader.getController();
-		//controller.setMainApp(this);
 		controller.setStage(primaryStage);
 		return true;
 
 	}
 
 	public static void showNewHistoricSearch(DBCollection c, HistoricViewController historicViewController) {
-
 		FXMLLoader loader = new FXMLLoader();
 		loader.setLocation(Main.class.getResource("view/NewHistoricDialog.fxml"));
 		AnchorPane page = null;
@@ -205,37 +193,35 @@ public class Main extends Application {
 		controller.setCollection(c);
 		controller.setHistoricView(historicViewController);
 		dialogStage.showAndWait();
-		//return;
-		//return controller.isOkClicked();
 	}
-	
+
 	public static ProgressController showProgressBar(String title) {
 		FXMLLoader loader = new FXMLLoader(Main.class.getResource("view/ProgressLayout.fxml"));
-        AnchorPane page = null;
+		AnchorPane page = null;
 		try {
 			page = (AnchorPane) loader.load();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-        
+
 		Stage progressStage = new Stage();
 		progressStage.setTitle("Progress");
 		progressStage.initOwner(primaryStage);
 		Scene scene = new Scene(page);
 		progressStage.setScene(scene);
 		progressStage.show();
-		
-        ProgressController controller = loader.getController();
-        controller.setStage(progressStage);
-        controller.setProcessTitle(title);
-        return controller;
+
+		ProgressController controller = loader.getController();
+		controller.setStage(progressStage);
+		controller.setProcessTitle(title);
+		return controller;
 	}
 
 	public static void main(String[] args) {
 
 		String path = "src/main/resources/twitter.db";
-			//Eclipse path: "src/main/resources/twitter.db";
-			//Ant build path: "resources/twitter.db";
+		// Eclipse path: "src/main/resources/twitter.db";
+		// Ant build path: "resources/twitter.db";
 		System.out.println("Starting...");
 		File file = new File(path);
 		getInstance();
@@ -269,7 +255,6 @@ public class Main extends Application {
 
 		launch(args);
 	}
-
+	// css -->
 	// scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
-	// //#css!!
 }

@@ -85,10 +85,9 @@ public class NewHistoricDialogController {
 						q = null;
 						q = collection.getQuery();
 					}
-					System.out.println("Final query..: "+q);
-					final String query = q;
+					
 					try {
-						d = collection.manageSearch(query);
+						d = collection.manageSearch(q);
 					} catch (AccessException | RateLimitException | NetworkException e1) {
 						e1.printStackTrace();
 					}

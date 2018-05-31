@@ -36,15 +36,14 @@ public class DatabaseDAO {
 			" FOREIGN KEY (username) REFERENCES	user(username) ON DELETE CASCADE)";
 	
 	private String tweetTable = "CREATE TABLE tweet " +
-			"(tweet_id INTEGER not NULL, " +
-			" collection_id INTEGER not NULL, " +  
+			"(tweet_id INTEGER PRIMARY KEY not NULL, " +
+			" collection_id INTEGER not NULL, " +
 			" author VARCHAR(50) not NULL, " +
 			" created_at TEXT not NULL, " +
 			" text_printable VARCHAR(200) not NULL, " +
 			" retweet INTEGER not NULL, " +
 			" raw_tweet	TEXT not NULL, " +
-			" PRIMARY KEY (tweet_id, collection_id), "+
-			" FOREIGN KEY (collection_id) REFERENCES collection(collection_id) ON DELETE CASADE)";
+			" FOREIGN KEY (collection_id) REFERENCES collection(collection_id) ON DELETE CASCADE)";
 	
 	
 	private DatabaseDAO(String path) {
@@ -71,7 +70,7 @@ public class DatabaseDAO {
 		}
 	}
 	
-	public void checkDatabase() throws DatabaseReadException {
+	public void checkDatabase() throws DatabaseReadException { //FIXME no sirve de nada !!! no funciona !!! pendiente de arreglar
 		connect();
 		
 		PreparedStatement psu = null;
