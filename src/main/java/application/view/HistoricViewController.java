@@ -136,8 +136,16 @@ public class HistoricViewController extends AnchorPane {
 		// select options for each collection of the historySearch view
 		historySearch.setRowFactory(tv -> {
 			TableRow<DBCollection> row = new TableRow<>();
-			row.setOnMouseEntered(e -> Main.getPrimaryStage().getScene().setCursor(Cursor.HAND));
-			row.setOnMouseExited(e -> Main.getPrimaryStage().getScene().setCursor(Cursor.DEFAULT));
+			row.setOnMouseEntered(e -> {
+				if(!row.isEmpty()) {
+					Main.getPrimaryStage().getScene().setCursor(Cursor.HAND);
+				}
+			});
+			row.setOnMouseExited(e -> {
+				if(!row.isEmpty()) {
+					Main.getPrimaryStage().getScene().setCursor(Cursor.DEFAULT);
+				}
+			});
 			row.setOnMouseClicked(event -> {
 				if (event.getButton() == MouseButton.SECONDARY && (!row.isEmpty())) {
 					DBCollection col = historySearch.getSelectionModel().getSelectedItem();
@@ -212,8 +220,16 @@ public class HistoricViewController extends AnchorPane {
 		// show a selected tweet in a browser
 		currentSearch.setRowFactory(cRow -> {
 			TableRow<DisplayableTweet> currentRow = new TableRow<>();
-			currentRow.setOnMouseEntered(e -> Main.getPrimaryStage().getScene().setCursor(Cursor.HAND));
-			currentRow.setOnMouseExited(e -> Main.getPrimaryStage().getScene().setCursor(Cursor.DEFAULT));
+			currentRow.setOnMouseEntered(e -> {
+				if(!currentRow.isEmpty()) {
+					Main.getPrimaryStage().getScene().setCursor(Cursor.HAND);
+				}
+			});
+			currentRow.setOnMouseExited(e -> {
+				if(!currentRow.isEmpty()) {
+					Main.getPrimaryStage().getScene().setCursor(Cursor.DEFAULT);
+				}
+			});
 			currentRow.setOnMouseClicked(event -> {
 				if (event.getClickCount() == 2 && !currentRow.isEmpty()) {
 					DisplayableTweet rowTweet = currentRow.getItem();

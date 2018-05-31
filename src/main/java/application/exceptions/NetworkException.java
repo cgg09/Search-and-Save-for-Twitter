@@ -22,3 +22,4 @@ public class NetworkException extends Exception {
 		alert.showAndWait();	
 	}
 }
+

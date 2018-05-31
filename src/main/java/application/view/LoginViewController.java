@@ -9,6 +9,7 @@ import application.exceptions.AccessException;
 import application.exceptions.NetworkException;
 import application.exceptions.DataNotFoundException;
 import application.exceptions.DatabaseReadException;
+import application.view.ProgressController;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.EventHandler;
@@ -218,15 +219,7 @@ public class LoginViewController {
 					}
 				});
 		new Thread(newLogin).start();
-		
-		
-		
-		
-		
-		
-		
-	
-		
+				
 	}
 
 }
