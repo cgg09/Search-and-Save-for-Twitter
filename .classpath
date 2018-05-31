@@ -8,11 +8,8 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.fx.ide.jdt.core.JAVAFX_CONTAINER"/>
-	<classpathentry kind="con" path="org.eclipse.m2e.MAVEN2_CLASSPATH_CONTAINER">
-		<attributes>
-			<attribute name="maven.pomderived" value="true"/>
-		</attributes>
-	</classpathentry>
 	<classpathentry kind="lib" path="C:/Users/María Cristina/Documents/Eclipse/TFG docs/sqlite-jdbc-3.21.0.jar"/>
+	<classpathentry kind="lib" path="C:/Users/María Cristina/Documents/Eclipse/TFG docs/commons-csv-1.5.jar"/>
+	<classpathentry kind="lib" path="C:/Users/María Cristina/Documents/Eclipse/TFG docs/twitter4j-core-4.0.2.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
