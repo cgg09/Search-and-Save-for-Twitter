@@ -154,19 +154,6 @@ public class DBUserDAO {
 	}
 	
 	public void deleteUser() throws DatabaseWriteException {
-		
-		
-		List<DBCollection> dbcols = new Vector<DBCollection>();
-		try {
-			dbcols = retrieveCollections();
-		} catch (DatabaseReadException e1) {
-			e1.printStackTrace();
-		}
-		
-		for(DBCollection c : dbcols) {
-			c.deleteCollection();
-		}
-		
 		PreparedStatement psdt = null;
 		try {
 			psdt = c.prepareStatement(delUser);

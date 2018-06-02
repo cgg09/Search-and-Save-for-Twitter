@@ -56,6 +56,7 @@ public class DBCollection {
 
 	// Queries
 	private String addCollection = "INSERT INTO collection (username, time_start, type, query) VALUES (?,?,?,?);";
+
 	private String addTweet = "INSERT INTO tweet (tweet_id, collection_id, author, created_at, text_printable, retweet, raw_tweet) "
 			+ "VALUES (?,?,?,?,?,?,?);";
 
@@ -73,8 +74,6 @@ public class DBCollection {
 			+ "WHERE collection_id = ? ORDER BY created_at DESC";
 
 	private String getNewestTweet = "SELECT MAX(tweet_id) AS max_tweet_id FROM tweet WHERE collection_id = ?";
-
-	private String delTweets = "DELETE FROM tweet WHERE collection_id = ?";
 
 	private String delCol = "DELETE FROM collection where collection_id = ?";
 
@@ -518,15 +517,6 @@ public class DBCollection {
 	}
 
 	public void deleteCollection() throws DatabaseWriteException {
-
-		PreparedStatement psdt = null;
-		try {
-			psdt = c.prepareStatement(delTweets);
-			psdt.setInt(1, id);
-			psdt.executeUpdate();
-		} catch (SQLException e) {
-			throw new DatabaseWriteException("There was an error deleting the tweets of the collection.", e);
-		}
 		PreparedStatement psdc = null;
 		try {
 			psdc = c.prepareStatement(delCol);
@@ -536,7 +526,6 @@ public class DBCollection {
 		} catch (SQLException e) {
 			throw new DatabaseWriteException("There was an error deleting the collection info.", e);
 		}
-
 	}
 
 	public ResultSet exportTweets() throws DatabaseReadException {

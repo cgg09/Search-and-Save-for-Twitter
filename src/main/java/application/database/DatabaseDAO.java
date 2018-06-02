@@ -6,6 +6,8 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import org.sqlite.SQLiteConfig;
+
 import application.exceptions.DatabaseReadException;
 import application.exceptions.DatabaseWriteException;
 
@@ -13,6 +15,7 @@ public class DatabaseDAO {
 
 	private static DatabaseDAO instance;
 	private Connection c;
+	private SQLiteConfig config;
 	private String databasePath;
 	
 	//Queries
@@ -20,31 +23,30 @@ public class DatabaseDAO {
 	private String checkC = "SELECT name FROM sqlite_master WHERE type='table' AND name='collection'";
 	private String checkT = "SELECT name FROM sqlite_master WHERE type='table' AND name='tweet'";
 	
-	private String userTable = "CREATE TABLE user " +
-			"(username TEXT not NULL, " +
-			" access_token TEXT not NULL, " + 
-			" access_secret TEXT not NULL, " +
-			" PRIMARY KEY ( username ))";
+	private String userTable = "CREATE TABLE user (" + 
+			"    username      TEXT PRIMARY KEY NOT NULL," + 
+			"    access_token  TEXT NOT NULL," + 
+			"    access_secret TEXT NOT NULL" + 
+			");";
 	
-	private String collectionTable = "CREATE TABLE collection " +
-			"(collection_id INTEGER PRIMARY KEY AUTOINCREMENT not NULL, " +
-			" username TEXT	not NULL, " +
-			" time_start TEXT not NULL, " + 
-			" time_end TEXT, " +
-			" type VARCHAR(50) not NULL, " +
-			" query	VARCHAR(50) not NULL, " +
-			" FOREIGN KEY (username) REFERENCES	user(username) ON DELETE CASCADE)";
+	private String collectionTable = "CREATE TABLE collection (" + 
+			"    collection_id INTEGER      PRIMARY KEY AUTOINCREMENT NOT NULL," + 
+			"    username      TEXT         NOT NULL REFERENCES user (username) ON DELETE CASCADE," + 
+			"    time_start    TEXT         NOT NULL," + 
+			"    time_end      TEXT," + 
+			"    type          VARCHAR (50) NOT NULL," + 
+			"    query         VARCHAR (50) NOT NULL" +
+			");";
 	
-	private String tweetTable = "CREATE TABLE tweet " +
-			"(tweet_id INTEGER PRIMARY KEY not NULL, " +
-			" collection_id INTEGER not NULL, " +
-			" author VARCHAR(50) not NULL, " +
-			" created_at TEXT not NULL, " +
-			" text_printable VARCHAR(200) not NULL, " +
-			" retweet INTEGER not NULL, " +
-			" raw_tweet	TEXT not NULL, " +
-			" FOREIGN KEY (collection_id) REFERENCES collection(collection_id) ON DELETE CASCADE)";
-	
+	private String tweetTable = "CREATE TABLE tweet (" + 
+			"    tweet_id       INTEGER       PRIMARY KEY NOT NULL," + 
+			"    collection_id  INTEGER       NOT NULL REFERENCES collection (collection_id) ON DELETE CASCADE," + 
+			"    author         VARCHAR (50)  NOT NULL," + 
+			"    created_at     TEXT          NOT NULL," + 
+			"    text_printable VARCHAR (200) NOT NULL," + 
+			"    retweet        INTEGER       NOT NULL," + 
+			"    raw_tweet      TEXT          NOT NULL" + 
+			");";
 	
 	private DatabaseDAO(String path) {
 		databasePath = path;
@@ -62,9 +64,11 @@ public class DatabaseDAO {
 	}
 	
 	public void connect() {
+		config = new SQLiteConfig();
+		config.enforceForeignKeys(true);
 		try {
 			Class.forName("org.sqlite.JDBC");
-			c = DriverManager.getConnection("jdbc:sqlite:"+databasePath);
+			c = DriverManager.getConnection("jdbc:sqlite:"+databasePath,config.toProperties());
 		} catch ( Exception e ) {
 			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
 		}
