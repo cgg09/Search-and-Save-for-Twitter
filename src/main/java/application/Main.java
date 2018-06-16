@@ -8,6 +8,7 @@ import application.database.DBUserDAO;
 import application.database.DatabaseDAO;
 import application.exceptions.AccessException;
 import application.exceptions.NetworkException;
+import application.tasks.LoginTask;
 //import application.exceptions.DataNotFoundException;
 import application.exceptions.DatabaseReadException;
 import application.exceptions.DatabaseWriteException;
@@ -76,7 +77,7 @@ public class Main extends Application {
 		instance = this;
 		Main.getInstance();
 		Main.primaryStage = primaryStage;
-		Main.primaryStage.setTitle("Twitter Searcher");
+		Main.primaryStage.setTitle("Search & Save for Twitter");
 
 		showLogin();
 	}
@@ -96,6 +97,7 @@ public class Main extends Application {
 
 		Scene scene = new Scene(loginView);
 		primaryStage.setScene(scene);
+		primaryStage.resizableProperty().setValue(Boolean.FALSE);
 		primaryStage.show();
 
 		LoginViewController controller = loader.getController();
@@ -107,16 +109,16 @@ public class Main extends Application {
 		boolean d = false;
 		setDBUserDAO(DBUserDAO.getInstance());
 		setTwitterSessionDAO(TwitterSessionDAO.getInstance());
-		twitterSessionDAO.setTwitterInstance();
+		twitterSessionDAO.startTwitterSession();
 		d = login.createRequest(twitterSessionDAO.getTwitter(), dbUserDAO);
 		return d;
 	}
 
-	public static boolean manageFastLogin(String user) throws NetworkException {
+	public static boolean manageFastLogin(String user, LoginTask loginTask)/*, Task<Boolean> task)*/ throws NetworkException {
 		setDBUserDAO(DBUserDAO.getInstance());
 		boolean done = false;
 		setTwitterSessionDAO(TwitterSessionDAO.getInstance());
-		twitterSessionDAO.setTwitterInstance();
+		twitterSessionDAO.startTwitterSession();
 		System.out.println("Twitter instance setted");
 		try {
 			done = login.retrieveSession(twitterSessionDAO.getTwitter(), user, dbUserDAO);
@@ -139,6 +141,7 @@ public class Main extends Application {
 		stage.setTitle("Web View");
 		Scene scene = new Scene(browser, 750, 500, Color.web("#666970"));
 		stage.setScene(scene);
+		stage.resizableProperty().setValue(Boolean.FALSE);
 		stage.show();
 		browser.setStage(stage);
 		login.retrieveTokens(browser);
@@ -163,6 +166,7 @@ public class Main extends Application {
 		// Show the scene containing the search view
 		Scene scene = new Scene(searchView);
 		primaryStage.setScene(scene);
+		primaryStage.resizableProperty().setValue(Boolean.TRUE);
 		primaryStage.show();
 		// Give the controller access to the main app
 		SearchViewController controller = loader.getController();
@@ -183,6 +187,7 @@ public class Main extends Application {
 
 		Stage dialogStage = new Stage();
 		dialogStage.setTitle("New historic search");
+		dialogStage.resizableProperty().setValue(Boolean.FALSE);
 		dialogStage.initOwner(primaryStage);
 		Scene scene = new Scene(page);
 		dialogStage.setScene(scene);
@@ -209,11 +214,13 @@ public class Main extends Application {
 		progressStage.initOwner(primaryStage);
 		Scene scene = new Scene(page);
 		progressStage.setScene(scene);
+		progressStage.resizableProperty().setValue(Boolean.FALSE);// TODO disable close button
 		progressStage.show();
 
 		ProgressController controller = loader.getController();
 		controller.setStage(progressStage);
 		controller.setProcessTitle(title);
+		controller.disableDetails();
 		return controller;
 	}
 

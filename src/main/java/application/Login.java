@@ -43,7 +43,7 @@ public class Login {
 	 * @throws AccessException
 	 */
 	public boolean createRequest(Twitter twitter, DBUserDAO dbu) throws NetworkException, AccessException {
-
+		
 		this.dbu = dbu;
 		this.twitter = twitter;
 
@@ -57,9 +57,9 @@ public class Login {
 						e);
 			}
 		}
+		
 		return true;
-		//setSuccess(true);
-		//Main.showWebView(requestToken.getAuthorizationURL());
+
 	}
 
 	/**
@@ -67,7 +67,7 @@ public class Login {
 	 * @return 
 	 */
 	public void retrieveTokens(Browser browser) {
-
+		
 		webEngine = browser.getWebEngine();
 		webEngine.getLoadWorker().stateProperty().addListener(new ChangeListener<Worker.State>() {
 
@@ -77,7 +77,6 @@ public class Login {
 
 				if (newState.equals(javafx.concurrent.Worker.State.FAILED)) {
 					String location = webEngine.getLocation();
-					System.out.println("URL: "+location);
 					if (location.startsWith(Main.getTwitterSessionDAO().getCallbackUrl())) {
 						String callbackURLWithTokens = location;
 						browser.closeBrowser();
@@ -113,13 +112,11 @@ public class Login {
 		Map<String, String> urlMap = getQueryMap(callbackURL);
 		oauthToken = urlMap.get("oauth_token");
 		oauthVerifier = urlMap.get("oauth_verifier");
-		System.out.println("Oauth token: "+oauthToken+", oauthVerifier: "+oauthVerifier);
 
 		if (oauthVerifier != null && ((requestToken.getToken().toString().equalsIgnoreCase(oauthToken)))) {
 			webEngine.getLoadWorker().cancel();
 			try {
 				accessToken = twitter.getOAuthAccessToken(requestToken, oauthVerifier);
-				System.out.println(accessToken);
 			} catch (TwitterException e) {
 				if (e.getStatusCode() == UNAUTHORIZED) {
 					throw new AccessException("401: Unable to get the access token. Please check your credentials.", e);
@@ -130,13 +127,12 @@ public class Login {
 			}
 		}
 
-		else {
-			try {
+		else { // TODO ¿¿??
+			/*try {
 				accessToken = twitter.getOAuthAccessToken();
 			} catch (TwitterException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
-			}
+			}*/
 		}
 
 		try {

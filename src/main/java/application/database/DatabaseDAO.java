@@ -23,29 +23,29 @@ public class DatabaseDAO {
 	private String checkC = "SELECT name FROM sqlite_master WHERE type='table' AND name='collection'";
 	private String checkT = "SELECT name FROM sqlite_master WHERE type='table' AND name='tweet'";
 	
-	private String userTable = "CREATE TABLE user (" + 
-			"    username      TEXT PRIMARY KEY NOT NULL," + 
-			"    access_token  TEXT NOT NULL," + 
-			"    access_secret TEXT NOT NULL" + 
+	private String userTable = "CREATE TABLE user (" +
+			"    username      TEXT PRIMARY KEY NOT NULL," +
+			"    access_token  TEXT NOT NULL," +
+			"    access_secret TEXT NOT NULL" +
 			");";
 	
-	private String collectionTable = "CREATE TABLE collection (" + 
-			"    collection_id INTEGER      PRIMARY KEY AUTOINCREMENT NOT NULL," + 
-			"    username      TEXT         NOT NULL REFERENCES user (username) ON DELETE CASCADE," + 
-			"    time_start    TEXT         NOT NULL," + 
-			"    time_end      TEXT," + 
-			"    type          VARCHAR (50) NOT NULL," + 
+	private String collectionTable = "CREATE TABLE collection (" +
+			"    collection_id INTEGER      PRIMARY KEY AUTOINCREMENT NOT NULL," +
+			"    username      TEXT         NOT NULL REFERENCES user (username) ON DELETE CASCADE," +
+			"    time_start    TEXT         NOT NULL," +
+			"    time_end      TEXT," +
+			"    type          VARCHAR (50) NOT NULL," +
 			"    query         VARCHAR (50) NOT NULL" +
 			");";
-	
-	private String tweetTable = "CREATE TABLE tweet (" + 
-			"    tweet_id       INTEGER       PRIMARY KEY NOT NULL," + 
-			"    collection_id  INTEGER       NOT NULL REFERENCES collection (collection_id) ON DELETE CASCADE," + 
-			"    author         VARCHAR (50)  NOT NULL," + 
-			"    created_at     TEXT          NOT NULL," + 
-			"    text_printable VARCHAR (200) NOT NULL," + 
-			"    retweet        INTEGER       NOT NULL," + 
-			"    raw_tweet      TEXT          NOT NULL" + 
+
+	private String tweetTable = "CREATE TABLE tweet (" +
+			"    tweet_id       INTEGER       PRIMARY KEY NOT NULL," +
+			"    collection_id  INTEGER       NOT NULL REFERENCES collection (collection_id) ON DELETE CASCADE," +
+			"    author         VARCHAR (50)  NOT NULL," +
+			"    created_at     TEXT          NOT NULL," +
+			"    text_printable VARCHAR (200) NOT NULL," +
+			"    retweet        INTEGER       NOT NULL," +
+			"    raw_tweet      TEXT          NOT NULL" +
 			");";
 	
 	private DatabaseDAO(String path) {
@@ -70,7 +70,7 @@ public class DatabaseDAO {
 			Class.forName("org.sqlite.JDBC");
 			c = DriverManager.getConnection("jdbc:sqlite:"+databasePath,config.toProperties());
 		} catch ( Exception e ) {
-			System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+			System.err.println(e.getClass().getName() + ": " + e.getMessage());
 		}
 	}
 	

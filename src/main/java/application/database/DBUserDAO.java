@@ -141,7 +141,7 @@ public class DBUserDAO {
 				DBCollection dbc = new DBCollection(rsc.getString("type"));
 				dbc.setId(rsc.getInt("collection_id"));
 				dbc.setStart(rsc.getString("time_start"));
-				dbc.setEnd(rsc.getString("time_start"));
+				//dbc.setEnd(rsc.getString("time_end"));
 				dbc.setQuery(rsc.getString("query"));
 				dbc.retrieveTweets();
 				cols.add(dbc);

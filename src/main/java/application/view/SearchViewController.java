@@ -7,9 +7,9 @@ import application.database.DBCollection;
 import application.exceptions.DatabaseWriteException;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
-import javafx.scene.control.SplitMenuButton;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonBar.ButtonData;
@@ -19,7 +19,7 @@ import javafx.stage.Stage;
 public class SearchViewController extends AnchorPane {
 
 	@FXML
-	private SplitMenuButton settingsButton;
+	private MenuButton settingsButton;
 	@FXML
 	private Label username;
 	@FXML

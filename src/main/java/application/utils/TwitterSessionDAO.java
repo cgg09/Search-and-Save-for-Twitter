@@ -10,7 +10,6 @@ import twitter4j.conf.ConfigurationBuilder;
 public class TwitterSessionDAO {
 
 	private static TwitterSessionDAO instance;
-	private AppProperties appProps;
 	private Twitter twitter;
 	private String callback_url;
 	
@@ -29,9 +28,9 @@ public class TwitterSessionDAO {
 	 * Set consumer_key and consumer_secret credentials at the start of the connection
 	 * @return twitter instance
 	 */
-	public Twitter setTwitterInstance() {
+	public Twitter startTwitterSession() {
 		
-		appProps = new AppProperties();
+		AppProperties appProps = new AppProperties();
 		
 		try {
 			appProps.loadFile("client.properties");
@@ -45,7 +44,7 @@ public class TwitterSessionDAO {
 		Configuration conf = builder.build();
 		TwitterFactory factory = new TwitterFactory(conf); 
 		Twitter twitter = factory.getInstance();
-		this.twitter = twitter;
+		setTwitterInstance(twitter);
 		callback_url = appProps.getValue("base_callback_url");
 		return twitter;
 	}
@@ -54,10 +53,13 @@ public class TwitterSessionDAO {
 		return twitter;
 	}
 	
+	public void setTwitterInstance(Twitter twitter) {
+		this.twitter = twitter;
+	}
+	
 	public String getCallbackUrl() {
 		return callback_url;
 	}
-	
 	
 	
 }

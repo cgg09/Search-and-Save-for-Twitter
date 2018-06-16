@@ -37,8 +37,10 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.FileChooser;
@@ -71,6 +73,9 @@ public class HistoricViewController extends AnchorPane {
 
 	private static SearchViewController searchController;
 
+	@FXML
+	private Button newSearch;
+	
 	private DBCollection collection;
 	private String fm1 = "Last 200 tweets";
 	private String fm2 = "All tweets (except RTs)";
@@ -123,6 +128,7 @@ public class HistoricViewController extends AnchorPane {
 		filterMenu.getItems().addAll(fm1, fm2, fm3);
 
 		// update currentSearch from historySearch
+		
 		historySearch.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
 			try {
 				newValue.updateCollection();
@@ -156,12 +162,10 @@ public class HistoricViewController extends AnchorPane {
 							@Override
 							protected Boolean call() throws Exception {
 								boolean d = handleRepeatSearch(col);
-								// this.updateMessage("Downloaded tweets: "+col.getDownloaded());
 								return d;
 							}
 
 						};
-						// progress.getProcessStatus().textProperty().set("Repeating search");
 						progress.getProcessStatus().textProperty().bind(repeatSearch.messageProperty());
 						progress.getProgressBar().progressProperty().bind(repeatSearch.progressProperty());
 						progress.getProcessStatus().textProperty().bind(repeatSearch.messageProperty());
@@ -170,8 +174,6 @@ public class HistoricViewController extends AnchorPane {
 									@Override
 									public void handle(WorkerStateEvent event) {
 										int downloaded = col.getDownloaded();
-										// System.out.println(downloaded);
-										progress.getTextArea().textProperty().bind(repeatSearch.messageProperty());
 										progress.getProcessStatus().textProperty().unbind();
 										progress.getProcessStatus().setText("Downloaded tweets: " + downloaded);
 
@@ -239,15 +241,19 @@ public class HistoricViewController extends AnchorPane {
 			});
 			return currentRow;
 		});
+		
+		// open new search window
+		newSearch.setOnKeyPressed(event->{
+			if(event.getCode() == KeyCode.ENTER) {
+				handleNewSearch();
+			}
+		});
 	}
 
 	@FXML
-	private void handleNew() {
-
+	private void handleNewSearch() {
 		collection = new DBCollection("Historic");
-
-		/*boolean okClicked = */searchController.newSearch(collection,this);
-		
+		searchController.newSearch(collection,this);		
 	}
 
 	public void updateViews() {
@@ -262,13 +268,6 @@ public class HistoricViewController extends AnchorPane {
 			addSearch(collection);
 		}
 	}
-	
-	/*
-	 * private void addCollection() { //System.out.println(collection.getQuery());
-	 * history.add(collection); Comparator<DBCollection> comparator =
-	 * Comparator.comparing(DBCollection::getStart); FXCollections.sort(history,
-	 * comparator.reversed()); historySearch.setItems(history); }
-	 */
 
 	private void addSearch(DBCollection c) {
 		collection = c;
@@ -340,12 +339,17 @@ public class HistoricViewController extends AnchorPane {
 		fileChooser.setTitle("Save as");
 		fileChooser.setInitialDirectory(new File(System.getProperty("user.home")));
 		fileChooser.setInitialFileName(filename);
-		fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("CSV file", ".csv"));
+		fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("CSV file (delimited with semicolons)", ".csv"));
+		fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("CSV file (delimited with commas)", ".csv"));
+		//fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("CSV file (delimited with tabs)", ".csv"));
 		File file = fileChooser.showSaveDialog(Main.getPrimaryStage());
 
 		if (file != null) {
+			String[] description = fileChooser.getSelectedExtensionFilter().getDescription().split(" ");
+			String delimiter = description[description.length-1].replaceAll("\\)", "").replaceAll(" ", "");
+			
 			try {
-				c.printCSV(file, tweetsExp);
+				c.printCSV(file, tweetsExp, delimiter);
 			} catch (DatabaseReadException e) {
 				e.printStackTrace();
 			}

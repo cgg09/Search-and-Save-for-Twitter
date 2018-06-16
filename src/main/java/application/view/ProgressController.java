@@ -5,13 +5,13 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
-import javafx.scene.control.TextArea;
+import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 
 public class ProgressController {
 	private Task<Object> task;
 	
-	private Stage stage;
+	private Stage stage; 
 
 	@FXML
 	private ProgressBar progressBar;
@@ -21,8 +21,10 @@ public class ProgressController {
 	private Label processStatus;
 	@FXML
 	private Button detailsButton;
+	/*@FXML
+	private TextArea detailsArea;*/
 	@FXML
-	private TextArea detailsArea;
+	private AnchorPane detailsArea;
 	
 	public Task<Object> getTask() {
 		return task;
@@ -40,7 +42,7 @@ public class ProgressController {
 		return processStatus;
 	}
 	
-	public TextArea getTextArea() {
+	public AnchorPane getTextArea() {
 		return detailsArea;
 	}
 	
@@ -49,6 +51,7 @@ public class ProgressController {
 		processTitle.textProperty().unbind();
 		progressBar.progressProperty().unbind();
 		processStatus.textProperty().unbind();
+		
 		//detailsArea.setDisable(true);
 	}
 
@@ -63,6 +66,7 @@ public class ProgressController {
 	
 	@FXML
 	private void detailsMenu() {
+		detailsArea.setDisable(false);
 		/*if(detailsArea.isDisabled()) {
 			detailsArea.setDisable(false);
 			detailsButton.setText("Hide details");
@@ -70,7 +74,11 @@ public class ProgressController {
 			detailsArea.setDisable(true);
 			detailsButton.setText("Show details");
 		}*/
-		detailsArea.setText("Hey");
+		//detailsArea.setText("Hey");
 		//System.out.println("Hey");
+	}
+	
+	public void disableDetails() {
+		this.detailsArea.setDisable(true);
 	}
 }

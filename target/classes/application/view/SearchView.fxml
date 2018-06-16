@@ -13,7 +13,7 @@
       <AnchorPane layoutX="-100.0" prefHeight="400.0" prefWidth="729.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
          		<fx:include source="HistoricView.fxml" />
-            <SplitMenuButton fx:id="settingsButton" layoutX="22.0" layoutY="26.0" mnemonicParsing="false" prefWidth="95.0" AnchorPane.leftAnchor="15.0" AnchorPane.topAnchor="25.0">
+            <MenuButton fx:id="settingsButton" layoutX="148.0" layoutY="25.0" mnemonicParsing="false" AnchorPane.leftAnchor="15.0" AnchorPane.topAnchor="25.0">
               <items>
                 <MenuItem fx:id="logOut" mnemonicParsing="false" onAction="#signOut" text="Log out" />
                   <SeparatorMenuItem mnemonicParsing="false" />
@@ -22,7 +22,7 @@
                <graphic>
                   <Label fx:id="username" alignment="CENTER" contentDisplay="CENTER" onMouseEntered="#highlightUser" onMouseExited="#disguiseUser" text="username" textAlignment="CENTER" />
                </graphic>
-            </SplitMenuButton>
+            </MenuButton>
          </children>
       </AnchorPane>
    </children>

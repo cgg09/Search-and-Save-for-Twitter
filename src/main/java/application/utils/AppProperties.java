@@ -20,8 +20,8 @@ public class AppProperties {
 	public String getValue(String key) {
 		return props.getProperty(key);
 	}
-	
+	/*
 	public void storeData(String key, String value) {
 		props.setProperty(key, value);
-	}
+	}*/
 }

@@ -126,8 +126,6 @@ public class NewHistoricDialogController {
 								alert.setContentText("You haven't downloaded any tweet, try next time!");
 							}
 							alert.showAndWait();
-							//System.out.println("Finish...");
-							//HistoricViewController historic = Main.getPrimaryStage().getClass();
 							historic.updateViews();
 						}							
 			});
@@ -135,6 +133,7 @@ public class NewHistoricDialogController {
 					new EventHandler<WorkerStateEvent>() {
 						@Override
 						public void handle(WorkerStateEvent event) {
+							System.out.println(event.getEventType());
 							System.out.println("FAILED!!! :(");
 						}
 			});

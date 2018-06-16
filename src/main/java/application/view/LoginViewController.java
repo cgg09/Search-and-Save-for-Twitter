@@ -7,6 +7,7 @@ import application.Main;
 import application.database.DBUserDAO;
 import application.exceptions.AccessException;
 import application.exceptions.NetworkException;
+import application.tasks.LoginTask;
 import application.exceptions.DataNotFoundException;
 import application.exceptions.DatabaseReadException;
 import application.view.ProgressController;
@@ -15,12 +16,16 @@ import javafx.concurrent.WorkerStateEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Cursor;
+import javafx.scene.control.Button;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
+import javafx.scene.input.KeyCode;
 import javafx.stage.Stage;
 
 public class LoginViewController {
 
+	@FXML
+	private Button signUp;
 	@FXML
 	private MenuButton loginButton;
 	private Stage currentStage;
@@ -41,6 +46,8 @@ public class LoginViewController {
 	@FXML
 	public void initialize() {
 
+
+		
 		// get user list
 		Main.setDBUserDAO(DBUserDAO.getInstance());
 		List<String> users = new Vector<String>();
@@ -49,6 +56,18 @@ public class LoginViewController {
 		} catch (DatabaseReadException | DataNotFoundException e2) {
 			e2.printStackTrace();
 		}
+		
+		signUp.setOnKeyPressed(e -> {
+			if(e.getCode() == KeyCode.ENTER) {
+				try {
+					handleSignUp();
+				} catch (NetworkException | AccessException e2) {
+					e2.printStackTrace();
+				}
+			}
+			
+		});
+		
 		// show users' list to login
 		if (!users.isEmpty()) {
 			for (String u : users) {
@@ -58,13 +77,12 @@ public class LoginViewController {
 					currentStage.hide();
 					ProgressController progress = Main.showProgressBar("Login");
 					progress.getStage().getScene().setCursor(Cursor.WAIT);
-					Task<Boolean> login = new Task<Boolean>() {
+					Task<Void> loginTask = new LoginTask(source.getText());
+					/*Task<Boolean> login = new Task<Boolean>() {
 
 						@Override
 						protected Boolean call() throws Exception {
 							boolean log = false;
-							//updateProgress(0,100);
-							//updateMessage(progress.getProcessStatus().getText());
 							try {
 								log = Main.manageFastLogin(source.getText());
 							} catch (NetworkException e1) {
@@ -76,13 +94,13 @@ public class LoginViewController {
 							return log;
 						}
 
-					};
+					};*/
 					progress.getProcessStatus().textProperty().set("Login user");
-					progress.getProcessStatus().textProperty().bind(login.messageProperty());
-					progress.getProgressBar().progressProperty().bind(login.progressProperty());
-					progress.getProcessStatus().textProperty().bind(login.messageProperty());
+					progress.getProcessStatus().textProperty().bind(loginTask.messageProperty());
+					progress.getProgressBar().progressProperty().bind(loginTask.progressProperty());
+					progress.getProcessStatus().textProperty().bind(loginTask.messageProperty());
 					
-					login.addEventHandler(WorkerStateEvent.WORKER_STATE_RUNNING, new EventHandler<WorkerStateEvent>() {
+					loginTask.addEventHandler(WorkerStateEvent.WORKER_STATE_RUNNING, new EventHandler<WorkerStateEvent>() {
 						@Override
 						public void handle(WorkerStateEvent event) {
 							/**
@@ -99,17 +117,17 @@ public class LoginViewController {
 
 					});
 					
-					login.addEventHandler(WorkerStateEvent.WORKER_STATE_FAILED, new EventHandler<WorkerStateEvent>() {
+					loginTask.addEventHandler(WorkerStateEvent.WORKER_STATE_FAILED, new EventHandler<WorkerStateEvent>() {
 
 						@Override
 						public void handle(WorkerStateEvent event) {
 							System.out.println(event.getSource().getException());
-							//System.out.println(event.getTarget().toString());
+							
 						}
 						
 					});
 
-					login.addEventHandler(WorkerStateEvent.WORKER_STATE_SUCCEEDED,
+					loginTask.addEventHandler(WorkerStateEvent.WORKER_STATE_SUCCEEDED,
 							new EventHandler<WorkerStateEvent>() {
 								@Override
 								public void handle(WorkerStateEvent event) {
@@ -122,7 +140,7 @@ public class LoginViewController {
 									
 								}
 							});
-					new Thread(login).start();
+					new Thread(loginTask).start();
 
 				});
 				loginButton.getItems().add(m);
@@ -134,6 +152,7 @@ public class LoginViewController {
 
 	public void setStage(Stage stage) {
 		currentStage = stage;
+		
 	}
 
 	/**
