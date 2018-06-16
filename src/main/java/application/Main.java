@@ -214,7 +214,8 @@ public class Main extends Application {
 		progressStage.initOwner(primaryStage);
 		Scene scene = new Scene(page);
 		progressStage.setScene(scene);
-		progressStage.resizableProperty().setValue(Boolean.FALSE);// TODO disable close button
+		progressStage.resizableProperty().setValue(Boolean.FALSE);
+		progressStage.setOnCloseRequest(closing->closing.consume());
 		progressStage.show();
 
 		ProgressController controller = loader.getController();
@@ -229,7 +230,6 @@ public class Main extends Application {
 		String path = "src/main/resources/twitter.db";
 		// Eclipse path: "src/main/resources/twitter.db";
 		// Ant build path: "resources/twitter.db";
-		System.out.println("Starting...");
 		File file = new File(path);
 		getInstance();
 		Main.setDatabaseDAO(DatabaseDAO.getInstance(path));
