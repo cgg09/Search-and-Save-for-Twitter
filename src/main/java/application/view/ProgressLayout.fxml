@@ -19,6 +19,6 @@
       <Button fx:id="detailsButton" layoutX="275.0" layoutY="122.0" mnemonicParsing="false" onAction="#detailsMenu" text="Show details..." AnchorPane.rightAnchor="68.0" />
       <ProgressBar fx:id="progressBar" layoutX="68.0" layoutY="84.0" prefHeight="25.0" prefWidth="298.0" progress="0.0" AnchorPane.topAnchor="85.0" />
       <Label fx:id="processTitle" layoutX="203.0" layoutY="42.0" text="Label" AnchorPane.topAnchor="40.0" />
-      <Label fx:id="processStatus" layoutX="68.0" layoutY="117.0" text="Label" AnchorPane.topAnchor="117.0" />
+      <Label fx:id="processStatus" layoutX="68.0" layoutY="117.0" AnchorPane.topAnchor="117.0" />
    </children>
 </AnchorPane>

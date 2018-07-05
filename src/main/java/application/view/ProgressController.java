@@ -1,6 +1,5 @@
 package application.view;
 
-import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -9,7 +8,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 
 public class ProgressController {
-	private Task<Object> task;
+	//private Task<Object> task;
 	
 	private Stage stage; 
 
@@ -25,10 +24,10 @@ public class ProgressController {
 	private TextArea detailsArea;*/
 	@FXML
 	private AnchorPane detailsArea;
-	
+	/*
 	public Task<Object> getTask() {
 		return task;
-	}
+	}*/
 	
 	public ProgressBar getProgressBar() {
 		return progressBar;
@@ -51,8 +50,6 @@ public class ProgressController {
 		processTitle.textProperty().unbind();
 		progressBar.progressProperty().unbind();
 		processStatus.textProperty().unbind();
-		
-		//detailsArea.setDisable(true);
 	}
 
 	public void setStage(Stage stage) {

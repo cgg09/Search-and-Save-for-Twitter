@@ -26,6 +26,7 @@ import application.exceptions.DatabaseReadException;
 import application.exceptions.DatabaseWriteException;
 import application.exceptions.NetworkException;
 import application.exceptions.RateLimitException;
+import application.tasks.SearchTask;
 import application.utils.DisplayableTweet;
 import application.view.HistoricViewController;
 import javafx.beans.property.SimpleStringProperty;
@@ -151,11 +152,11 @@ public class DBCollection {
 		return done;
 	}
 
-	public Boolean manageSearch(String userQuery) throws AccessException, RateLimitException, NetworkException {
+	public Boolean manageSearch(String userQuery, SearchTask searchTask) throws AccessException, RateLimitException, NetworkException {
 
 		done = false;
 		resetDownloaded();
-		// Preparing the query for the twitter searcher
+		//searchTask.progressMessage("Preparing the query for the twitter searcher"); FIXME detailsArea
 		setQuery(userQuery);
 		Query query = new Query();
 		query.setQuery(getQuery());
@@ -170,7 +171,7 @@ public class DBCollection {
 		
 		query.sinceId(newestTID);
 
-		System.out.println("Searching...");
+		//searchTask.progressMessage("Searching..."); FIXME detailsArea
 
 		QueryResult queryResult = null;
 
@@ -191,7 +192,7 @@ public class DBCollection {
 		}
 		
 		do {
-			//System.out.println("Issuing Twitter search");
+			//searchTask.progressMessage("Issuing Twitter search");  FIXME detailsArea
 			try {
 				queryResult = Main.getTwitterSessionDAO().getTwitter().search(query);
 			} catch (TwitterException e) {
@@ -216,10 +217,9 @@ public class DBCollection {
 			}
 			int down = 0;
 			boolean ds = false;
-			//System.out.println("Iterating through resulting tweets");
+			//searchTask.progressMessage("Iterating through resulting tweets"); FIXME detailsArea
 			for (Status tweet : queryResult.getTweets()) {
 				try {
-					//System.out.println(tweet.getCreatedAt());
 					ds = addTweet(tweet);
 
 				} catch (DatabaseWriteException | DatabaseReadException | DataNotFoundException e) {
@@ -231,7 +231,7 @@ public class DBCollection {
 			}
 
 			incrementDownloaded(down);
-			System.out.println("Downloaded so far: " + getDownloaded());
+			searchTask.progressMessage("Downloaded so far: " + getDownloaded());
 		} while ((query = queryResult.nextQuery()) != null);
 
 		Timestamp ts_end = new Timestamp(System.currentTimeMillis());
@@ -379,7 +379,7 @@ public class DBCollection {
 			psmt_tweet.executeUpdate();
 		} catch (SQLException e) {
 			if(e.getErrorCode() == PK_CONSTRAINT_FAILED) {
-				System.out.println("Tweet "+tweet.getId()+" not saved. SQL Error Code: "+e.getErrorCode());
+				System.out.println("The tweet "+tweet.getId()+" was not saved because "+e.getMessage()+" SQL Error Code: "+e.getErrorCode());
 			} else {
 				throw new DatabaseWriteException("There was an error saving tweet " + tweet.getId(), e);
 			}
@@ -516,18 +516,13 @@ public class DBCollection {
 		
 		String semicolons = "semicolons";
 		String commas = "commas";
-//		String tabs = "tabs";
 		char del = '0';
 
 		if(delimiter.equals(semicolons)) {
 			del = ';';
 		} else if(delimiter.equals(commas)) {
 			del = ',';
-		}/* else if(delimiter.equals(tabs)) {
-			del = '\t';
-		}*/
-		
-		System.out.println("Chosen Delimiter="+del);
+		}
 				
 		try {
 			FileWriter fileWriter = null;

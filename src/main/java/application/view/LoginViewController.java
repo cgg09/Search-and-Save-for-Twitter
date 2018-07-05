@@ -8,6 +8,7 @@ import application.database.DBUserDAO;
 import application.exceptions.AccessException;
 import application.exceptions.NetworkException;
 import application.tasks.LoginTask;
+import application.tasks.SignUpTask;
 import application.exceptions.DataNotFoundException;
 import application.exceptions.DatabaseReadException;
 import application.view.ProgressController;
@@ -77,24 +78,8 @@ public class LoginViewController {
 					currentStage.hide();
 					ProgressController progress = Main.showProgressBar("Login");
 					progress.getStage().getScene().setCursor(Cursor.WAIT);
+
 					Task<Void> loginTask = new LoginTask(source.getText());
-					/*Task<Boolean> login = new Task<Boolean>() {
-
-						@Override
-						protected Boolean call() throws Exception {
-							boolean log = false;
-							try {
-								log = Main.manageFastLogin(source.getText());
-							} catch (NetworkException e1) {
-								e1.printStackTrace();
-							}
-							//updateProgress(50,100);
-							//updateMessage(progress.getProcessStatus().getText());
-							System.out.println("Sucess?: "+log);
-							return log;
-						}
-
-					};*/
 					progress.getProcessStatus().textProperty().set("Login user");
 					progress.getProcessStatus().textProperty().bind(loginTask.messageProperty());
 					progress.getProgressBar().progressProperty().bind(loginTask.progressProperty());
@@ -103,6 +88,7 @@ public class LoginViewController {
 					loginTask.addEventHandler(WorkerStateEvent.WORKER_STATE_RUNNING, new EventHandler<WorkerStateEvent>() {
 						@Override
 						public void handle(WorkerStateEvent event) {
+							
 							/**
 							 *  TODO: show progress messages:
 							 *  Creating twitter session
@@ -131,10 +117,7 @@ public class LoginViewController {
 							new EventHandler<WorkerStateEvent>() {
 								@Override
 								public void handle(WorkerStateEvent event) {
-									System.out.println("Great!!");
-									
 									Main.showSearch();
-									//updateProgress(100,100);
 									progress.getStage().getScene().setCursor(Cursor.DEFAULT);
 									progress.getStage().close();
 									
@@ -164,80 +147,36 @@ public class LoginViewController {
 	 */
 	@FXML
 	private void handleSignUp() throws NetworkException, AccessException {
-		
-		
-		//currentStage.close();
-
 		currentStage.hide();
 		ProgressController progress = Main.showProgressBar("New login");
 		progress.getStage().getScene().setCursor(Cursor.WAIT);
-		Task<Boolean> newLogin = new Task<Boolean>() {
-
-			@Override
-			protected Boolean call() throws Exception {
-				boolean log = false;
-				//updateProgress(0,100);
-				//updateMessage(progress.getProcessStatus().getText());
-				try {
-					log = Main.manageNewLogin();
-					//Main.getLogin().getSuccess();
-				} catch (NetworkException e1) {
-					e1.printStackTrace();
-				}
-				//updateProgress(50,100);
-				//updateMessage(progress.getProcessStatus().getText());
-				System.out.println("Sucess?: "+log);
-				return log;
-			}
-
-		};
-		progress.getProcessStatus().textProperty().set("Login user");
-		progress.getProcessStatus().textProperty().bind(newLogin.messageProperty());
-		progress.getProgressBar().progressProperty().bind(newLogin.progressProperty());
-		progress.getProcessStatus().textProperty().bind(newLogin.messageProperty());
+		Task<Void> singUpTask = new SignUpTask();
+		progress.getProcessStatus().textProperty().set("New user user");
+		progress.getProcessStatus().textProperty().bind(singUpTask.messageProperty());
+		progress.getProgressBar().progressProperty().bind(singUpTask.progressProperty());
+		progress.getProcessStatus().textProperty().bind(singUpTask.messageProperty());
 		
-		newLogin.addEventHandler(WorkerStateEvent.WORKER_STATE_RUNNING, new EventHandler<WorkerStateEvent>() {
-			@Override
-			public void handle(WorkerStateEvent event) {
-				/**
-				 *  TODO: show progress messages:
-				 *  Creating twitter session
-				 *  		|
-				 *  		v
-				 *  Retrieving user session (getting db info/connecting to twitter/verifying credentials)
-				 *  -------------------------------------------------------------------------------------
-				 *  Loading view
-				 *  Loading info user (collections)
-				 */
-			}
-
-		});
-		
-		newLogin.addEventHandler(WorkerStateEvent.WORKER_STATE_FAILED, new EventHandler<WorkerStateEvent>() {
+		singUpTask.addEventHandler(WorkerStateEvent.WORKER_STATE_FAILED, new EventHandler<WorkerStateEvent>() {
 
 			@Override
 			public void handle(WorkerStateEvent event) {
 				System.out.println(event.getSource().getException());
 				//System.out.println(event.getTarget().toString());
+				// NETWORK -- ACCESS FAILURES
 			}
 			
 		});
 
-		newLogin.addEventHandler(WorkerStateEvent.WORKER_STATE_SUCCEEDED,
+		singUpTask.addEventHandler(WorkerStateEvent.WORKER_STATE_SUCCEEDED,
 				new EventHandler<WorkerStateEvent>() {
 					@Override
-					public void handle(WorkerStateEvent event) {
-						System.out.println("Great!!");
-						
-						//Main.showSearch();
+					public void handle(WorkerStateEvent event) {						
 						Main.showWebView(Main.getLogin().getRequestToken().getAuthorizationURL());
-						//updateProgress(100,100);
 						progress.getStage().getScene().setCursor(Cursor.DEFAULT);
-						progress.getStage().close();
-						
+						progress.getStage().close();						
 					}
 				});
-		new Thread(newLogin).start();
+		new Thread(singUpTask).start();
 				
 	}
 

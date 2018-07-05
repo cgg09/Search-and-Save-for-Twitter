@@ -6,6 +6,8 @@ import java.util.Map;
 import application.database.DBUserDAO;
 import application.exceptions.AccessException;
 import application.exceptions.NetworkException;
+import application.tasks.LoginTask;
+import application.tasks.SignUpTask;
 import application.exceptions.DatabaseReadException;
 import application.exceptions.DatabaseWriteException;
 import application.utils.Browser;
@@ -42,11 +44,13 @@ public class Login {
 	 * @throws ConnectivityException
 	 * @throws AccessException
 	 */
-	public boolean createRequest(Twitter twitter, DBUserDAO dbu) throws NetworkException, AccessException {
+	public void createRequest(Twitter twitter, DBUserDAO dbu, SignUpTask signUpTask) throws NetworkException, AccessException {
 		
 		this.dbu = dbu;
 		this.twitter = twitter;
 
+		signUpTask.progressMessage("Creating Twitter request...");
+		
 		try {
 			requestToken = twitter.getOAuthRequestToken(Main.getTwitterSessionDAO().getCallbackUrl());
 		} catch (TwitterException e) {
@@ -57,8 +61,6 @@ public class Login {
 						e);
 			}
 		}
-		
-		return true;
 
 	}
 
@@ -155,7 +157,7 @@ public class Login {
 	 * @throws ConnectivityException
 	 * @throws DatabaseReadException
 	 */
-	public boolean retrieveSession(Twitter twitter, String user, DBUserDAO dbu)
+	public void retrieveSession(Twitter twitter, String user, DBUserDAO dbu, LoginTask loginTask)
 			throws NetworkException, AccessException {
 
 		this.dbu = dbu;
@@ -176,6 +178,8 @@ public class Login {
 
 		AccessToken at = new AccessToken(token, secret);
 		twitter.setOAuthAccessToken(at);
+		
+		loginTask.progressMessage("Keys retrieved");
 
 		try {
 			twitter.verifyCredentials().getId();
@@ -185,15 +189,8 @@ public class Login {
 			}
 			throw new NetworkException("You do not have internet connection. Please check it out before continue", e1);
 		}
-
-		try {
-			twitter.verifyCredentials().getScreenName();
-		} catch (TwitterException e2) {
-			throw new NetworkException("You do not have internet connection. Please check it out before continue", e2);
-		}
-		System.out.println("Showing search menu...");
-		// main.showSearch();
-		return true;
+		
+		loginTask.progressMessage("Showing search menu...");
 	}
 
 	/**

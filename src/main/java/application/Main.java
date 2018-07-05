@@ -9,6 +9,7 @@ import application.database.DatabaseDAO;
 import application.exceptions.AccessException;
 import application.exceptions.NetworkException;
 import application.tasks.LoginTask;
+import application.tasks.SignUpTask;
 //import application.exceptions.DataNotFoundException;
 import application.exceptions.DatabaseReadException;
 import application.exceptions.DatabaseWriteException;
@@ -105,28 +106,23 @@ public class Main extends Application {
 		login = new Login();
 	}
 
-	public static boolean manageNewLogin() throws NetworkException, AccessException {
-		boolean d = false;
+	public static void manageNewLogin(SignUpTask signUpTask) throws NetworkException, AccessException {
 		setDBUserDAO(DBUserDAO.getInstance());
 		setTwitterSessionDAO(TwitterSessionDAO.getInstance());
 		twitterSessionDAO.startTwitterSession();
-		d = login.createRequest(twitterSessionDAO.getTwitter(), dbUserDAO);
-		return d;
+		login.createRequest(twitterSessionDAO.getTwitter(), dbUserDAO, signUpTask);
 	}
 
-	public static boolean manageFastLogin(String user, LoginTask loginTask)/*, Task<Boolean> task)*/ throws NetworkException {
+	public static void manageFastLogin(String user, LoginTask loginTask) throws NetworkException {
 		setDBUserDAO(DBUserDAO.getInstance());
-		boolean done = false;
 		setTwitterSessionDAO(TwitterSessionDAO.getInstance());
 		twitterSessionDAO.startTwitterSession();
-		System.out.println("Twitter instance setted");
 		try {
-			done = login.retrieveSession(twitterSessionDAO.getTwitter(), user, dbUserDAO);
+			login.retrieveSession(twitterSessionDAO.getTwitter(), user, dbUserDAO, loginTask);
 		} catch (AccessException e) {
 			e.printStackTrace();
 		}
 		System.out.println("Session retrieved");
-		return done;
 	}
 
 	/**
@@ -186,7 +182,7 @@ public class Main extends Application {
 		}
 
 		Stage dialogStage = new Stage();
-		dialogStage.setTitle("New historic search");
+		dialogStage.setTitle("New search");
 		dialogStage.resizableProperty().setValue(Boolean.FALSE);
 		dialogStage.initOwner(primaryStage);
 		Scene scene = new Scene(page);
@@ -264,4 +260,9 @@ public class Main extends Application {
 	}
 	// css -->
 	// scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
+
+	public static void manageLogin(String u, SignUpTask signUpTask) {
+		// TODO Auto-generated method stub
+		
+	}
 }

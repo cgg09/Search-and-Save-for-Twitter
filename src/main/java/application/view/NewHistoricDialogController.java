@@ -5,10 +5,11 @@ import java.util.Optional;
 import application.Main;
 
 import application.database.DBCollection;
-import application.exceptions.NetworkException;
+/*import application.exceptions.NetworkException;
 import application.exceptions.RateLimitException;
-import application.exceptions.AccessException;
+import application.exceptions.AccessException;*/
 import application.exceptions.DatabaseReadException;
+import application.tasks.SearchTask;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.EventHandler;
@@ -59,7 +60,25 @@ public class NewHistoricDialogController {
 		searchButton.setOnAction(e-> {
 			dialogStage.close();
 			ProgressController progress = Main.showProgressBar("Downloading tweets");
-			Task<Boolean> newSearch = new Task<Boolean>() {
+			
+			String q = userQuery.getText();
+			if(!userQuery1.getText().isEmpty()) {
+				q += " OR "+userQuery1.getText();
+			}
+			if(!userQuery2.getText().isEmpty()) {
+				q += " OR "+userQuery2.getText();
+			}
+			if(!userQuery3.getText().isEmpty()) {
+				q += " OR "+userQuery3.getText();
+			}
+
+			if (checkSearch(q)) {
+				q = null;
+				q = collection.getQuery();
+			}
+						
+			Task<Void> newSearchTask = new SearchTask(collection,q);
+			/*Task<Boolean> newSearch = new Task<Boolean>() {
 
 				@Override
 				protected Boolean call() throws Exception {
@@ -95,13 +114,13 @@ public class NewHistoricDialogController {
 					
 				}
 				
-			};
+			};*/
 			
 			progress.getProcessStatus().textProperty().set("New search");
-			progress.getProcessStatus().textProperty().bind(newSearch.messageProperty());
-			progress.getProgressBar().progressProperty().bind(newSearch.progressProperty());
-			progress.getProcessStatus().textProperty().bind(newSearch.messageProperty());
-			newSearch.addEventHandler(WorkerStateEvent.WORKER_STATE_RUNNING, 
+			progress.getProcessStatus().textProperty().bind(newSearchTask.messageProperty());
+			progress.getProgressBar().progressProperty().bind(newSearchTask.progressProperty());
+			progress.getProcessStatus().textProperty().bind(newSearchTask.messageProperty());
+			/*newSearchTask.addEventHandler(WorkerStateEvent.WORKER_STATE_RUNNING, 
 					new EventHandler<WorkerStateEvent>() {
 						@Override
 						public void handle(WorkerStateEvent event) {
@@ -110,8 +129,8 @@ public class NewHistoricDialogController {
 							progress.getProcessStatus().textProperty().unbind();
 							progress.getProcessStatus().setText("Downloaded tweets: " + downloaded);
 						}
-			});
-			newSearch.addEventHandler(WorkerStateEvent.WORKER_STATE_SUCCEEDED,
+			});*/
+			newSearchTask.addEventHandler(WorkerStateEvent.WORKER_STATE_SUCCEEDED,
 					new EventHandler<WorkerStateEvent>() {
 						@Override
 						public void handle(WorkerStateEvent event) {
@@ -129,7 +148,7 @@ public class NewHistoricDialogController {
 							historic.updateViews();
 						}							
 			});
-			newSearch.addEventHandler(WorkerStateEvent.WORKER_STATE_FAILED, 
+			newSearchTask.addEventHandler(WorkerStateEvent.WORKER_STATE_FAILED, 
 					new EventHandler<WorkerStateEvent>() {
 						@Override
 						public void handle(WorkerStateEvent event) {
@@ -137,7 +156,7 @@ public class NewHistoricDialogController {
 							System.out.println("FAILED!!! :(");
 						}
 			});
-			new Thread(newSearch).start();
+			new Thread(newSearchTask).start();
 		});
 
 	}

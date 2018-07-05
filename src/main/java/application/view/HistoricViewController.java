@@ -16,6 +16,7 @@ import application.exceptions.DatabaseReadException;
 import application.exceptions.DatabaseWriteException;
 import application.exceptions.NetworkException;
 import application.exceptions.RateLimitException;
+import application.tasks.SearchTask;
 import application.utils.DisplayableTweet;
 import javafx.application.HostServices;
 import javafx.beans.value.ObservableValue;
@@ -94,12 +95,12 @@ public class HistoricViewController extends AnchorPane {
 	@FXML
 	public void initialize() {
 
-		// initialize historySearch
+		// initialize historySearch table
 		dateColumn.setCellValueFactory(cellData -> cellData.getValue().startProperty());
 		keywordColumn.setCellValueFactory(cellData -> cellData.getValue().queryProperty());
 		historySearch.setPlaceholder(new Label("No searches to display"));
 
-		// initialize currentSearch
+		// initialize currentSearch table
 		createdAt.setCellValueFactory(cellData -> cellData.getValue().createdAtProperty());
 		author.setCellValueFactory(cellData -> cellData.getValue().authorProperty());
 		text.setCellValueFactory(cellData -> cellData.getValue().tweetTextProperty());
@@ -127,16 +128,17 @@ public class HistoricViewController extends AnchorPane {
 		// initialize filter button options
 		filterMenu.getItems().addAll(fm1, fm2, fm3);
 
-		// update currentSearch from historySearch
-		
+		// update currentSearch from historySearch	
 		historySearch.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-			try {
-				newValue.updateCollection();
-			} catch (DatabaseReadException e) {
-				e.printStackTrace();
-			}
-			filterMenu.setValue(fm1);
-			addSearch(newValue);
+			if(historySearch.getSelectionModel().selectedItemProperty().getValue() != null) {
+				try {
+					newValue.updateCollection();
+				} catch (DatabaseReadException e) {
+					e.printStackTrace();
+				}
+				filterMenu.setValue(fm1);
+				addSearch(newValue);
+			}		
 		});
 
 		// select options for each collection of the historySearch view
@@ -157,7 +159,10 @@ public class HistoricViewController extends AnchorPane {
 					DBCollection col = historySearch.getSelectionModel().getSelectedItem();
 					h1.setOnAction(e -> {
 						ProgressController progress = Main.showProgressBar("Downloading tweets");
-						Task<Boolean> repeatSearch = new Task<Boolean>() {
+						col.setRepeated(true);
+						Task<Void> repeatSearchTask = new SearchTask(col,col.getQuery());
+						handleRepeatSearch(col);
+						/*Task<Boolean> repeatSearch = new Task<Boolean>() {
 
 							@Override
 							protected Boolean call() throws Exception {
@@ -165,11 +170,11 @@ public class HistoricViewController extends AnchorPane {
 								return d;
 							}
 
-						};
-						progress.getProcessStatus().textProperty().bind(repeatSearch.messageProperty());
-						progress.getProgressBar().progressProperty().bind(repeatSearch.progressProperty());
-						progress.getProcessStatus().textProperty().bind(repeatSearch.messageProperty());
-						repeatSearch.addEventHandler(WorkerStateEvent.WORKER_STATE_RUNNING,
+						};*/
+						progress.getProcessStatus().textProperty().bind(repeatSearchTask.messageProperty());
+						progress.getProgressBar().progressProperty().bind(repeatSearchTask.progressProperty());
+						progress.getProcessStatus().textProperty().bind(repeatSearchTask.messageProperty());
+						repeatSearchTask.addEventHandler(WorkerStateEvent.WORKER_STATE_RUNNING,
 								new EventHandler<WorkerStateEvent>() {
 									@Override
 									public void handle(WorkerStateEvent event) {
@@ -179,7 +184,7 @@ public class HistoricViewController extends AnchorPane {
 
 									}
 								});
-						repeatSearch.addEventHandler(WorkerStateEvent.WORKER_STATE_SUCCEEDED,
+						repeatSearchTask.addEventHandler(WorkerStateEvent.WORKER_STATE_SUCCEEDED,
 								new EventHandler<WorkerStateEvent>() {
 									@Override
 									public void handle(WorkerStateEvent event) {
@@ -197,7 +202,7 @@ public class HistoricViewController extends AnchorPane {
 										
 									}
 								});
-						new Thread(repeatSearch).start();
+						new Thread(repeatSearchTask).start();
 					});
 					h2.setOnAction(e -> {
 						try {
@@ -294,12 +299,12 @@ public class HistoricViewController extends AnchorPane {
 
 	private boolean handleRepeatSearch(DBCollection c) {
 		boolean d = false;
-		try {
+		/*try {
 			c.setRepeated(true);
-			d = c.manageSearch(c.getQuery());
+			d = c.manageSearch(c.getQuery(), repeatSearch);
 		} catch (AccessException | RateLimitException | NetworkException e) {
 			e.printStackTrace();
-		}
+		}*/
 		System.out.println("Sorting collections by reverse date");
 		Comparator<DBCollection> collectionComparator = Comparator.comparing(DBCollection::getStart);
 		FXCollections.sort(history, collectionComparator.reversed());
@@ -341,7 +346,6 @@ public class HistoricViewController extends AnchorPane {
 		fileChooser.setInitialFileName(filename);
 		fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("CSV file (delimited with semicolons)", ".csv"));
 		fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("CSV file (delimited with commas)", ".csv"));
-		//fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("CSV file (delimited with tabs)", ".csv"));
 		File file = fileChooser.showSaveDialog(Main.getPrimaryStage());
 
 		if (file != null) {

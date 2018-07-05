@@ -103,8 +103,8 @@ public class SearchViewController extends AnchorPane {
 
 			username.setText("");
 
-		currentStage.close();
-		Main.showLogin();
+			currentStage.close();
+			Main.showLogin();
 		}
 	}
 

@@ -19,7 +19,7 @@ public class AccessException extends Exception {
 		Alert alert = new Alert(AlertType.WARNING);
 		alert.setTitle("ACCESS FAILURE");
 		alert.setHeaderText("Access error");
-		alert.setContentText(message);
+		alert.setContentText(message+" Please check out your Twitter settings account.");
 		alert.showAndWait();
 	}
 
