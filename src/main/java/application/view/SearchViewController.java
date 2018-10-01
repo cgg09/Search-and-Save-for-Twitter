@@ -16,6 +16,12 @@ import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 
+/**
+ * General controller of the search views of the application
+ * @author Maria Cristina, github: cgg09
+ *
+ */
+
 public class SearchViewController extends AnchorPane {
 
 	@FXML
@@ -34,6 +40,10 @@ public class SearchViewController extends AnchorPane {
 		
 	}
 
+	/**
+	 * Initializes the controller class This method is automatically called after
+	 * the fxml file has been loaded
+	 */
 	@FXML
 	public void initialize() {
 				
@@ -59,28 +69,33 @@ public class SearchViewController extends AnchorPane {
 	
 	public void newSearch(DBCollection c, HistoricViewController historicViewController) {
 
-		//boolean okClicked = false;
+		// Historic search
 		if (c.getType().equals("Historic")) {
 			/*okClicked = */Main.showNewHistoricSearch(c,historicViewController);
 		}
-		//return okClicked;
+		
+		// Live search
+		/*
+		 * if (c.getType().equals("Live")) ...
+		 */
+	}
 
-	}
-/*
-	public void setMainApp(Main main) {
-		this.main = main;
-	}
-*/
 	public Main getMain() {
 		return main;
 	}
 	
+	/**
+	 * Closes user session	
+	 */
 	@FXML
 	private void signOut() {
 		currentStage.close();
 		Main.showLogin();
 	}
 	
+	/**
+	 * Deleted desired user
+	 */
 	@FXML
 	private void deleteUser() {
 		Alert alert = new Alert(AlertType.WARNING);

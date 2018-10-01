@@ -2,7 +2,7 @@
 <anttasks:AntTask xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:anttasks="http://org.eclipse.fx.ide.jdt/1.0" buildDirectory="${project}/build">
   <deploy packagingFormat="exe">
     <application name="TFG_2018" mainclass="application.Main" version="1.0"/>
-    <info title="Twitter_Searcher" vendor="cgg09"/>
+    <info title="Search and Save for Twitter" vendor="cgg09"/>
   </deploy>
   <signjar/>
 </anttasks:AntTask>

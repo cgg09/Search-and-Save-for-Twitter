@@ -5,6 +5,12 @@ import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 
+/**
+ * General class to open a browser in a webview
+ * @author Maria Cristina, github: cgg09
+ *
+ */
+
 public class Browser extends Region {
 
 	final WebView browser = new WebView();
@@ -16,13 +22,10 @@ public class Browser extends Region {
 	}
 
 	public Browser(String URL) {
-
 		// load the web page
 		webEngine.load(URL);
-
 		// add the web view to the scene
-		getChildren().add(browser);
-			
+		getChildren().add(browser);			
 	}
 
 

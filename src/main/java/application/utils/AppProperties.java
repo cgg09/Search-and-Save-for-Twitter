@@ -4,6 +4,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
+/**
+ * General class to get specific information from a properties document 
+ * @author Maria Cristina, github: cgg09
+ *
+ */
+
 public class AppProperties {
 	
 	Properties props = new Properties();
@@ -20,8 +26,5 @@ public class AppProperties {
 	public String getValue(String key) {
 		return props.getProperty(key);
 	}
-	/*
-	public void storeData(String key, String value) {
-		props.setProperty(key, value);
-	}*/
+
 }

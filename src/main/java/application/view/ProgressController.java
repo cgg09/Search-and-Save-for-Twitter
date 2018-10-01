@@ -7,8 +7,13 @@ import javafx.scene.control.ProgressBar;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 
+/**
+ * General controller of progress bars of the application
+ * @author Maria Cristina, github: cgg09
+ *
+ */
+
 public class ProgressController {
-	//private Task<Object> task;
 	
 	private Stage stage; 
 
@@ -21,13 +26,10 @@ public class ProgressController {
 	@FXML
 	private Button detailsButton;
 	/*@FXML
-	private TextArea detailsArea;*/
+	private TextArea detailsArea;
 	@FXML
 	private AnchorPane detailsArea;
-	/*
-	public Task<Object> getTask() {
-		return task;
-	}*/
+	*/
 	
 	public ProgressBar getProgressBar() {
 		return progressBar;
@@ -40,11 +42,16 @@ public class ProgressController {
 	public Label getProcessStatus() {
 		return processStatus;
 	}
-	
+	/*
 	public AnchorPane getTextArea() {
 		return detailsArea;
-	}
+	}*/
 	
+	
+	/**
+	 * Initializes the controller class This method is automatically called after
+	 * the fxml file has been loaded
+	 */
 	public void initialize() {
 		progressBar.setProgress(0);
 		processTitle.textProperty().unbind();
@@ -61,9 +68,9 @@ public class ProgressController {
 		return stage;
 	}
 	
-	@FXML
-	private void detailsMenu() {
-		detailsArea.setDisable(false);
+	//@FXML
+	//private void detailsMenu() {
+		//detailsArea.setDisable(false);
 		/*if(detailsArea.isDisabled()) {
 			detailsArea.setDisable(false);
 			detailsButton.setText("Hide details");
@@ -73,9 +80,9 @@ public class ProgressController {
 		}*/
 		//detailsArea.setText("Hey");
 		//System.out.println("Hey");
-	}
+	//}
 	
-	public void disableDetails() {
+	/*public void disableDetails() {
 		this.detailsArea.setDisable(true);
-	}
+	}*/
 }

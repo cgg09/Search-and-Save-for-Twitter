@@ -20,6 +20,12 @@ import twitter4j.TwitterException;
 import twitter4j.auth.AccessToken;
 import twitter4j.auth.RequestToken;
 
+/**
+ * Class to manage any login of the user: sign ups and sign ins
+ * @author Maria Cristina, github: cgg09
+ *
+ */
+
 public class Login {
 
 	private Twitter twitter;
@@ -39,7 +45,6 @@ public class Login {
 
 	/**
 	 * Request an authorization to Twitter
-	 * @return 
 	 * 
 	 * @throws ConnectivityException
 	 * @throws AccessException
@@ -65,8 +70,7 @@ public class Login {
 	}
 
 	/**
-	 * New login process 2n step: Retrieve tokens from callback url
-	 * @return 
+	 * 2n step from sign up: Retrieve tokens from callback url and redirect to the verifying page
 	 */
 	public void retrieveTokens(Browser browser) {
 		
@@ -89,7 +93,7 @@ public class Login {
 						}
 
 					} else {
-						// Mostrar ventana emergente "Couldn't connect to " + location
+						// TODO Pending to show an alert window "Couldn't connect to " + location ...
 						
 					}
 				}
@@ -98,10 +102,29 @@ public class Login {
 		});
 		
 	}
+	
+	/**
+	 * Retrieve parameters of a url (to obtain access tokens)
+	 * 
+	 * @param query
+	 * @return info from url
+	 */
+	public static Map<String, String> getQueryMap(String query) {
+		String url = query.substring(query.indexOf("?") + 1);
+		String[] params = url.split("&");
+		Map<String, String> map = new HashMap<String, String>();
+
+		for (String param : params) {
+			String name = param.split("=")[0];
+			String value = param.split("=")[1];
+			map.put(name, value);
+		}
+		return map;
+	}
+	
 
 	/**
-	 * New login process 3rd step: Verify identity and sign in
-	 * @return 
+	 * 3rd step from sign up: Verify identity and sign in
 	 * 
 	 * @throws AccessException
 	 * @throws ConnectivityException
@@ -129,12 +152,8 @@ public class Login {
 			}
 		}
 
-		else { // TODO ¿¿??
-			/*try {
-				accessToken = twitter.getOAuthAccessToken();
-			} catch (TwitterException e) {
-				e.printStackTrace();
-			}*/
+		else {
+			// TODO I don't know if this is necessary
 		}
 
 		try {
@@ -144,15 +163,16 @@ public class Login {
 			e.printStackTrace();
 		}
 		Main.showSearch();
-
 	}
+	
+	
 
 	/**
-	 * Retrieve session when the user has signed up before
+	 * Retrieve session when the user signs in
 	 * 
 	 * @param twitter
 	 * @param user
-	 * @return
+	 * 
 	 * @throws AccessException
 	 * @throws ConnectivityException
 	 * @throws DatabaseReadException
@@ -193,22 +213,5 @@ public class Login {
 		loginTask.progressMessage("Showing search menu...");
 	}
 
-	/**
-	 * Retrieve parameters of a url (to obtain access tokens)
-	 * 
-	 * @param query
-	 * @return
-	 */
-	public static Map<String, String> getQueryMap(String query) {
-		String url = query.substring(query.indexOf("?") + 1);
-		String[] params = url.split("&");
-		Map<String, String> map = new HashMap<String, String>();
-
-		for (String param : params) {
-			String name = param.split("=")[0];
-			String value = param.split("=")[1];
-			map.put(name, value);
-		}
-		return map;
-	}
+	
 }

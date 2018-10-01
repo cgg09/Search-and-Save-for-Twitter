@@ -13,7 +13,8 @@ import application.exceptions.DatabaseReadException;
 import application.exceptions.DatabaseWriteException;
 
 /**
- * @author María Cristina, cgg09
+ * DAO class to manage all the data related to a user
+ * @author Maria Cristina, github: cgg09
  *
  */
 public class DBUserDAO {
@@ -73,6 +74,13 @@ public class DBUserDAO {
 
 	}
 
+	/**
+	 * Gets all the users registered in the application
+	 * @return list of users
+	 * 
+	 * @throws DatabaseReadException
+	 * @throws DataNotFoundException
+	 */
 	public List<String> getUsers() throws DatabaseReadException, DataNotFoundException {
 
 		List<String> u = new Vector<String>();
@@ -94,11 +102,11 @@ public class DBUserDAO {
 	}
 	
 	/**
-	 * Get user data
+	 * Gets specific data from a user
 	 * 
 	 * @param data
 	 * @param user
-	 * @return
+	 * @return desired data
 	 * @throws DatabaseReadException 
 	 */
 	public String getUserData(String data, String username) throws DatabaseReadException {
@@ -121,8 +129,8 @@ public class DBUserDAO {
 	}
 	
 	/**
-	 * 
-	 * @return
+	 * Retrieves collections from a user after he/she signs in
+	 * @return collections
 	 * @throws DatabaseReadException
 	 */
 	public List<DBCollection> retrieveCollections() throws DatabaseReadException {
@@ -153,6 +161,10 @@ public class DBUserDAO {
 		return cols;
 	}
 	
+	/**
+	 * Deletes desired user
+	 * @throws DatabaseWriteException
+	 */
 	public void deleteUser() throws DatabaseWriteException {
 		PreparedStatement psdt = null;
 		try {

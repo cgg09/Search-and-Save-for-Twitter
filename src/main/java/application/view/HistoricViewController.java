@@ -46,6 +46,12 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.FileChooser;
 
+/**
+ * Controller of the historic mode of the application
+ * @author Maria Cristina, github: cgg09
+ *
+ */
+
 public class HistoricViewController extends AnchorPane {
 
 	@FXML
@@ -87,11 +93,19 @@ public class HistoricViewController extends AnchorPane {
 	private SeparatorMenuItem sp = new SeparatorMenuItem();
 	private MenuItem h3 = new MenuItem("Delete search");
 	
-
+	/**
+	 * The constructor, called before the initialize() method
+	 */
 	public HistoricViewController() {
 
 	}
-
+		
+	/**
+	 * Initializes the controller class This method is automatically called after
+	 * the fxml file has been loaded
+	 * 
+	 * @throws DatabaseReadException
+	 */
 	@FXML
 	public void initialize() {
 
@@ -290,21 +304,15 @@ public class HistoricViewController extends AnchorPane {
 
 		currentSearch.setItems(data);
 		int listSize = collection.getCurrentTweets().size();
-		filterMenu.getItems().set(2, "All tweets (" + listSize + ")");
+		filterMenu.getItems().set(2, "All tweets (" + listSize + ")"); // FIXME I am not sure if the # of total tweets is updated correctly
 	}
 
-	/*
-	 * Methods of the history options menu:
+	/**
+	 * Sort collections in correct order in case of repeating a search
+	 * @param c (collection)
 	 */
-
-	private boolean handleRepeatSearch(DBCollection c) {
-		boolean d = false;
-		/*try {
-			c.setRepeated(true);
-			d = c.manageSearch(c.getQuery(), repeatSearch);
-		} catch (AccessException | RateLimitException | NetworkException e) {
-			e.printStackTrace();
-		}*/
+	private void handleRepeatSearch(DBCollection c) {
+		// FIXME I am not sure that this works correctly
 		System.out.println("Sorting collections by reverse date");
 		Comparator<DBCollection> collectionComparator = Comparator.comparing(DBCollection::getStart);
 		FXCollections.sort(history, collectionComparator.reversed());
@@ -312,9 +320,12 @@ public class HistoricViewController extends AnchorPane {
 		System.out.println("Re-drawing historySearch");
 		historySearch.setItems(history);
 		addSearch(c);
-		return d;
+
 	}
 
+	/**
+	 * General export collection button from the bottom right of the search view
+	 */
 	@FXML
 	private void manageExport() {
 		if (!data.isEmpty()) {
@@ -329,6 +340,11 @@ public class HistoricViewController extends AnchorPane {
 		}
 	}
 
+	/**
+	 * General method to export a collection
+	 * @param c (collection)
+	 * @throws IOException
+	 */
 	private void handleExport(DBCollection c) throws IOException {
 		String date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("uuuuMMdd"));
 		String filename = date + "_" + c.getQuery() + ".csv";
@@ -371,6 +387,10 @@ public class HistoricViewController extends AnchorPane {
 		}
 	}
 
+	/**
+	 * Delete collection method for the same history table option
+	 * @param c (collection)
+	 */
 	private void handleDelete(DBCollection c) {
 		Alert alert = new Alert(AlertType.WARNING);
 		alert.setTitle("DELETE COLLECTION");
@@ -399,6 +419,10 @@ public class HistoricViewController extends AnchorPane {
 		}
 	}
 
+	/**
+	 * Method for the top right menu in which the user can filter the tweets shown in the current view
+	 * @param option
+	 */
 	public void filterFunction(String option) {
 		data.clear();
 		if (option == fm1) {

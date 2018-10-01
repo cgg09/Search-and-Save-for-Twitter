@@ -6,6 +6,12 @@ import application.exceptions.NetworkException;
 import application.exceptions.RateLimitException;
 import javafx.concurrent.Task;
 
+/**
+ * Class to manage searches in background
+ * @author Maria Cristina, github: cgg09
+ *
+ */
+
 public class SearchTask extends Task<Void> {
 	
 	DBCollection dbc;
@@ -22,13 +28,16 @@ public class SearchTask extends Task<Void> {
 			dbc.manageSearch(query,this);
 		} catch(AccessException | NetworkException | RateLimitException e) {
 			e.printStackTrace();
-		}
-		
+		}	
 		return null;
 	}
 	
 	public void progressMessage(String m) {
 		this.updateMessage(m);
+	}
+	
+	public void detailsMessage(String m) {
+		
 	}
 
 }

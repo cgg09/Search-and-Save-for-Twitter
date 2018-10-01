@@ -3,11 +3,14 @@ package application.exceptions;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 
+/**
+ * Class to manage exceptions related to data not found in the database  
+ * @author Maria Cristina, github: cgg09
+ * FIXME not sure if this class is necessary
+ */
+
 public class DataNotFoundException extends Exception {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 
 	public DataNotFoundException(String message) {
@@ -19,10 +22,5 @@ public class DataNotFoundException extends Exception {
 		alert.setContentText(message);
 		alert.showAndWait();
 	}
-
-	/*
-	 * public String toString() { return
-	 * "This information was not found in the database."; }
-	 */
 
 }

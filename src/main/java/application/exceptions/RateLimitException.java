@@ -4,11 +4,14 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import twitter4j.TwitterException;
 
+/**
+ * Class to manage exceptions related to exceeding rate limitings of Twitter API 
+ * @author Maria Cristina, github: cgg09
+ *
+ */
+
 public class RateLimitException extends Exception {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 
 	public RateLimitException(String message,TwitterException e) {
@@ -22,11 +25,5 @@ public class RateLimitException extends Exception {
 		alert.setContentText(message+".You have to wait "+time.toString()+" seconds before continue searching.");
 		alert.showAndWait();
 	}
-
-	/*
-	 * public String toString() { return
-	 * "You have exceeded the limit of tweet downloads. Please wait for 15 minutes to continue."
-	 * ; }
-	 */
 
 }

@@ -3,6 +3,12 @@ package application.utils;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
+/**
+ * Class to manage each tweet shown in the current view
+ * @author Maria Cristina, github: cgg09
+ *
+ */
+
 public class DisplayableTweet {
 
 	private final long tweet_id;
@@ -15,7 +21,6 @@ public class DisplayableTweet {
 		this.tweet_id = tweet_id;
 		this.createdAt = new SimpleStringProperty(c);
 		this.author = new SimpleStringProperty(a);
-		//FIXME saltos de línea en el texto
 		this.text = new SimpleStringProperty(t);
 		this.retweet = r;
 	}

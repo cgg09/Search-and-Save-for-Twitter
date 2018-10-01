@@ -39,6 +39,12 @@ import twitter4j.QueryResult;
 import twitter4j.Status;
 import twitter4j.TwitterException;
 
+/**
+ * Class to manage all the data and methods related to a search
+ * @author María Cristina, github: cgg09
+ *
+ */
+
 public class DBCollection {
 
 	private int id = 0;
@@ -152,11 +158,20 @@ public class DBCollection {
 		return done;
 	}
 
+	/**
+	 * Executes the search in the Twitter API and manages the information retrieved to save it as a collection
+	 * @param userQuery
+	 * @param searchTask
+	 * @return
+	 * @throws AccessException
+	 * @throws RateLimitException
+	 * @throws NetworkException
+	 */
 	public Boolean manageSearch(String userQuery, SearchTask searchTask) throws AccessException, RateLimitException, NetworkException {
 
 		done = false;
 		resetDownloaded();
-		//searchTask.progressMessage("Preparing the query for the twitter searcher"); FIXME detailsArea
+		//searchTask.progressMessage("Preparing the query for the twitter searcher"); //--> FIXME detailsArea?
 		setQuery(userQuery);
 		Query query = new Query();
 		query.setQuery(getQuery());
@@ -171,7 +186,7 @@ public class DBCollection {
 		
 		query.sinceId(newestTID);
 
-		//searchTask.progressMessage("Searching..."); FIXME detailsArea
+		//searchTask.progressMessage("Searching..."); //--> FIXME detailsArea?
 
 		QueryResult queryResult = null;
 
@@ -249,6 +264,9 @@ public class DBCollection {
 
 	}
 
+	/**
+	 * Updates start_time in case you repeat the search 
+	 */
 	public void updateStartTime(Timestamp start) throws DatabaseWriteException {
 
 		// Converting start_time
@@ -272,7 +290,7 @@ public class DBCollection {
 	}
 
 	/**
-	 * Add info about the search in the Database
+	 * Add information about the search in the database
 	 * 
 	 * @param start
 	 * @param end
@@ -398,7 +416,7 @@ public class DBCollection {
 	 * returns its id
 	 * 
 	 * @param query
-	 * @return
+	 * @return collection_id
 	 * @throws DatabaseReadException
 	 */
 	public Integer checkQuery(String query) throws DatabaseReadException {
@@ -419,6 +437,10 @@ public class DBCollection {
 		return null;
 	}
 
+	/**
+	 * It is updated the desired collection to manage
+	 * @throws DatabaseReadException
+	 */
 	public void updateCollection() throws DatabaseReadException {
 
 		PreparedStatement psuc = null;
@@ -438,6 +460,10 @@ public class DBCollection {
 		retrieveTweets();
 	}
 
+	/**
+	 * Gets all tweets of a specific collection
+	 * @throws DatabaseReadException
+	 */
 	public void retrieveTweets() throws DatabaseReadException {
 
 		if (!currentTweets.isEmpty()) {
@@ -470,6 +496,9 @@ public class DBCollection {
 
 	}
 
+	/**
+	 * This method is to avoid repeated tweets in case the user repeats the search
+	 */
 	public long getNewestTweet() throws DatabaseReadException {
 		PreparedStatement psnt = null;
 		ResultSet rsnt = null;
@@ -485,6 +514,10 @@ public class DBCollection {
 		return tid;
 	}
 
+	/**
+	 * Deletes the desired collection
+	 * @throws DatabaseWriteException
+	 */
 	public void deleteCollection() throws DatabaseWriteException {
 		PreparedStatement psdc = null;
 		try {
@@ -497,6 +530,11 @@ public class DBCollection {
 		}
 	}
 
+	/**
+	 * Gets tweets to export them later
+	 * @return
+	 * @throws DatabaseReadException
+	 */
 	public ResultSet exportTweets() throws DatabaseReadException {
 		PreparedStatement pstmt = null;
 		ResultSet rsExp = null;
@@ -512,6 +550,13 @@ public class DBCollection {
 		}
 	}
 
+	/**
+	 * Exports tweets with the desired specifications
+	 * @param file
+	 * @param tweetsExp
+	 * @param delimiter
+	 * @throws DatabaseReadException
+	 */
 	public void printCSV(File file, ResultSet tweetsExp, String delimiter) throws DatabaseReadException {
 		
 		String semicolons = "semicolons";

@@ -27,6 +27,12 @@ import javafx.scene.Scene;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
 
+/**
+ * Main class of the project that manages all the views of the program
+ * @author Maria Cristina, github: cgg09
+ *
+ */
+
 public class Main extends Application {
 
 	private static Main instance;
@@ -106,6 +112,12 @@ public class Main extends Application {
 		login = new Login();
 	}
 
+	/**
+	 * Manages sign up
+	 * @param signUpTask
+	 * @throws NetworkException
+	 * @throws AccessException
+	 */
 	public static void manageNewLogin(SignUpTask signUpTask) throws NetworkException, AccessException {
 		setDBUserDAO(DBUserDAO.getInstance());
 		setTwitterSessionDAO(TwitterSessionDAO.getInstance());
@@ -113,6 +125,12 @@ public class Main extends Application {
 		login.createRequest(twitterSessionDAO.getTwitter(), dbUserDAO, signUpTask);
 	}
 
+	/**
+	 * Manages sign in
+	 * @param user
+	 * @param loginTask
+	 * @throws NetworkException
+	 */
 	public static void manageFastLogin(String user, LoginTask loginTask) throws NetworkException {
 		setDBUserDAO(DBUserDAO.getInstance());
 		setTwitterSessionDAO(TwitterSessionDAO.getInstance());
@@ -126,12 +144,11 @@ public class Main extends Application {
 	}
 
 	/**
-	 * Initializes the webView for the first login
-	 * @return 
+	 * Initializes the webView for the sign up
+	 * @param URL
 	 */
 	public static void showWebView(String URL) {
 
-		// create the scene
 		Browser browser = new Browser(URL);
 		Stage stage = new Stage();
 		stage.setTitle("Web View");
@@ -144,13 +161,9 @@ public class Main extends Application {
 	}
 
 	/**
-	 * Initializes the search view inside the root layout
-	 * 
-	 * @return
+	 * Initiatizes the search view
 	 */
-	public static boolean showSearch() {
-		// Load login from fxml file
-		System.out.println("Loading window ..?");
+	public static void showSearch() {
 		FXMLLoader loader = new FXMLLoader();
 		loader.setLocation(Main.class.getResource("view/SearchView.fxml"));
 		AnchorPane searchView = new AnchorPane();
@@ -159,19 +172,20 @@ public class Main extends Application {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		// Show the scene containing the search view
 		Scene scene = new Scene(searchView);
 		primaryStage.setScene(scene);
 		primaryStage.resizableProperty().setValue(Boolean.TRUE);
 		primaryStage.show();
-		// Give the controller access to the main app
 		SearchViewController controller = loader.getController();
 		controller.setStage(primaryStage);
-		return true;
-
 	}
 
-	public static void showNewHistoricSearch(DBCollection c, HistoricViewController historicViewController) {
+	/**
+	 * Initializes view for a new search
+	 * @param collection
+	 * @param historicViewController
+	 */
+	public static void showNewHistoricSearch(DBCollection collection, HistoricViewController historicViewController) {
 		FXMLLoader loader = new FXMLLoader();
 		loader.setLocation(Main.class.getResource("view/NewHistoricDialog.fxml"));
 		AnchorPane page = null;
@@ -191,11 +205,16 @@ public class Main extends Application {
 		NewHistoricDialogController controller = loader.getController();
 		controller.setDialogStage(dialogStage);
 		controller.setTwitter(twitterSessionDAO.getTwitter());
-		controller.setCollection(c);
+		controller.setCollection(collection);
 		controller.setHistoricView(historicViewController);
 		dialogStage.showAndWait();
 	}
 
+	/**
+	 * Generates a specific progress bar for each situation
+	 * @param title
+	 * @return controller for the specific progress bar
+	 */
 	public static ProgressController showProgressBar(String title) {
 		FXMLLoader loader = new FXMLLoader(Main.class.getResource("view/ProgressLayout.fxml"));
 		AnchorPane page = null;
@@ -217,15 +236,17 @@ public class Main extends Application {
 		ProgressController controller = loader.getController();
 		controller.setStage(progressStage);
 		controller.setProcessTitle(title);
-		controller.disableDetails();
 		return controller;
 	}
 
 	public static void main(String[] args) {
 
 		String path = "src/main/resources/twitter.db";
-		// Eclipse path: "src/main/resources/twitter.db";
-		// Ant build path: "resources/twitter.db";
+		/*
+		 *  TODO how to do this efficiently ?
+		 *  Eclipse path: "src/main/resources/twitter.db";
+		 *	Ant build path: "resources/twitter.db"; 
+		 */
 		File file = new File(path);
 		getInstance();
 		Main.setDatabaseDAO(DatabaseDAO.getInstance(path));
@@ -258,11 +279,5 @@ public class Main extends Application {
 
 		launch(args);
 	}
-	// css -->
-	// scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
 
-	public static void manageLogin(String u, SignUpTask signUpTask) {
-		// TODO Auto-generated method stub
-		
-	}
 }

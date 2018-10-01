@@ -4,6 +4,12 @@ import application.Main;
 import application.exceptions.NetworkException;
 import javafx.concurrent.Task;
 
+/**
+ * Class to manage sign up connections
+ * @author Maria Cristina, github: cgg09
+ *
+ */
+
 public class SignUpTask extends Task<Void> {
 	
 	public SignUpTask() {

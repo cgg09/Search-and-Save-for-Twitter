@@ -23,6 +23,12 @@ import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 import twitter4j.Twitter;
 
+/**
+ * Controller of the new search menu of the application
+ * @author Maria Cristina, github: cgg09
+ *
+ */
+
 public class NewHistoricDialogController {
 
 	Twitter twitter;
@@ -47,20 +53,25 @@ public class NewHistoricDialogController {
 
 	int total;
 	boolean repeat = false;
-	
+
+	/**
+	 * The constructor, called before the initialize() method
+	 */
 	public NewHistoricDialogController() {
-		
+
 
 	}
 
+	/**
+	 * Initializes the controller class This method is automatically called after
+	 * the fxml file has been loaded
+	 */
 	public void initialize() {
-		
-		
 
 		searchButton.setOnAction(e-> {
 			dialogStage.close();
 			ProgressController progress = Main.showProgressBar("Downloading tweets");
-			
+
 			String q = userQuery.getText();
 			if(!userQuery1.getText().isEmpty()) {
 				q += " OR "+userQuery1.getText();
@@ -76,97 +87,57 @@ public class NewHistoricDialogController {
 				q = null;
 				q = collection.getQuery();
 			}
-						
+
 			Task<Void> newSearchTask = new SearchTask(collection,q);
-			/*Task<Boolean> newSearch = new Task<Boolean>() {
 
-				@Override
-				protected Boolean call() throws Exception {
-					
-					String q = userQuery.getText();
-					if(!userQuery1.getText().isEmpty()) {
-						q += " OR "+userQuery1.getText();
-					}
-					if(!userQuery2.getText().isEmpty()) {
-						q += " OR "+userQuery2.getText();
-					}
-					if(!userQuery3.getText().isEmpty()) {
-						q += " OR "+userQuery3.getText();
-					}
-					
-					System.out.println("Final query: "+q);
-					
-					
-					boolean r = checkSearch(q);
-					boolean d = false;
-
-					if (r) {
-						q = null;
-						q = collection.getQuery();
-					}
-					
-					try {
-						d = collection.manageSearch(q);
-					} catch (AccessException | RateLimitException | NetworkException e1) {
-						e1.printStackTrace();
-					}
-					return d;
-					
-				}
-				
-			};*/
-			
 			progress.getProcessStatus().textProperty().set("New search");
 			progress.getProcessStatus().textProperty().bind(newSearchTask.messageProperty());
 			progress.getProgressBar().progressProperty().bind(newSearchTask.progressProperty());
 			progress.getProcessStatus().textProperty().bind(newSearchTask.messageProperty());
-			/*newSearchTask.addEventHandler(WorkerStateEvent.WORKER_STATE_RUNNING, 
-					new EventHandler<WorkerStateEvent>() {
-						@Override
-						public void handle(WorkerStateEvent event) {
-							int downloaded = collection.getDownloaded();
-							//System.out.println(downloaded);
-							progress.getProcessStatus().textProperty().unbind();
-							progress.getProcessStatus().setText("Downloaded tweets: " + downloaded);
-						}
-			});*/
+
 			newSearchTask.addEventHandler(WorkerStateEvent.WORKER_STATE_SUCCEEDED,
 					new EventHandler<WorkerStateEvent>() {
-						@Override
-						public void handle(WorkerStateEvent event) {
-							okClicked = true;
-							progress.getStage().close();
-							Alert alert = new Alert(AlertType.INFORMATION);
-							alert.setTitle("NEW SEARCH FINISHED");
-							alert.setHeaderText("Tweets downloaded");
-							if (collection.getDownloaded() != 0) {
-								alert.setContentText("Success! You have downloaded " + collection.getDownloaded() + " tweets");
-							} else {
-								alert.setContentText("You haven't downloaded any tweet, try next time!");
-							}
-							alert.showAndWait();
-							historic.updateViews();
-						}							
+				@Override
+				public void handle(WorkerStateEvent event) {
+					okClicked = true;
+					progress.getStage().close();
+					Alert alert = new Alert(AlertType.INFORMATION);
+					alert.setTitle("NEW SEARCH FINISHED");
+					alert.setHeaderText("Tweets downloaded");
+					if (collection.getDownloaded() != 0) {
+						alert.setContentText("Success! You have downloaded " + collection.getDownloaded() + " tweets");
+					} else {
+						alert.setContentText("You haven't downloaded any tweet, try next time!");
+					}
+					alert.showAndWait();
+					historic.updateViews();
+				}							
 			});
+			// FIXME I am not able to show the warnings in case of error
 			newSearchTask.addEventHandler(WorkerStateEvent.WORKER_STATE_FAILED, 
 					new EventHandler<WorkerStateEvent>() {
-						@Override
-						public void handle(WorkerStateEvent event) {
-							System.out.println(event.getEventType());
-							System.out.println("FAILED!!! :(");
-						}
+				@Override
+				public void handle(WorkerStateEvent event) {
+					System.out.println(event.getEventType());
+					System.out.println("FAILED!!! :(");
+				}
 			});
 			new Thread(newSearchTask).start();
 		});
 
 	}
 
+	/**
+	 * Checks if the search has been previously done
+	 * @param q (query)
+	 * @return if the search is new or not
+	 */
 	private boolean checkSearch(String q) {
 
 		boolean repeat = false;
 
 		Integer col = null;
-		
+
 		try {
 			col = collection.checkQuery(q);
 		} catch (DatabaseReadException e2) {
@@ -212,10 +183,6 @@ public class NewHistoricDialogController {
 
 	public void setCollection(DBCollection c) {
 		this.collection = c;
-		/*
-		 * if(!collection.getQuery().isEmpty()) {
-		 * userQuery.setText(collection.getQuery()); }
-		 */ // esto era para el método anterior de repeatSearch
 	}
 
 	/**
@@ -227,12 +194,15 @@ public class NewHistoricDialogController {
 		return okClicked;
 	}
 
+	/**
+	 * The user cancels the search
+	 */
 	@FXML
 	private void handleCancel() {
 		collection = null;
 		dialogStage.close();
 	}
-	
+
 	public void setHistoricView(HistoricViewController historicViewController) {
 		this.historic = historicViewController;
 	}

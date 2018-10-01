@@ -5,18 +5,8 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.layout.AnchorPane?>
 
-<AnchorPane prefHeight="300.0" prefWidth="434.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.view.ProgressController">
+<AnchorPane prefHeight="156.0" prefWidth="434.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.view.ProgressController">
    <children>
-      <AnchorPane fx:id="detailsArea" layoutY="184.0" prefHeight="153.0" prefWidth="434.0" AnchorPane.bottomAnchor="0.0">
-         <children>
-            <ScrollPane layoutX="67.0" layoutY="16.0" prefHeight="111.0" prefWidth="298.0" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="67.0" AnchorPane.rightAnchor="69.0">
-              <content>
-                <AnchorPane prefHeight="120.0" prefWidth="392.0" />
-              </content>
-            </ScrollPane>
-         </children>
-      </AnchorPane>
-      <Button fx:id="detailsButton" layoutX="275.0" layoutY="122.0" mnemonicParsing="false" onAction="#detailsMenu" text="Show details..." AnchorPane.rightAnchor="68.0" />
       <ProgressBar fx:id="progressBar" layoutX="68.0" layoutY="84.0" prefHeight="25.0" prefWidth="298.0" progress="0.0" AnchorPane.topAnchor="85.0" />
       <Label fx:id="processTitle" layoutX="203.0" layoutY="42.0" text="Label" AnchorPane.topAnchor="40.0" />
       <Label fx:id="processStatus" layoutX="68.0" layoutY="117.0" AnchorPane.topAnchor="117.0" />

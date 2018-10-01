@@ -17,11 +17,20 @@ import javafx.concurrent.WorkerStateEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.Cursor;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.input.KeyCode;
 import javafx.stage.Stage;
+import twitter4j.TwitterException;
+
+/**
+ * Controller of the login view of the application
+ * @author Maria Cristina, github: cgg09
+ *
+ */
 
 public class LoginViewController {
 
@@ -30,6 +39,7 @@ public class LoginViewController {
 	@FXML
 	private MenuButton loginButton;
 	private Stage currentStage;
+	private int UNAUTHORIZED = 401;
 
 	/**
 	 * The constructor, called before the initialize() method
@@ -41,13 +51,9 @@ public class LoginViewController {
 	/**
 	 * Initializes the controller class This method is automatically called after
 	 * the fxml file has been loaded
-	 * 
-	 * @throws DatabaseReadException
 	 */
 	@FXML
 	public void initialize() {
-
-
 		
 		// get user list
 		Main.setDBUserDAO(DBUserDAO.getInstance());
@@ -85,33 +91,71 @@ public class LoginViewController {
 					progress.getProgressBar().progressProperty().bind(loginTask.progressProperty());
 					progress.getProcessStatus().textProperty().bind(loginTask.messageProperty());
 					
-					loginTask.addEventHandler(WorkerStateEvent.WORKER_STATE_RUNNING, new EventHandler<WorkerStateEvent>() {
-						@Override
-						public void handle(WorkerStateEvent event) {
-							
-							/**
-							 *  TODO: show progress messages:
-							 *  Creating twitter session
-							 *  		|
-							 *  		v
-							 *  Retrieving user session (getting db info/connecting to twitter/verifying credentials)
-							 *  -------------------------------------------------------------------------------------
-							 *  Loading view
-							 *  Loading info user (collections)
-							 */
-						}
-
-					});
 					
-					loginTask.addEventHandler(WorkerStateEvent.WORKER_STATE_FAILED, new EventHandler<WorkerStateEvent>() {
+					// FIXME I am not able to show the warnings in case of error
+					
+					/*loginTask.setOnFailed(new EventHandler<WorkerStateEvent>() {
+					      @Override public void handle(WorkerStateEvent t) {
+					        Object ee = loginTask.getException();
+					        TwitterException e = (TwitterException) ee;
+					        System.out.println("Exception: "+e.getMessage());
+					        if(((TwitterException) e).getStatusCode() == UNAUTHORIZED) {
+					        	Alert alert = new Alert(AlertType.WARNING);
+					    		alert.setTitle("ACCESS FAILURE");
+					    		alert.setHeaderText("Access error");
+					    		alert.setContentText(((TwitterException) e).getErrorMessage()+" Please check out your Twitter settings account.");
+					    		alert.showAndWait();*/
+								/*try {
+									throw new AccessException(e.getErrorMessage(), e);
+								} catch (AccessException e1) {
+									// TODO Auto-generated catch block
+									e1.printStackTrace();
+								}
+							}
+							try {
+								throw new NetworkException("You do not have internet connection. Please check it out before continue", e);
+							} catch (NetworkException e1) {
+								// TODO Auto-generated catch block
+								e1.printStackTrace();*/
+							/*} else {
+								Alert alert = new Alert(AlertType.WARNING);
+								alert.setTitle("CONNECTIVITY FAILURE");
+								alert.setHeaderText("Internet connection error");
+								alert.setContentText("You do not have internet connection. Please check it out before continue");
+								alert.showAndWait();
+							}
+					        //loginTask.setText(ouch.getClass().getName() + " -> " + ouch.getMessage());
+					      }
+					    });
+			
+					*/
+					/*loginTask.addEventHandler(WorkerStateEvent.WORKER_STATE_FAILED, new EventHandler<WorkerStateEvent>() {
 
 						@Override
 						public void handle(WorkerStateEvent event) {
-							System.out.println(event.getSource().getException());
-							
+							System.out.println("Heee"+event.getSource().getException());
+							System.out.println(loginTask.exceptionProperty().get());
+							loginTask.exceptionProperty().addListener((observableValue, oldValue, newValue)->{
+								TwitterException e = (TwitterException) newValue;
+								System.out.println("Twitter exception");
+								if(e.getStatusCode() == UNAUTHORIZED) {
+						        	Alert alert = new Alert(AlertType.WARNING);
+						    		alert.setTitle("ACCESS FAILURE");
+						    		alert.setHeaderText("Access error");
+						    		alert.setContentText(e.getErrorMessage()+" Please check out your Twitter settings account.");
+						    		alert.showAndWait();
+								} else {
+									Alert alert = new Alert(AlertType.WARNING);
+									alert.setTitle("CONNECTIVITY FAILURE");
+									alert.setHeaderText("Internet connection error");
+									alert.setContentText("You do not have internet connection. Please check it out before continue");
+									alert.showAndWait();
+								}
+								
+							});
 						}
 						
-					});
+					});*/
 
 					loginTask.addEventHandler(WorkerStateEvent.WORKER_STATE_SUCCEEDED,
 							new EventHandler<WorkerStateEvent>() {
@@ -139,7 +183,7 @@ public class LoginViewController {
 	}
 
 	/**
-	 * When the user clicks the login button
+	 * The user clicks the new login button
 	 * 
 	 * @throws ConnectivityException
 	 * @throws AccessException
@@ -156,6 +200,7 @@ public class LoginViewController {
 		progress.getProgressBar().progressProperty().bind(singUpTask.progressProperty());
 		progress.getProcessStatus().textProperty().bind(singUpTask.messageProperty());
 		
+		// FIXME I am not able to show the warnings in case of error
 		singUpTask.addEventHandler(WorkerStateEvent.WORKER_STATE_FAILED, new EventHandler<WorkerStateEvent>() {
 
 			@Override

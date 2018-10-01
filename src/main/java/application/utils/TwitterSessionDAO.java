@@ -7,6 +7,12 @@ import twitter4j.TwitterFactory;
 import twitter4j.conf.Configuration;
 import twitter4j.conf.ConfigurationBuilder;
 
+/**
+ * DAO class to manage all the information related to a Twitter session
+ * @author Maria Cristina, github: cgg09
+ *
+ */
+
 public class TwitterSessionDAO {
 
 	private static TwitterSessionDAO instance;
@@ -22,6 +28,19 @@ public class TwitterSessionDAO {
 			instance = new TwitterSessionDAO();
 		}
 		return instance;
+	}
+	
+	
+	public Twitter getTwitter() {
+		return twitter;
+	}
+	
+	public void setTwitterInstance(Twitter twitter) {
+		this.twitter = twitter;
+	}
+	
+	public String getCallbackUrl() {
+		return callback_url;
 	}
 	
 	/**
@@ -48,18 +67,5 @@ public class TwitterSessionDAO {
 		callback_url = appProps.getValue("base_callback_url");
 		return twitter;
 	}
-	
-	public Twitter getTwitter() {
-		return twitter;
-	}
-	
-	public void setTwitterInstance(Twitter twitter) {
-		this.twitter = twitter;
-	}
-	
-	public String getCallbackUrl() {
-		return callback_url;
-	}
-	
-	
+
 }

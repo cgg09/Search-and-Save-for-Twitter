@@ -11,6 +11,12 @@ import org.sqlite.SQLiteConfig;
 import application.exceptions.DatabaseReadException;
 import application.exceptions.DatabaseWriteException;
 
+/**
+ * DAO class to manage the creation and maintenance of the database
+ * @author Maria Cristina, github: cgg09
+ *
+ */
+
 public class DatabaseDAO {
 
 	private static DatabaseDAO instance;
@@ -74,7 +80,11 @@ public class DatabaseDAO {
 		}
 	}
 	
-	public void checkDatabase() throws DatabaseReadException { //FIXME no sirve de nada !!! no funciona !!! pendiente de arreglar
+	/**
+	 * Check if the database is created correctly
+	 * @throws DatabaseReadException
+	 */
+	public void checkDatabase() throws DatabaseReadException { //FIXME it does not work correctly, it does not detect errors in the tables
 		connect();
 		
 		PreparedStatement psu = null;
@@ -90,7 +100,7 @@ public class DatabaseDAO {
 		}
 		
 		if(psu == null) {
-			System.out.println("Hi, users");
+			//System.out.println("Hi, users");
 			try {
 				createUserTable();
 			} catch (DatabaseWriteException e) {
@@ -99,7 +109,7 @@ public class DatabaseDAO {
 		}
 		
 		if(psc == null) {
-			System.out.println("Hi, collections");
+			//System.out.println("Hi, collections");
 			try {
 				createCollectionTable();
 			} catch (DatabaseWriteException e) {
@@ -108,7 +118,7 @@ public class DatabaseDAO {
 		}
 		
 		if(pst == null) {
-			System.out.println("Hi, tweets");
+			//System.out.println("Hi, tweets");
 			try {
 				createTweetTable();
 			} catch (DatabaseWriteException e) {
@@ -119,6 +129,10 @@ public class DatabaseDAO {
 		System.out.println("DB checked");
 	}
 	
+	/**
+	 * Creates table to save each user information
+	 * @throws DatabaseWriteException
+	 */
 	public void createUserTable() throws DatabaseWriteException {
 		Statement stmtU = null;
 		try {
@@ -129,6 +143,10 @@ public class DatabaseDAO {
 		}
 	}
 	
+	/**
+	 * Creates table to save each search information
+	 * @throws DatabaseWriteException
+	 */
 	public void createCollectionTable() throws DatabaseWriteException {
 		Statement stmtC = null;
 		try {
@@ -139,6 +157,10 @@ public class DatabaseDAO {
 		}
 	}
 	
+	/**
+	 * Creates table to save each tweet information
+	 * @throws DatabaseWriteException
+	 */
 	public void createTweetTable() throws DatabaseWriteException {
 		Statement stmtT = null;
 		try {
