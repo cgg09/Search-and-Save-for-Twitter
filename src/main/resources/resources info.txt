@@ -1,0 +1,9 @@
+In this folder there are two more files:
+* The database, which is generated automatically by the program.
+* A properties file ("client.properties") with the consumer_key, consumer_secret and the base_callback_url. It is required to create this file.
+
+An example of the "client.properties" file would be this one:
+
+consumer_key=***********************
+consumer_secret=**************************
+base_callback_url=http://127.0.0.1:8080/TFG/twitter_callback
